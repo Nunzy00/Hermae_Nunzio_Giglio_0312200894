@@ -13,12 +13,12 @@
 graph TD
     HERMAE["1.0 HERMAE: Sistema di Geolocalizzazione Culturale"]
 
-    WP1["1.1 Analisi e Definizione Requisiti"]
-    WP2["1.2 Progettazione Architetturale e Design"]
-    WP3["1.3 Sviluppo Back-end e Persistenza GIS"]
-    WP4["1.4 Sviluppo Front-end e UI/UX"]
-    WP5["1.5 Collaudo, Accessibilità e Sicurezza"]
-    WP6["1.6 Documentazione e Rapporto Tecnico"]
+    WP1["1.1 Analisi e Definizione Requisiti (15h)"]
+    WP2["1.2 Progettazione Architetturale e Design (20h)"]
+    WP3["1.3 Sviluppo Back-end e Persistenza GIS (45h)"]
+    WP4["1.4 Sviluppo Front-end e UI/UX (50h)"]
+    WP5["1.5 Collaudo, Accessibilità e Sicurezza (15h)"]
+    WP6["1.6 Documentazione e Rapporto Tecnico (35h)"]
 
     HERMAE --> WP1
     HERMAE --> WP2
@@ -73,37 +73,73 @@ graph TD
 ## 2. Dizionario della WBS (Work Breakdown Structure Dictionary)
 
 ### WP 1.1 — Analisi dei Requisiti e Studio di Fattibilità
+
+| Codice | Attività / Fase | Descrizione Sintetica | Deliverable / Output | Stima |
+| :---: | :--- | :--- | :--- | :---: |
+| **1.1.1** | Analisi contesto operativo e sharing librario | Studio delle dinamiche di book-sharing territoriale e target | Documento di analisi e scenari d'uso | 4 h |
+| **1.1.2** | Specifiche requisiti funzionali | Definizione flussi utente: catalogo, geolocalizzazione, prestiti | Matrice dei requisiti funzionali | 6 h |
+| **1.1.3** | Specifiche requisiti non funzionali | Definizione standard WCAG 2.1 AA, GDPR e prestazioni GIS | Capitolato requisiti non funzionali | 5 h |
+
 - **1.1.1 Analisi del contesto operativo e sharing librario:** Studio delle dinamiche di condivisione culturale e micro-biblioteche private; identificazione del target di riferimento (quartieri, comunità urbane, circoli culturali).
 - **1.1.2 Specifiche dei requisiti funzionali:** Definizione delle casistiche d'uso (pubblicazione volumi, geocodifica, filtri per raggio chilometrico, richiesta prestito simulata, gestione stato disponibilità, cruscotto statistiche).
 - **1.1.3 Specifiche dei requisiti non funzionali:** Definizione dei vincoli prestazionali (risposta query spaziali < 200ms), standard di usabilità e accessibilità (**WCAG 2.1 Livello AA / WAI-ARIA**), e adempimenti normativi per la privacy (**GDPR**, consenso granulare alla geolocalizzazione).
-- *Deliverable:* Documento di specifica dei requisiti funzionali e non funzionali.
+- *Deliverable complessivo:* Documento di specifica dei requisiti funzionali e non funzionali.
 - *Stima impegno:* ~15 ore.
 
 ---
 
 ### WP 1.2 — Progettazione Architetturale e di Sistema
+
+| Codice | Attività / Fase | Descrizione Sintetica | Deliverable / Output | Stima |
+| :---: | :--- | :--- | :--- | :---: |
+| **1.2.1** | Progettazione architettura REST & SPA | Modello disaccoppiato client-server e contratti API REST | Specifica OpenAPI/Swagger e contratti API | 5 h |
+| **1.2.2** | Modellazione DB PostgreSQL + PostGIS | Schema E-R, tipologia `Point 4326` e indici spaziali `GIST` | Diagramma E-R e bozza schema SQL | 6 h |
+| **1.2.3** | Design wireframe UI e alberatura rotte | Alberatura Vue Router e mockup dell'interfaccia utente | Wireframe viste desktop/mobile | 5 h |
+| **1.2.4** | Progettazione sicurezza e pipeline immagini | Architettura auth (JWT, bcrypt) e pipeline WebP/thumb con Sharp | Specifiche moduli sicurezza e media | 4 h |
+
 - **1.2.1 Progettazione architettura REST & SPA:** Definizione dell'architettura disaccoppiata client-server; specifica dei contratti API RESTful (endpoint, verbi HTTP, status code, strutture JSON).
 - **1.2.2 Modellazione DB PostgreSQL + PostGIS:** Progettazione dello schema logico-concettuale E-R; definizione delle tabelle (`utenti`, `libri`, `categorie`, `prestiti`, `metriche_visite`); scelta del tipo geografico `GEOMETRY(Point, 4326)` e indicizzazione spaziale `GIST`.
 - **1.2.3 Design wireframe UI e alberatura rotte:** Progettazione dell'albero di navigazione client (`Vue Router` con History API) e dei mockup wireframe per le viste desktop e mobile.
 - **1.2.4 Progettazione sicurezza e pipeline immagini:** Specifica del meccanismo di autenticazione con hash crittografico `bcrypt` e token firmati `JWT` senza librerie esterne di gestione sessione; progettazione della pipeline di conversione asincrona in formato WebP e generazione thumbnail con `sharp`.
-- *Deliverable:* Diagramma architetturale, schema E-R e wireframe di navigazione.
+- *Deliverable complessivo:* Diagramma architetturale, schema E-R e wireframe di navigazione.
 - *Stima impegno:* ~20 ore.
 
 ---
 
 ### WP 1.3 — Sviluppo Back-end e Persistenza GIS
+
+| Codice | Attività / Fase | Descrizione Sintetica | Deliverable / Output | Stima |
+| :---: | :--- | :--- | :--- | :---: |
+| **1.3.1** | Setup Express e connessione DB | Setup Node.js, architettura a livelli e pool driver `pg` | Server Express e configurazione DB | 5 h |
+| **1.3.2** | Script DDL PostGIS e seeding di test | Script creazione tabelle, indici spaziali GIST e dati fittizi | File `.sql` di migrazione e seeding | 6 h |
+| **1.3.3** | Modulo Auth e sicurezza custom | Registrazione, login, hashing bcrypt e middleware verifica JWT | Endpoint `/auth/*` e middleware security | 8 h |
+| **1.3.4** | Servizi geospaziali e query di prossimità | Query PostGIS `ST_DWithin` e `ST_DistanceSphere` | Endpoint ricerca geolocalizzata `/libri/geo` | 10 h |
+| **1.3.5** | Pipeline gestione immagini | Upload Multer e ridimensionamento WebP/thumbnail con Sharp | Modulo storage e generazione WebP | 8 h |
+| **1.3.6** | API prestiti, statistiche e dashboard | Logica prestito simulato, tracciamento visite e aggregazioni | Endpoint prestiti e statistiche dashboard | 8 h |
+
 - **1.3.1 Setup ambiente runtime e configurazione Express:** Inizializzazione progetto Node.js, struttura modulare a livelli (*Routes*, *Controllers*, *Services*, *Middlewares*), configurazione pool di connessioni con driver nativo `pg`.
 - **1.3.2 Script DDL PostGIS e seeding di test:** Creazione degli script SQL di generazione schema, estensioni spaziali (`CREATE EXTENSION IF NOT EXISTS postgis;`), indici e dataset di popolamento fittizio coerente su coordinate urbane reali.
 - **1.3.3 Modulo Autenticazione e Sicurezza Custom:** Implementazione rotte `/auth/register` e `/auth/login`, hashing password con salt round elevato (>= 12), generazione token JWT con payload minimali e middleware di verifica autorizzazioni.
 - **1.3.4 Servizi Geospaziali e Query di Prossimità:** Implementazione delle query spaziali tramite funzioni PostGIS (`ST_DWithin`, `ST_DistanceSphere`, `ST_MakePoint`) per la ricerca di volumi entro un raggio specificato dall'utente.
 - **1.3.5 Pipeline Gestione Immagini:** Configurazione di `multer` per l'upload multipart, validazione MIME-type e trasformazione asincrona con `sharp` (ottimizzazione qualità, formato WebP standard a 800px e thumbnail a 200px).
 - **1.3.6 API Prestiti, Statistiche e Dashboard:** Implementazione della logica di prenotazione/prestito simulato, tracciamento visualizzazioni/download e query di aggregazione per le metriche della dashboard amministrativa.
-- *Deliverable:* Server REST API Node.js/Express funzionante e database PostGIS popolato.
+- *Deliverable complessivo:* Server REST API Node.js/Express funzionante e database PostGIS popolato.
 - *Stima impegno:* ~45 ore.
 
 ---
 
 ### WP 1.4 — Sviluppo Front-end e Interfaccia Utente (UI/UX)
+
+| Codice | Attività / Fase | Descrizione Sintetica | Deliverable / Output | Stima |
+| :---: | :--- | :--- | :--- | :---: |
+| **1.4.1** | Scaffolding Vue 3 e Bootstrap 5 | Setup SPA Composition API, tema Bootstrap e Bootstrap Icons | Progetto Vue 3 responsive configurato | 6 h |
+| **1.4.2** | Client HTTP Axios centralizzato | Interceptors per token JWT automatico e gestione errori di rete | Modulo Axios configurato | 4 h |
+| **1.4.3** | Vista Mappa e filtri spaziali (`/`) | Leaflet.js, layer OSM, rendering marker e slider raggio | Vista interattiva di geolocalizzazione | 12 h |
+| **1.4.4** | Viste Auth e Profilo | Accesso/registrazione con consensi GDPR e pannello libreria | Viste `/login`, `/registrazione`, `/profilo` | 7 h |
+| **1.4.5** | Form Pubblicazione Libro (`/pubblica`) | Inserimento metadati, coordinate e upload cover con preview | Form accessibile e validato | 8 h |
+| **1.4.6** | Scheda Dettaglio Libro (`/libri/:id`) | Immagine WebP, raggio confidenziale e richiesta prestito | Scheda libro con deep linking | 7 h |
+| **1.4.7** | Dashboard Analitica (`/dashboard`) | Visualizzazione metriche aggregate con grafici Chart.js | Cruscotto analitico interattivo | 6 h |
+
 - **1.4.1 Scaffolding Vue 3 e integrazione Bootstrap 5:** Setup Single Page Application con Composition API (`<script setup>`), tema grafico responsive e libreria icone `Bootstrap Icons`.
 - **1.4.2 Client HTTP Axios centralizzato:** Configurazione dell'istanza Axios con interceptor per l'iniezione automatica dell'header `Authorization: Bearer <token>` e gestione centralizzata dei codici di stato (401, 403, 500).
 - **1.4.3 Vista Mappa e Filtri Spaziali (`/`):** Integrazione della mappa interattiva con `Leaflet.js` e tile OpenStreetMap, rendering dinamico dei marker per i libri censiti, popup informativi e slider per il controllo del raggio di ricerca.
@@ -111,22 +147,38 @@ graph TD
 - **1.4.5 Form Pubblicazione Libro (`/pubblica`):** Pagina riservata (protetta da Navigation Guard di Vue Router) per l'inserimento dei metadati (titolo, autore, ISBN, categoria), geocodifica manuale o rilevamento posizione e upload copertina con anteprima istantanea.
 - **1.4.6 Scheda Dettaglio Libro (`/libri/:id`):** Vista dettagliata del volume con immagine WebP ad alta risoluzione, mappa locale con raggio di confidenzialità per la privacy, metadati completi e pulsante di contatto/richiesta prestito simulata.
 - **1.4.7 Dashboard Analitica (`/dashboard`):** Realizzazione della vista di monitoraggio con grafici interattivi `Chart.js` (andamento prestiti, volumi più consultati, categorie più popolari).
-- *Deliverable:* Single Page Application Vue 3 responsiva, accessibile e completamente integrata con le API.
+- *Deliverable complessivo:* Single Page Application Vue 3 responsiva, accessibile e completamente integrata con le API.
 - *Stima impegno:* ~50 ore.
 
 ---
 
 ### WP 1.5 — Collaudo, Accessibilità e Sicurezza
+
+| Codice | Attività / Fase | Descrizione Sintetica | Deliverable / Output | Stima |
+| :---: | :--- | :--- | :--- | :---: |
+| **1.5.1** | Test funzionali end-to-end | Verifica dei flussi completi (registrazione -> pubblicazione -> mappa -> prestito) | Report collaudo funzionale | 4 h |
+| **1.5.2** | Audit di accessibilità | Verifica WCAG 2.1 AA, contrasti, screen reader e tastiera | Report di conformità WAI-ARIA | 4 h |
+| **1.5.3** | Benchmark prestazioni geospaziali | Confronto tempi query PostGIS con/senza indici GIST | Report metriche prestazionali GIS | 4 h |
+| **1.5.4** | Validazione sicurezza e GDPR | Verifica protezione SQL injection, validazione input e privacy | Checklist sicurezza e privacy | 3 h |
+
 - **1.5.1 Test funzionali end-to-end:** Verifica dei flussi operativi completi (registrazione utente -> pubblicazione libro con immagine -> visualizzazione su mappa -> richiesta prestito).
 - **1.5.2 Audit di Accessibilità (WCAG 2.1 / WAI-ARIA):** Test di contrasto colore, supporto a screen reader, navigazione completa da tastiera (`Tab`, `Enter`, `Escape`), verifica di tag semantici (`<header>`, `<main>`, `<nav>`, `<figure>`) e attributi ARIA (`aria-label`, `aria-expanded`).
 - **1.5.3 Benchmark prestazioni geospaziali:** Verifica dei tempi di esecuzione delle query con indici `GIST` attivi rispetto a scansioni sequenziali su dataset ad alta densità.
 - **1.5.4 Validazione sicurezza e privacy:** Verifica della resistenza a SQL Injection (query parametrizzate `pg`), sanitizzazione input, protezione da overflow upload file e verifica dell'offuscamento delle coordinate per la privacy domestica.
-- *Deliverable:* Report di collaudo funzionale, report di accessibilità e benchmark prestazionali.
+- *Deliverable complessivo:* Report di collaudo funzionale, report di accessibilità e benchmark prestazionali.
 - *Stima impegno:* ~15 ore.
 
 ---
 
 ### WP 1.6 — Redazione Documentazione e Rapporto Tecnico
+
+| Codice | Attività / Fase | Descrizione Sintetica | Deliverable / Output | Stima |
+| :---: | :--- | :--- | :--- | :---: |
+| **1.6.1** | Stesura Parte Prima (Processo) | Anagrafica, competenze universitarie, calendario fasi e risorse | `Parte prima.md` compilato | 8 h |
+| **1.6.2** | Stesura Parte Seconda (Elaborato) | Obiettivi, contesto teorico, scelte progettuali e risultati | `Parte seconda.md` compilato | 16 h |
+| **1.6.3** | Commento codice e documentazione repository | Commenti inline componenti Vue ed Express, README e TECH-STACK | Repository Git commentato | 6 h |
+| **1.6.4** | Revisione finale e compilazione PDF | Verifica target 6.000-10.000 parole, conformità template e PDF | Elaborato finale in PDF | 5 h |
+
 - **1.6.1 Redazione Parte Prima — Descrizione del processo:**
   - Compilazione anagrafica e metadati del Project Work.
   - Sezione 1: Utilizzo delle conoscenze e abilità derivate dagli insegnamenti universitari (Basi di Dati, Ingegneria del Software, Programmazione Web, Sistemi di Elaborazione).
@@ -140,7 +192,7 @@ graph TD
   - Sezione 5: Valutazione dei risultati, potenzialità del prototipo e limiti futuri di scalabilità.
 - **1.6.3 Commento codice sorgente e documentazione repository:** Verifica dei commenti inline nei componenti Vue e nelle rotte Express; aggiornamento di `README.md` e `TECH-STACK.md`.
 - **1.6.4 Revisione finale e compilazione PDF:** Revisione formale del testo (target 6.000 - 10.000 parole), conformità al template e generazione del deliverable PDF definitivo.
-- *Deliverable:* Rapporto tecnico completo (PDF), codice sorgente commentato e repository pronto per il rilascio.
+- *Deliverable complessivo:* Rapporto tecnico completo (PDF), codice sorgente commentato e repository pronto per il rilascio.
 - *Stima impegno:* ~35 ore.
 
 ---
