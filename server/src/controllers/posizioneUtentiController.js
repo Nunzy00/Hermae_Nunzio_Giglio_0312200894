@@ -130,10 +130,55 @@ const getPosizioniVicine = async (req, res, next) => {
   }
 };
 
+// Stima la posizione geografica approssimata tramite indirizzo IP pubblico di rete (fallback per client desktop/senza GPS)
+const localizzaDaIP = async (req, res, next) => {
+  try {
+    const clientIp = req.headers['x-forwarded-for']?.split(',')[0]?.trim() || req.socket.remoteAddress;
+    const isLocalhost = clientIp === '127.0.0.1' || clientIp === '::1' || clientIp === '::ffff:127.0.0.1';
+
+    const url = isLocalhost ? 'https://ipapi.co/json/' : `https://ipapi.co/${encodeURIComponent(clientIp)}/json/`;
+    const response = await fetch(url, {
+      headers: { 'User-Agent': 'HermaeSharingCulturale/1.0' },
+      signal: AbortSignal.timeout(5000)
+    });
+
+    if (!response.ok) {
+      throw new Error(`Servizio IP Geolocation non disponibile (status ${response.status})`);
+    }
+
+    const data = await response.json();
+    if (!data.latitude || !data.longitude) {
+      throw new Error('Coordinate non rilevabili dall\'indirizzo IP');
+    }
+
+    res.status(200).json({
+      success: true,
+      data: {
+        lat: parseFloat(data.latitude),
+        lng: parseFloat(data.longitude),
+        citta: data.city || 'Comune rilevato da IP',
+        regione: data.region || '',
+        nazione: data.country_name || 'Italia',
+        accuracy: 1500,
+        source: 'ip_fallback'
+      }
+    });
+  } catch (error) {
+    res.status(200).json({
+      success: false,
+      error: {
+        code: 'IP_GEO_FAILED',
+        message: 'Impossibile ricavare la posizione tramite connessione IP.'
+      }
+    });
+  }
+};
+
 module.exports = {
   getMiaPosizione,
   salvaPosizione,
   aggiornaMiaPosizione,
   eliminaMiaPosizione,
-  getPosizioniVicine
+  getPosizioniVicine,
+  localizzaDaIP
 };

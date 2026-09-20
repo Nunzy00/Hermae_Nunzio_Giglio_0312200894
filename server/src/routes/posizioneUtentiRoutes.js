@@ -3,7 +3,10 @@ const router = express.Router();
 const posizioneController = require('../controllers/posizioneUtentiController');
 const { authenticate } = require('../middlewares/authMiddleware');
 
-// Applica il middleware di autenticazione Bearer a tutte le rotte di gestione posizione
+// Rotta pubblica per la stima geografica tramite IP di rete (fallback resiliente)
+router.get('/ip-locate', posizioneController.localizzaDaIP);
+
+// Applica il middleware di autenticazione Bearer alle restanti rotte riservate
 router.use(authenticate);
 
 // Rotta per recuperare la posizione geografica dell'utente autenticato

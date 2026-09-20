@@ -236,6 +236,36 @@ const LoadingSpinner = {
   `
 };
 
+// Componente Geo Accuracy Badge: Indicatore visivo accessibile dell'accuratezza del segnale GPS
+const GeoAccuracyBadge = {
+  name: 'GeoAccuracyBadge',
+  props: {
+    accuracy: {
+      type: Number,
+      default: null
+    }
+  },
+  computed: {
+    // Calcola la valutazione dell'accuratezza tramite il modulo HermaeGeo
+    evaluation() {
+      if (window.HermaeGeo) {
+        return window.HermaeGeo.evaluateAccuracy(this.accuracy);
+      }
+      if (!this.accuracy) return { level: 'unknown', label: 'Precisione non determinata', badgeClass: 'bg-secondary', meters: null };
+      const m = Math.round(this.accuracy);
+      if (m <= 30) return { level: 'high', label: 'Segnale GPS Ottimale', badgeClass: 'bg-success', meters: m };
+      if (m <= 100) return { level: 'medium', label: 'Precisione Media (Rete/Wi-Fi)', badgeClass: 'bg-warning text-dark', meters: m };
+      return { level: 'low', label: 'Precisione Approssimata', badgeClass: 'bg-danger', meters: m };
+    }
+  },
+  template: `
+    <span v-if="accuracy !== null && accuracy !== undefined" class="badge d-inline-flex align-items-center gap-1" :class="evaluation.badgeClass" :title="'Margine di precisione stimato: ±' + evaluation.meters + ' metri'">
+      <i class="bi bi-broadcast-pin" aria-hidden="true"></i>
+      <span>{{ evaluation.label }} (±{{ evaluation.meters }}m)</span>
+    </span>
+  `
+};
+
 // Registra globalmente i componenti riutilizzabili sull'applicazione Vue 3 passata come parametro
 function registerGlobalComponents(app) {
   app.component('navbar-guest', NavbarGuest);
@@ -243,6 +273,7 @@ function registerGlobalComponents(app) {
   app.component('app-footer', AppFooter);
   app.component('toast-notification', ToastNotification);
   app.component('loading-spinner', LoadingSpinner);
+  app.component('geo-accuracy-badge', GeoAccuracyBadge);
 }
 
 // Esporta le definizioni e la funzione di registrazione nel contesto globale
@@ -252,5 +283,6 @@ window.HermaeComponents = {
   AppFooter,
   ToastNotification,
   LoadingSpinner,
+  GeoAccuracyBadge,
   registerGlobalComponents
 };

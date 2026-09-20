@@ -142,6 +142,7 @@ const findPosizioniVicine = async (lat, lng, raggioKm = 10, limit = 20) => {
       p.id,
       p.utente_id,
       p.citta,
+      p.indirizzo_approssimato,
       p.coordinate_offuscate,
       p.raggio_ricerca_km,
       u.nome,
@@ -156,15 +157,25 @@ const findPosizioniVicine = async (lat, lng, raggioKm = 10, limit = 20) => {
   `;
 
   const result = await db.query(query, [targetLat, targetLng, radius, limit]);
-  return result.rows.map(row => ({
-    id: row.id,
-    utente_id: row.utente_id,
-    citta: row.citta,
-    utente: `${row.nome} ${row.cognome.charAt(0)}.`,
-    coordinate_offuscate: { lat: row.coordinate_offuscate.y, lng: row.coordinate_offuscate.x },
-    distanza_metri: parseFloat(row.distanza_metri),
-    distanza_km: parseFloat((row.distanza_metri / 1000).toFixed(2))
-  }));
+  return result.rows.map(row => {
+    const km = parseFloat((row.distanza_metri / 1000).toFixed(2));
+    let fascia = 'Stesso Quartiere';
+    if (km > 25) fascia = 'Area Provinciale';
+    else if (km > 10) fascia = 'Area Metropolitana';
+    else if (km > 2) fascia = 'Stessa Città';
+
+    return {
+      id: row.id,
+      utente_id: row.utente_id,
+      citta: row.citta,
+      indirizzo_approssimato: row.indirizzo_approssimato || null,
+      utente: `${row.nome} ${row.cognome.charAt(0)}.`,
+      coordinate_offuscate: { lat: row.coordinate_offuscate.y, lng: row.coordinate_offuscate.x },
+      distanza_metri: parseFloat(row.distanza_metri),
+      distanza_km: km,
+      fascia_prossimita: fascia
+    };
+  });
 };
 
 module.exports = {

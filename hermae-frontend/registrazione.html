@@ -182,16 +182,21 @@
                   </div>
                 </div>
 
-                <button 
-                  type="button" 
-                  class="btn btn-outline-primary btn-sm w-100 d-flex align-items-center justify-content-center gap-2"
-                  @click="detectLocation" 
-                  :disabled="locating"
-                >
-                  <span v-if="locating" class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
-                  <i v-else class="bi bi-crosshair" aria-hidden="true"></i>
-                  {{ locating ? 'Rilevamento coordinate in corso...' : 'Rileva coordinate con il browser' }}
-                </button>
+                <div class="d-flex flex-column gap-2">
+                  <button 
+                    type="button" 
+                    class="btn btn-outline-primary btn-sm w-100 d-flex align-items-center justify-content-center gap-2"
+                    @click="detectLocation" 
+                    :disabled="locating"
+                  >
+                    <span v-if="locating" class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                    <i v-else class="bi bi-crosshair" aria-hidden="true"></i>
+                    {{ locating ? 'Rilevamento coordinate in corso...' : 'Rileva coordinate con il browser' }}
+                  </button>
+                  <div v-if="gpsAccuracy" class="text-center">
+                    <geo-accuracy-badge :accuracy="gpsAccuracy"></geo-accuracy-badge>
+                  </div>
+                </div>
               </div>
 
               <!-- Sezione Consensi Privacy GDPR Obbligatori -->
@@ -264,6 +269,7 @@
   <!-- Script Applicativi Interni -->
   <script src="assets/js/api.js"></script>
   <script src="assets/js/auth.js"></script>
+  <script src="assets/js/geolocation.js"></script>
   <script src="assets/js/components/global-components.js"></script>
 
   <!-- Logica Reattiva della Vista Registrazione -->
@@ -298,6 +304,7 @@
         const showPassword = ref(false);
         const loading = ref(false);
         const locating = ref(false);
+        const gpsAccuracy = ref(null);
         const toasts = ref([]);
 
         // Aggiunge una notifica alla coda visiva
@@ -317,27 +324,38 @@
           window.auth.requireGuest();
         });
 
-        // Rileva le coordinate geografiche tramite Geolocation API del browser
-        const detectLocation = () => {
-          if (!navigator.geolocation) {
-            addToast('Geolocalizzazione non supportata', 'Il browser non supporta la localizzazione GPS automatica.', 'warning');
+        // Rileva le coordinate geografiche tramite il modulo centralizzato HermaeGeo
+        const detectLocation = async () => {
+          if (!window.HermaeGeo) {
+            addToast('Non supportato', 'Modulo geolocalizzazione non inizializzato.', 'danger');
             return;
           }
 
           locating.value = true;
-          navigator.geolocation.getCurrentPosition(
-            (position) => {
-              form.lat = parseFloat(position.coords.latitude.toFixed(6));
-              form.lng = parseFloat(position.coords.longitude.toFixed(6));
-              locating.value = false;
-              addToast('Posizione Acquisita', 'Coordinate geografiche rilevate con successo.', 'success');
-            },
-            (error) => {
-              locating.value = false;
-              addToast('Localizzazione non riuscita', 'Impossibile determinare la posizione GPS. Inserisci i dati manualmente.', 'warning');
-            },
-            { timeout: 8000, enableHighAccuracy: true }
-          );
+          try {
+            const pos = await window.HermaeGeo.getCurrentPosition({ enableHighAccuracy: true });
+            form.lat = pos.lat;
+            form.lng = pos.lng;
+            gpsAccuracy.value = pos.accuracy;
+
+            addToast(
+              'Posizione Acquisita',
+              `${pos.evaluation.label} (margine stimato: ±${pos.evaluation.meters}m)`,
+              pos.evaluation.level === 'high' ? 'success' : 'warning'
+            );
+
+            // Tenta la geocodifica inversa per compilare automaticamente la città se assente
+            if (!form.citta) {
+              const geo = await window.HermaeGeo.reverseGeocode(pos.lat, pos.lng);
+              if (geo && geo.citta) {
+                form.citta = geo.citta;
+              }
+            }
+          } catch (err) {
+            addToast('Localizzazione non riuscita', err.message || 'Impossibile determinare la posizione GPS.', 'warning');
+          } finally {
+            locating.value = false;
+          }
         };
 
         // Valida tutti i campi e i consensi informati prima dell'invio
@@ -420,6 +438,7 @@
           showPassword,
           loading,
           locating,
+          gpsAccuracy,
           toasts,
           addToast,
           removeToast,

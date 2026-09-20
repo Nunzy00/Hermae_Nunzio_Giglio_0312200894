@@ -6,6 +6,7 @@ const { testConnection, closePool } = require('./src/config/db');
 const server = app.listen(config.port, async () => {
   console.log('====================================================');
   console.log('🚀 HERMAE SERVER avviato con successo!');
+  console.log(`🌐 Applicazione Web: http://localhost:${config.port}`);
   console.log(`📍 Endpoint base: http://localhost:${config.port}${config.apiPrefix}`);
   console.log(`🩺 Health check: http://localhost:${config.port}${config.apiPrefix}/health`);
   console.log(`🌍 Ambiente: ${config.nodeEnv}`);

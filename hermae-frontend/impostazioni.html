@@ -161,7 +161,7 @@
             </div>
           </div>
 
-          <!-- Rilevamento GPS da Browser HTML5 -->
+          <!-- Rilevamento GPS da Browser HTML5 con valutazione di accuratezza -->
           <div class="d-flex flex-wrap gap-2 align-items-center mb-4 p-3 bg-light rounded-3">
             <button
               type="button"
@@ -173,6 +173,7 @@
               <i v-else class="bi bi-crosshair" aria-hidden="true"></i>
               <span>{{ detectingGps ? 'Rilevamento coordinate...' : 'Rileva Posizione con Browser (GPS)' }}</span>
             </button>
+            <geo-accuracy-badge :accuracy="gpsAccuracy"></geo-accuracy-badge>
             <span class="small text-muted">
               Utilizza le API Geolocation HTML5 per compilare automaticamente latitudine e longitudine attuali.
             </span>
@@ -286,6 +287,7 @@
   <!-- Script Applicativi Interni -->
   <script src="assets/js/api.js"></script>
   <script src="assets/js/auth.js"></script>
+  <script src="assets/js/geolocation.js"></script>
   <script src="assets/js/components/global-components.js"></script>
 
   <!-- Logica Reattiva delle Impostazioni e Gestione Posizione -->
@@ -300,6 +302,7 @@
         const saving = ref(false);
         const deleting = ref(false);
         const detectingGps = ref(false);
+        const gpsAccuracy = ref(null);
         const toasts = ref([]);
         const posizioneEsistente = ref(null);
 
@@ -340,29 +343,41 @@
           }
         };
 
-        // Rileva le coordinate correnti tramite l'API Geolocation nativa del browser
-        const rilevaGPS = () => {
-          if (!navigator.geolocation) {
+        // Rileva le coordinate correnti tramite il modulo centralizzato HermaeGeo
+        const rilevaGPS = async () => {
+          if (!window.HermaeGeo) {
             addToast('Non Supportato', 'La geolocalizzazione non è supportata dal tuo browser.', 'danger');
             return;
           }
 
           detectingGps.value = true;
-          navigator.geolocation.getCurrentPosition(
-            (pos) => {
-              form.value.latitudine = parseFloat(pos.coords.latitude.toFixed(7));
-              form.value.longitudine = parseFloat(pos.coords.longitude.toFixed(7));
-              detectingGps.value = false;
-              addToast('GPS Rilevato', 'Coordinate acquisite con successo dal dispositivo.', 'success');
-            },
-            (err) => {
-              detectingGps.value = false;
-              let msg = 'Impossibile determinare la posizione GPS.';
-              if (err.code === 1) msg = 'Permesso di geolocalizzazione negato nel browser.';
-              addToast('Avviso GPS', msg, 'warning');
-            },
-            { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
-          );
+          try {
+            const pos = await window.HermaeGeo.getCurrentPosition({ enableHighAccuracy: true });
+            form.value.latitudine = pos.lat;
+            form.value.longitudine = pos.lng;
+            gpsAccuracy.value = pos.accuracy;
+
+            addToast(
+              'GPS Rilevato',
+              `${pos.evaluation.label} (margine stimato: ±${pos.evaluation.meters}m)`,
+              pos.evaluation.level === 'high' ? 'success' : 'warning'
+            );
+
+            // Tenta la geocodifica inversa per precompilare la città se il campo è vuoto
+            if (!form.value.citta) {
+              const geo = await window.HermaeGeo.reverseGeocode(pos.lat, pos.lng);
+              if (geo && geo.citta) {
+                form.value.citta = geo.citta;
+                if (geo.quartiere && !form.value.indirizzo_approssimato) {
+                  form.value.indirizzo_approssimato = geo.quartiere;
+                }
+              }
+            }
+          } catch (err) {
+            addToast('Avviso GPS', err.message, 'warning');
+          } finally {
+            detectingGps.value = false;
+          }
         };
 
         // Carica la posizione memorizzata per l'utente autenticato dal backend
@@ -465,6 +480,7 @@
           toasts,
           form,
           posizioneEsistente,
+          gpsAccuracy,
           addToast,
           removeToast,
           formatDate,

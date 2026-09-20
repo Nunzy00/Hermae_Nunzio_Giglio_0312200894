@@ -7,7 +7,7 @@
 
 ---
 
-## 1. Tabella Riepilogativa delle Fasi Eseguite (Fasi 1 – 14)
+## 1. Tabella Riepilogativa delle Fasi Eseguite (Fasi 1 – 15)
 
 | Fase | Titolo e Obiettivo | Tempo Stimato | Tempo Effettivo | Documento / Deliverable Prodotto | Stato |
 | :---: | :--- | :---: | :---: | :--- | :---: |
@@ -25,7 +25,8 @@
 | **Fase 12** | Implementazione sistema di Account ed autenticazione | 2 h | 1 h | [`SVILUPPO-PROGRAMMA/fase-12.md`](file:///Users/nunziogiglio/Documents/Github/Repositories/Hermae_Nunzio_Giglio_0312200894/SVILUPPO-PROGRAMMA/fase-12.md) | **Completata** |
 | **Fase 13** | Generazione dei componenti HTML e testing delle funzioni di autenticazione | 2 h | 1 h | [`SVILUPPO-PROGRAMMA/fase-13.md`](file:///Users/nunziogiglio/Documents/Github/Repositories/Hermae_Nunzio_Giglio_0312200894/SVILUPPO-PROGRAMMA/fase-13.md) & [`hermae-frontend/`](file:///Users/nunziogiglio/Documents/Github/Repositories/Hermae_Nunzio_Giglio_0312200894/hermae-frontend) | **Completata** |
 | **Fase 14** | Definizione nel database dell’entità “posizione_utenti”, del suo schema e delle sue operazioni CRUD | 2 h | 1 h | [`SVILUPPO-PROGRAMMA/fase-14.md`](file:///Users/nunziogiglio/Documents/Github/Repositories/Hermae_Nunzio_Giglio_0312200894/SVILUPPO-PROGRAMMA/fase-14.md) & [`INFO-DATABASE/schema.sql`](file:///Users/nunziogiglio/Documents/Github/Repositories/Hermae_Nunzio_Giglio_0312200894/INFO-DATABASE/schema.sql) | **Completata** |
-| **TOTALE** | **Avanzamento Fasi di Progettazione, Database, Backend e Front-end** | **25 h 30 min** | **12 h 40 min** | **15 Deliverable Consolidati** | **Fasi 1–14 Completate** |
+| **Fase 15** | Implementazione delle funzioni di geolocalizzazione dell'utente | 2 h | 1 h | [`SVILUPPO-PROGRAMMA/fase-15.md`](file:///Users/nunziogiglio/Documents/Github/Repositories/Hermae_Nunzio_Giglio_0312200894/SVILUPPO-PROGRAMMA/fase-15.md) & [`hermae-frontend/ricerca.html`](file:///Users/nunziogiglio/Documents/Github/Repositories/Hermae_Nunzio_Giglio_0312200894/hermae-frontend/ricerca.html) | **Completata** |
+| **TOTALE** | **Avanzamento Fasi di Progettazione, Database, Backend e Front-end** | **27 h 30 min** | **13 h 40 min** | **16 Deliverable Consolidati** | **Fasi 1–15 Completate** |
 
 ---
 
@@ -162,3 +163,11 @@
 - **Descrizione:** È stata creata l'entità dedicata alla memorizzazione delle coordinate geografiche e dei riferimenti di localizzazione dell'utente, predisponendo le funzioni CRUD per il salvataggio e l'aggiornamento dinamico delle posizioni. L'architettura include indici spaziali GiST su PostgreSQL per ricerche di prossimità performanti, un algoritmo di offuscamento spaziale (*spatial blurring* tra 300 e 500 metri) per preservare la privacy dell'utente e la pagina front-end dedicata `impostazioni.html` con slider interattivo per il raggio chilometrico di ricerca ($1\text{–}50\text{ km}$), rilevamento GPS nativo e gestione consensi GDPR.  
   Documenti di riferimento: [`SVILUPPO-PROGRAMMA/fase-14.md`](file:///Users/nunziogiglio/Documents/Github/Repositories/Hermae_Nunzio_Giglio_0312200894/SVILUPPO-PROGRAMMA/fase-14.md), [`INFO-DATABASE/schema.sql`](file:///Users/nunziogiglio/Documents/Github/Repositories/Hermae_Nunzio_Giglio_0312200894/INFO-DATABASE/schema.sql) e [`hermae-frontend/impostazioni.html`](file:///Users/nunziogiglio/Documents/Github/Repositories/Hermae_Nunzio_Giglio_0312200894/hermae-frontend/impostazioni.html).
 - **Difficoltà riscontrate:** Non sono state riscontrate difficoltà nella strutturazione dei campi dedicati a latitudine e longitudine.
+
+---
+
+### Fase 15 – Implementazione delle funzioni di geolocalizzazione dell'utente
+- **Tempo stimato:** 2 ore | **Tempo effettivo:** 1 ora
+- **Descrizione:** In questa fase è stato implementato l'interfacciamento con le API del browser/dispositivo per la rilevazione della posizione geografica (previo consenso), convertendo le coordinate in formato utile per il matching di vicinanza. Il modulo client-side `geolocation.js` gestisce l'accuratezza del segnale GPS classificando il margine di errore in livelli operativi, implementa la formula geodetica di Haversine e raggruppa i profili in fasce di prossimità (*Stesso Quartiere*, *Stessa Città*, *Area Metropolitana*, *Area Provinciale*). È stata inoltre sviluppata la vista cartografica interattiva `ricerca.html` con Leaflet.js, OpenStreetMap, cerchio di raggio dinamico ($1\text{–}50\text{ km}$), marker geolocalizzati a tutela della riservatezza e vista tabellare alternativa conforme a WCAG 2.1 AA.  
+  Documenti di riferimento: [`SVILUPPO-PROGRAMMA/fase-15.md`](file:///Users/nunziogiglio/Documents/Github/Repositories/Hermae_Nunzio_Giglio_0312200894/SVILUPPO-PROGRAMMA/fase-15.md), [`hermae-frontend/assets/js/geolocation.js`](file:///Users/nunziogiglio/Documents/Github/Repositories/Hermae_Nunzio_Giglio_0312200894/hermae-frontend/assets/js/geolocation.js) e [`hermae-frontend/ricerca.html`](file:///Users/nunziogiglio/Documents/Github/Repositories/Hermae_Nunzio_Giglio_0312200894/hermae-frontend/ricerca.html).
+- **Difficoltà riscontrate:** Gestione della variabilità nella precisione del GPS a seconda del dispositivo client e della connessione di rete.

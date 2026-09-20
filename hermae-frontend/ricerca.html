@@ -1,0 +1,717 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mappa & Ricerca Geospaziale — Hermae</title>
+  <meta name="description" content="Mappa geospaziale interattiva per la ricerca di volumi e lettori di prossimità con rispetto della privacy e conformità WCAG 2.1 AA." />
+
+  <!-- CSS Framework Bootstrap 5.3 & Bootstrap Icons -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
+
+  <!-- Leaflet 1.9.4 CSS per la resa cartografica interattiva OSM -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+
+  <!-- Tipografia Inter da Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+
+  <!-- Stile personalizzato e Design System Hermae (WCAG 2.1 AA) -->
+  <link rel="stylesheet" href="assets/css/main.css" />
+
+  <style>
+    /* Altezza fissa e stile di contenimento per la mappa cartografica Leaflet */
+    #map {
+      height: 540px;
+      width: 100%;
+      border-radius: var(--radius-md);
+      z-index: 1;
+    }
+
+    /* Stile personalizzato per i popup informativi Leaflet */
+    .leaflet-popup-content-wrapper {
+      border-radius: var(--radius-md);
+      box-shadow: var(--shadow-md);
+      font-family: 'Inter', sans-serif;
+    }
+
+    /* Badge indicatore di distanza nei popup */
+    .distance-pill {
+      font-size: 0.75rem;
+      padding: 0.2rem 0.5rem;
+      border-radius: 999px;
+    }
+  </style>
+</head>
+<body>
+  <div id="app" class="d-flex flex-column min-vh-100">
+    <!-- Comando di salto accessibile per tastiera e screen reader -->
+    <a href="#main-content" class="skip-link">Salta al contenuto principale</a>
+
+    <!-- Intestazione applicativa riservata per utenti autenticati -->
+    <navbar-logged active-page="ricerca"></navbar-logged>
+
+    <!-- Contenuto principale della Ricerca e Mappa Geospaziale -->
+    <main id="main-content" class="container-fluid px-lg-5 py-4 flex-grow-1">
+      
+      <!-- Intestazione e Breadcrumb di Navigazione -->
+      <div class="mb-3">
+        <nav aria-label="Percorso di navigazione">
+          <ol class="breadcrumb mb-2">
+            <li class="breadcrumb-item"><a href="dashboard.html" class="text-decoration-none">Dashboard</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Mappa & Ricerca</li>
+          </ol>
+        </nav>
+        <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
+          <div>
+            <h1 class="h3 fw-bold text-dark mb-1">
+              <i class="bi bi-compass text-primary me-2" aria-hidden="true"></i>Mappa Geospaziale di Prossimità
+            </h1>
+            <p class="text-muted mb-0 small">
+              Individua lettori e volumi condivisi nelle tue vicinanze. La privacy domiciliare è tutelata da un raggio di confidenzialità di 300–500m.
+            </p>
+          </div>
+          <!-- Toggle tra Vista Mappa e Vista Tabellare Accessibile -->
+          <div class="btn-group" role="group" aria-label="Modalità di visualizzazione">
+            <button
+              type="button"
+              class="btn btn-sm"
+              :class="viewMode === 'map' ? 'btn-primary' : 'btn-outline-secondary'"
+              @click="viewMode = 'map'"
+              :aria-pressed="viewMode === 'map'"
+            >
+              <i class="bi bi-map me-1" aria-hidden="true"></i>Vista Mappa
+            </button>
+            <button
+              type="button"
+              class="btn btn-sm"
+              :class="viewMode === 'list' ? 'btn-primary' : 'btn-outline-secondary'"
+              @click="viewMode = 'list'"
+              :aria-pressed="viewMode === 'list'"
+            >
+              <i class="bi bi-list-ul me-1" aria-hidden="true"></i>Elenco Accessibile (Screen Reader)
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Barra dei Controlli Territoriali e Filtro Raggio (Layout Compatto) -->
+      <section class="card-hermae p-3 bg-white border-0 shadow-sm mb-4" aria-label="Controlli di geolocalizzazione e raggio">
+        
+        <!-- RIGA 1: Bottoni tutti in una riga orizzontale con riferimenti geografici -->
+        <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 pb-3 mb-3 border-bottom">
+          <!-- Tutti i bottoni di controllo allineati -->
+          <div class="d-flex align-items-center gap-2 flex-wrap">
+            <span class="fw-semibold small text-muted text-uppercase me-1 d-none d-sm-inline">
+              <i class="bi bi-geo-alt-fill text-primary me-1" aria-hidden="true"></i>Punto di Riferimento:
+            </span>
+            <button
+              type="button"
+              class="btn btn-outline-primary btn-sm d-inline-flex align-items-center gap-1"
+              @click="rilevaPosizioneGPS"
+              :disabled="detectingGps"
+              title="Rileva le coordinate del dispositivo tramite sensore GPS o rete"
+            >
+              <span v-if="detectingGps" class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+              <i v-else class="bi bi-crosshair" aria-hidden="true"></i>
+              <span>{{ detectingGps ? 'Rilevamento...' : 'Trova Posizione GPS' }}</span>
+            </button>
+            <button
+              type="button"
+              class="btn btn-outline-secondary btn-sm d-inline-flex align-items-center gap-1"
+              @click="centraSulMioPin"
+              title="Riporta e centra la mappa sul tuo punto di riferimento"
+              aria-label="Centra la mappa sul mio pin"
+            >
+              <i class="bi bi-geo-alt-fill text-danger" aria-hidden="true"></i>
+              <span>Centra sul mio Pin</span>
+            </button>
+            <button
+              type="button"
+              class="btn btn-sm d-inline-flex align-items-center gap-1"
+              :class="isPosizioneModificata ? 'btn-success' : 'btn-outline-success'"
+              @click="salvaCoordinateProfilo"
+              :disabled="salvataggioInCorso"
+              title="Memorizza queste coordinate e comune come tua posizione permanente nel profilo"
+            >
+              <span v-if="salvataggioInCorso" class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+              <i v-else class="bi bi-floppy2-fill" aria-hidden="true"></i>
+              <span>Memorizza Coordinate</span>
+            </button>
+            <geo-accuracy-badge :accuracy="gpsAccuracy"></geo-accuracy-badge>
+          </div>
+
+          <!-- Coordinate del centro e indicazione per lo spostamento -->
+          <div class="d-flex align-items-center gap-2 small text-muted">
+            <span><strong>Centro:</strong> <span class="text-dark fw-semibold">{{ currentCity }}</span> ({{ formattedCenter }})</span>
+            <span v-if="isPosizioneModificata" class="badge bg-warning text-dark">Modificata</span>
+            <span class="text-secondary d-none d-xl-inline ms-1" style="font-size: 0.75rem;">
+              &bull; <i class="bi bi-cursor-fill text-primary me-1"></i>Trascina il pin o clicca sulla mappa per spostare
+            </span>
+          </div>
+        </div>
+
+        <!-- RIGA 2: Slider Raggio di ricerca a sinistra con accanto il dato 'Lettori nel Raggio' a destra -->
+        <div class="row g-3 align-items-center">
+          <!-- Slider Interattivo del Raggio di Ricerca (1 - 50 km) -->
+          <div class="col-md-8 col-lg-9">
+            <div class="d-flex justify-content-between align-items-center mb-1">
+              <label for="raggioSlider" class="form-label fw-semibold small text-muted text-uppercase mb-0">
+                <i class="bi bi-radar text-primary me-1" aria-hidden="true"></i>Raggio di Ricerca di Prossimità:
+              </label>
+              <span class="badge bg-primary fs-6 px-2 py-1">{{ raggioKm }} km</span>
+            </div>
+            <input
+              type="range"
+              class="form-range"
+              id="raggioSlider"
+              min="1"
+              max="50"
+              step="1"
+              v-model.number="raggioKm"
+              @input="onRaggioChange"
+            />
+            <div class="d-flex justify-content-between text-muted" style="font-size: 0.75rem;">
+              <span>1 km (Quartiere)</span>
+              <span>25 km (Area Metropolitana)</span>
+              <span>50 km (Provincia)</span>
+            </div>
+          </div>
+
+          <!-- Dato 'Lettori nel Raggio' compatto posizionato esattamente accanto allo slider -->
+          <div class="col-md-4 col-lg-3">
+            <div class="p-2 px-3 bg-light rounded-3 d-flex align-items-center justify-content-between border">
+              <div>
+                <div class="small fw-semibold text-muted text-uppercase" style="font-size: 0.72rem;">Lettori nel Raggio:</div>
+                <div class="text-muted" style="font-size: 0.75rem;">entro <strong>{{ raggioKm }} km</strong> da te</div>
+              </div>
+              <div class="fs-3 fw-bold text-primary lh-1">
+                {{ risultatiProssimita.length }}
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- VISTA 1: Mappa Interattiva Cartografica Leaflet (Default) -->
+      <section v-show="viewMode === 'map'" class="card-hermae p-3 bg-white border-0 shadow-sm mb-4" aria-label="Mappa geospaziale interattiva">
+        <div id="map" role="region" aria-label="Mappa cartografica Leaflet con lettori di prossimità"></div>
+        <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mt-3 px-2 small text-muted">
+          <div>
+            <i class="bi bi-info-circle text-primary me-1" aria-hidden="true"></i>
+            Il cerchio blu evidenzia l'area di copertura di <strong>{{ raggioKm }} km</strong>. I pin verdi rappresentano la posizione offuscata dei lettori disponibili.
+          </div>
+          <div>
+            <span class="badge bg-primary me-1">&bull; Tuo Centro</span>
+            <span class="badge bg-success me-1">&bull; Lettori Rilevati</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- VISTA 2: Elenco Tabellare Accessibile (WCAG 2.1 AA per screen reader) -->
+      <section v-show="viewMode === 'list'" class="card-hermae p-4 bg-white border-0 shadow-sm mb-4" aria-labelledby="tableHeading">
+        <h2 id="tableHeading" class="h5 fw-bold text-dark mb-3">
+          <i class="bi bi-card-list text-primary me-2" aria-hidden="true"></i>Elenco Lettori e Volumi per Distanza
+        </h2>
+
+        <div v-if="risultatiProssimita.length === 0" class="alert alert-info" role="status">
+          <i class="bi bi-info-circle me-2" aria-hidden="true"></i>Nessun utente rilevato nel raggio di {{ raggioKm }} km. Prova ad aumentare il raggio tramite lo slider.
+        </div>
+
+        <div v-else class="table-responsive">
+          <table class="table table-hover align-middle mb-0" aria-label="Elenco degli utenti vicini ordinati per prossimità geodetica">
+            <caption class="visually-hidden">Tabella degli utenti disponibili nel raggio di ricerca ordinati per distanza crescente</caption>
+            <thead class="table-light">
+              <tr>
+                <th scope="col">Lettore</th>
+                <th scope="col">Città e Quartiere</th>
+                <th scope="col">Distanza Stimata</th>
+                <th scope="col">Fascia Territoriale</th>
+                <th scope="col" class="text-end">Azione</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="item in risultatiProssimita" :key="item.id">
+                <td>
+                  <div class="fw-semibold text-dark">
+                    <i class="bi bi-person-circle text-secondary me-2" aria-hidden="true"></i>{{ item.utente }}
+                  </div>
+                </td>
+                <td>
+                  <span>{{ item.citta }}</span>
+                  <span v-if="item.indirizzo_approssimato" class="text-muted small ms-1">({{ item.indirizzo_approssimato }})</span>
+                </td>
+                <td>
+                  <span class="fw-bold text-primary">{{ item.distanza_km }} km</span>
+                  <span class="text-muted small d-block">~{{ item.distanza_metri }} m</span>
+                </td>
+                <td>
+                  <span class="badge" :class="getFasciaBadge(item.fascia_prossimita)">
+                    {{ item.fascia_prossimita }}
+                  </span>
+                </td>
+                <td class="text-end">
+                  <a href="libreria.html" class="btn btn-outline-primary btn-sm d-inline-flex align-items-center gap-1">
+                    <i class="bi bi-bookshelf" aria-hidden="true"></i>
+                    <span>Consulta Volumi</span>
+                  </a>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+
+    <!-- Notifiche Toast Asincrone -->
+    <toast-notification :toasts="toasts" @remove-toast="removeToast"></toast-notification>
+
+    <!-- Indicatore di Caricamento Globale -->
+    <loading-spinner :active="loading" message="Aggiornamento mappa e prossimità in corso..."></loading-spinner>
+
+    <!-- Piè di pagina globale dell'applicazione -->
+    <app-footer></app-footer>
+  </div>
+
+  <!-- Dipendenze Esterne: Bootstrap JS, Leaflet JS, Axios, Vue 3 CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+  <script src="https://cdn.jsdelivr.net/npm/axios@1.6.8/dist/axios.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/vue@3.4.21/dist/vue.global.prod.js"></script>
+
+  <!-- Script Applicativi Interni -->
+  <script src="assets/js/api.js"></script>
+  <script src="assets/js/auth.js"></script>
+  <script src="assets/js/geolocation.js"></script>
+  <script src="assets/js/components/global-components.js"></script>
+
+  <!-- Logica Reattiva della Mappa e Prossimità Geospaziale -->
+  <script>
+    const { createApp, ref, computed, onMounted, nextTick } = Vue;
+
+    // Crea l'applicazione Vue per la pagina Mappa & Ricerca Geospaziale
+    const app = createApp({
+      setup() {
+        const user = ref(null);
+        const loading = ref(false);
+        const detectingGps = ref(false);
+        const salvataggioInCorso = ref(false);
+        const isPosizioneModificata = ref(false);
+        const viewMode = ref('map');
+        const toasts = ref([]);
+        const gpsAccuracy = ref(null);
+
+        // Coordinate centrali di ricerca (default Napoli Centro)
+        const centerLat = ref(40.8518);
+        const centerLng = ref(14.2681);
+        const currentCity = ref('Napoli');
+        const raggioKm = ref(10);
+        const risultatiProssimita = ref([]);
+
+        // Riferimenti alle istanze Leaflet cartografiche
+        let leafletMap = null;
+        let userMarker = null;
+        let radiusCircle = null;
+        let markersGroup = null;
+        let raggioDebounceTimer = null;
+
+        // Aggiunge una notifica alla coda visiva
+        const addToast = (title, message, type = 'info') => {
+          const id = Date.now() + Math.random();
+          toasts.value.push({ id, title, message, type });
+          setTimeout(() => removeToast(id), 5000);
+        };
+
+        // Rimuove una notifica dalla lista visiva
+        const removeToast = (id) => {
+          toasts.value = toasts.value.filter(t => t.id !== id);
+        };
+
+        // Formatta le coordinate del centro di ricerca per la visualizzazione leggibile
+        const formattedCenter = computed(() => {
+          if (window.HermaeGeo) {
+            return window.HermaeGeo.formatCoordinates(centerLat.value, centerLng.value);
+          }
+          return `${centerLat.value.toFixed(4)}, ${centerLng.value.toFixed(4)}`;
+        });
+
+        // Restituisce la classe badge Bootstrap appropriata per la fascia territoriale
+        const getFasciaBadge = (fascia) => {
+          switch (fascia) {
+            case 'Stesso Quartiere': return 'bg-success';
+            case 'Stessa Città': return 'bg-primary';
+            case 'Area Metropolitana': return 'bg-info text-dark';
+            case 'Area Provinciale': return 'bg-warning text-dark';
+            default: return 'bg-secondary';
+          }
+        };
+
+        // Inizializza la mappa Leaflet con tile provider OpenStreetMap
+        const initLeafletMap = () => {
+          const mapEl = document.getElementById('map');
+          if (!mapEl || leafletMap) return;
+
+          leafletMap = L.map('map', {
+            center: [centerLat.value, centerLng.value],
+            zoom: 12,
+            zoomControl: true
+          });
+
+          // Layer OpenStreetMap gratuito conforme agli standard aperti
+          L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19,
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+          }).addTo(leafletMap);
+
+          // Controllo personalizzato sulla mappa Leaflet per ricentrare la visuale sul pin utente
+          const CentraPinControl = L.Control.extend({
+            options: { position: 'topleft' },
+            onAdd: function() {
+              const container = L.DomUtil.create('div', 'leaflet-bar leaflet-control');
+              const button = L.DomUtil.create('a', '', container);
+              button.innerHTML = '<i class="bi bi-geo-alt-fill" style="color: #dc2626; font-size: 15px; line-height: 30px;" aria-hidden="true"></i>';
+              button.href = '#';
+              button.title = 'Riporta la visuale sul mio pin';
+              button.setAttribute('role', 'button');
+              button.setAttribute('aria-label', 'Riporta la visuale sul mio pin');
+              button.style.width = '30px';
+              button.style.height = '30px';
+              button.style.textAlign = 'center';
+              button.style.display = 'block';
+              button.style.backgroundColor = '#ffffff';
+
+              L.DomEvent.disableClickPropagation(container);
+              L.DomEvent.on(button, 'click', (e) => {
+                L.DomEvent.preventDefault(e);
+                centraSulMioPin();
+              });
+              return container;
+            }
+          });
+          new CentraPinControl().addTo(leafletMap);
+
+          // Gruppo di layer dedicato ai marker degli utenti per pulizia atomica ad ogni filtro
+          markersGroup = L.layerGroup().addTo(leafletMap);
+
+          // Permette all'utente di cliccare in qualsiasi punto della mappa per spostare il proprio pin di ricerca
+          leafletMap.on('click', (e) => {
+            applicaNuovaPosizione(e.latlng.lat, e.latlng.lng);
+          });
+
+          // Disegna il marker del centro utente e il cerchio di raggio visivo
+          updateUserCenterOnMap();
+        };
+
+        // Riporta e centra la mappa sul pin utente e sull'area del raggio di prossimità
+        const centraSulMioPin = () => {
+          if (!leafletMap) return;
+          if (radiusCircle) {
+            leafletMap.flyToBounds(radiusCircle.getBounds(), { padding: [25, 25], maxZoom: 14, duration: 0.8 });
+          } else {
+            leafletMap.flyTo([centerLat.value, centerLng.value], 13, { duration: 0.8 });
+          }
+          if (userMarker) {
+            userMarker.openPopup();
+          }
+        };
+
+        // Sposta il pin e il cerchio di raggio sulle nuove coordinate e aggiorna i dati di prossimità
+        const applicaNuovaPosizione = async (lat, lng) => {
+          const newLat = parseFloat(Number(lat).toFixed(7));
+          const newLng = parseFloat(Number(lng).toFixed(7));
+          centerLat.value = newLat;
+          centerLng.value = newLng;
+          isPosizioneModificata.value = true;
+          gpsAccuracy.value = 15; // Precisione puntuale manuale
+
+          updateUserCenterOnMap();
+
+          if (userMarker) {
+            userMarker.openPopup();
+          }
+
+          // Geocodifica inversa OpenStreetMap per identificare il nuovo comune/quartiere
+          if (window.HermaeGeo) {
+            const geoInfo = await window.HermaeGeo.reverseGeocode(newLat, newLng);
+            if (geoInfo && geoInfo.citta) {
+              currentCity.value = geoInfo.citta;
+              updateUserCenterOnMap();
+              if (userMarker) {
+                userMarker.openPopup();
+              }
+            }
+          }
+
+          await caricaDatiProssimita();
+        };
+
+        // Memorizza le coordinate correnti nel database dell'utente autenticato
+        const salvaCoordinateProfilo = async () => {
+          salvataggioInCorso.value = true;
+          try {
+            const payload = {
+              citta: currentCity.value,
+              latitudine: centerLat.value,
+              longitudine: centerLng.value,
+              raggio_ricerca_km: raggioKm.value
+            };
+
+            try {
+              await window.apiClient.put('/posizioni/me', payload);
+            } catch (putErr) {
+              if (putErr.response && putErr.response.status === 404) {
+                await window.apiClient.post('/posizioni', payload);
+              } else {
+                throw putErr;
+              }
+            }
+
+            isPosizioneModificata.value = false;
+            addToast(
+              'Coordinate Memorizzate',
+              `Posizione salvata con successo nel tuo profilo: ${currentCity.value} (${formattedCenter.value}).`,
+              'success'
+            );
+          } catch (err) {
+            addToast('Errore Salvataggio', 'Impossibile memorizzare le coordinate nel profilo utente.', 'danger');
+          } finally {
+            salvataggioInCorso.value = false;
+          }
+        };
+
+        // Aggiorna il marker del centro e il cerchio di raggio sulla mappa Leaflet
+        const updateUserCenterOnMap = () => {
+          if (!leafletMap) return;
+
+          const centerCoords = [centerLat.value, centerLng.value];
+          const popupContent = `
+            <div style="min-width: 170px;">
+              <div class="fw-bold text-primary mb-1"><i class="bi bi-geo-alt-fill text-danger me-1"></i>Tuo Centro di Ricerca</div>
+              <div class="text-dark small">${currentCity.value}</div>
+              <div class="text-muted small">${formattedCenter.value}</div>
+              <hr class="my-1">
+              <div class="small text-secondary" style="font-size: 0.72rem;">
+                <i class="bi bi-arrows-move me-1"></i>Trascina il pin o clicca sulla mappa per spostare
+              </div>
+            </div>
+          `;
+
+          // Se il marker utente esiste già, aggiorna la posizione e il popup; altrimenti crealo
+          if (userMarker) {
+            userMarker.setLatLng(centerCoords);
+            userMarker.bindPopup(popupContent);
+          } else {
+            // Icona personalizzata interattiva con indicatore di trascinamento
+            const centerIcon = L.divIcon({
+              className: 'user-center-icon',
+              html: '<div style="background-color: #1e40af; width: 18px; height: 18px; border-radius: 50%; border: 3px solid #ffffff; box-shadow: 0 0 10px rgba(30,64,175,0.8); cursor: grab;"></div>',
+              iconSize: [18, 18],
+              iconAnchor: [9, 9]
+            });
+            userMarker = L.marker(centerCoords, { icon: centerIcon, draggable: true })
+              .addTo(leafletMap)
+              .bindPopup(popupContent);
+
+            // Permette il riposizionamento tramite drag-and-drop del marker
+            userMarker.on('dragend', (e) => {
+              const pos = e.target.getLatLng();
+              applicaNuovaPosizione(pos.lat, pos.lng);
+            });
+          }
+
+          // Ridisegna o aggiorna il cerchio di copertura chilometrica
+          const radiusMeters = raggioKm.value * 1000;
+          if (radiusCircle) {
+            radiusCircle.setLatLng(centerCoords);
+            radiusCircle.setRadius(radiusMeters);
+          } else {
+            radiusCircle = L.circle(centerCoords, {
+              radius: radiusMeters,
+              color: '#1e40af',
+              fillColor: '#3b82f6',
+              fillOpacity: 0.12,
+              weight: 2
+            }).addTo(leafletMap);
+          }
+        };
+
+        // Rendering dei marker georeferenziati per ciascun utente rilevato dalla query di prossimità
+        const renderProximityMarkersOnMap = () => {
+          if (!leafletMap || !markersGroup) return;
+
+          // Svuota i marker precedentemente tracciati
+          markersGroup.clearLayers();
+
+          // Icona semantica verde per i lettori di prossimità
+          const readerIcon = L.divIcon({
+            className: 'reader-marker-icon',
+            html: '<div style="background-color: #047857; width: 14px; height: 14px; border-radius: 50%; border: 2px solid #ffffff; box-shadow: 0 0 6px rgba(4,120,87,0.7);"></div>',
+            iconSize: [14, 14],
+            iconAnchor: [7, 7]
+          });
+
+          risultatiProssimita.value.forEach((item) => {
+            if (item.coordinate_offuscate && item.coordinate_offuscate.lat && item.coordinate_offuscate.lng) {
+              const marker = L.marker([item.coordinate_offuscate.lat, item.coordinate_offuscate.lng], { icon: readerIcon });
+              
+              const popupHtml = `
+                <div style="min-width: 180px;">
+                  <div class="fw-bold text-dark mb-1">${item.utente}</div>
+                  <div class="small text-muted mb-1">${item.citta} ${item.indirizzo_approssimato ? '— ' + item.indirizzo_approssimato : ''}</div>
+                  <div class="d-flex justify-content-between align-items-center mt-2">
+                    <span class="badge bg-primary distance-pill">${item.distanza_km} km</span>
+                    <span class="small fw-semibold text-muted">${item.fascia_prossimita}</span>
+                  </div>
+                  <hr class="my-2">
+                  <div style="font-size: 0.7rem; color: #64748b;">
+                    <i class="bi bi-shield-check text-success"></i> Coordinate offuscate (300–500m)
+                  </div>
+                </div>
+              `;
+
+              marker.bindPopup(popupHtml);
+              markersGroup.addLayer(marker);
+            }
+          });
+        };
+
+        // Interroga l'API RESTful di backend per ottenere gli utenti vicini entro il raggio specificato
+        const caricaDatiProssimita = async () => {
+          loading.value = true;
+          try {
+            const res = await window.apiClient.get('/posizioni/prossimita', {
+              params: {
+                lat: centerLat.value,
+                lng: centerLng.value,
+                raggio: raggioKm.value
+              }
+            });
+
+            if (res.data && res.data.data && Array.isArray(res.data.data.risultati)) {
+              risultatiProssimita.value = res.data.data.risultati;
+              renderProximityMarkersOnMap();
+            }
+          } catch (err) {
+            addToast('Errore Prossimità', 'Impossibile completare la scansione geospaziale degli utenti.', 'danger');
+          } finally {
+            loading.value = false;
+          }
+        };
+
+        // Gestisce la variazione dello slider applicando un debounce per non sovraccaricare la rete
+        const onRaggioChange = () => {
+          updateUserCenterOnMap();
+          clearTimeout(raggioDebounceTimer);
+          raggioDebounceTimer = setTimeout(() => {
+            caricaDatiProssimita();
+          }, 350);
+        };
+
+        // Rileva la posizione fisica attuale tramite il modulo Geolocation con gestione precisione e fallback
+        const rilevaPosizioneGPS = async () => {
+          if (!window.HermaeGeo) {
+            addToast('Modulo Assente', 'Il modulo di geolocalizzazione non è inizializzato.', 'warning');
+            return;
+          }
+
+          detectingGps.value = true;
+          try {
+            const pos = await window.HermaeGeo.getCurrentPosition();
+            centerLat.value = pos.lat;
+            centerLng.value = pos.lng;
+            gpsAccuracy.value = pos.accuracy;
+
+            if (pos.citta) {
+              currentCity.value = pos.citta;
+            }
+
+            const toastType = pos.evaluation.level === 'high' ? 'success' : (pos.evaluation.level === 'medium' ? 'primary' : 'warning');
+            const sourceDesc = pos.source === 'ip_network' ? ' (Rete/IP)' : '';
+
+            addToast(
+              'Posizione Rilevata' + sourceDesc,
+              `${pos.evaluation.label} ${pos.evaluation.meters ? '(margine: ±' + pos.evaluation.meters + 'm)' : ''}`,
+              toastType
+            );
+
+            // Se la posizione non ha già il comune o è da sensore, perfeziona tramite geocodifica inversa OSM
+            if (!pos.citta) {
+              const geoInfo = await window.HermaeGeo.reverseGeocode(pos.lat, pos.lng);
+              if (geoInfo && geoInfo.citta) {
+                currentCity.value = geoInfo.citta;
+              }
+            }
+
+            updateUserCenterOnMap();
+            await caricaDatiProssimita();
+          } catch (err) {
+            addToast('Avviso GPS', err.message, 'warning');
+          } finally {
+            detectingGps.value = false;
+          }
+        };
+
+        // Carica la posizione registrata nel profilo dell'utente autenticato
+        const caricaPosizioneUtenteProfilo = async () => {
+          try {
+            const res = await window.apiClient.get('/posizioni/me');
+            if (res.data && res.data.data) {
+              const p = res.data.data;
+              centerLat.value = parseFloat(p.latitudine);
+              centerLng.value = parseFloat(p.longitudine);
+              currentCity.value = p.citta || 'Napoli';
+              raggioKm.value = p.raggio_ricerca_km || 10;
+            }
+          } catch (err) {
+            // Se non ancora salvata, mantieni le coordinate predefinite (Napoli)
+          }
+        };
+
+        // Esegue il gatekeeping e l'avvio della mappa all'aggancio del componente
+        onMounted(async () => {
+          if (!window.auth.requireAuth('login.html')) {
+            return;
+          }
+
+          user.value = window.auth.getUser();
+          await caricaPosizioneUtenteProfilo();
+
+          await nextTick();
+          initLeafletMap();
+          await caricaDatiProssimita();
+        });
+
+        return {
+          user,
+          loading,
+          detectingGps,
+          viewMode,
+          toasts,
+          gpsAccuracy,
+          centerLat,
+          centerLng,
+          currentCity,
+          raggioKm,
+          risultatiProssimita,
+          formattedCenter,
+          getFasciaBadge,
+          onRaggioChange,
+          rilevaPosizioneGPS,
+          centraSulMioPin,
+          salvaCoordinateProfilo,
+          applicaNuovaPosizione,
+          isPosizioneModificata,
+          salvataggioInCorso,
+          removeToast
+        };
+      }
+    });
+
+    // Registra i componenti globali condivisi e monta l'applicazione
+    window.HermaeComponents.registerGlobalComponents(app);
+    app.mount('#app');
+  </script>
+</body>
+</html>
