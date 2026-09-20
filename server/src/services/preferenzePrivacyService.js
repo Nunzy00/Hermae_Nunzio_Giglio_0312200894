@@ -1,4 +1,5 @@
 const db = require('../config/db');
+const posizioneService = require('./posizioneUtentiService');
 
 // Valori predefiniti cautelativi orientati alla massima tutela dell'utente (Privacy by Default ex Art. 25 GDPR)
 const DEFAULT_PRIVACY_SETTINGS = {
@@ -7,7 +8,8 @@ const DEFAULT_PRIVACY_SETTINGS = {
   mostra_libreria: true,
   mostra_email: false,
   raggio_visibilita_km: 10,
-  consenti_messaggi_diretti: true
+  consenti_messaggi_diretti: true,
+  modalita_occultamento: 'QUARTIERE'
 };
 
 // Formatta il record restituito dal database assicurando il casting tipizzato
@@ -22,6 +24,7 @@ const formatPrivacyRow = (row) => {
     mostra_email: Boolean(row.mostra_email),
     raggio_visibilita_km: parseInt(row.raggio_visibilita_km, 10),
     consenti_messaggi_diretti: Boolean(row.consenti_messaggi_diretti),
+    modalita_occultamento: row.modalita_occultamento || 'QUARTIERE',
     data_aggiornamento: row.data_aggiornamento
   };
 };
@@ -49,9 +52,10 @@ const getPreferenzeByUtenteId = async (utenteId) => {
       mostra_libreria,
       mostra_email,
       raggio_visibilita_km,
-      consenti_messaggi_diretti
+      consenti_messaggi_diretti,
+      modalita_occultamento
     )
-    VALUES ($1, $2, $3, $4, $5, $6, $7)
+    VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
     ON CONFLICT (utente_id) DO UPDATE SET data_aggiornamento = CURRENT_TIMESTAMP
     RETURNING *;
   `;
@@ -62,7 +66,8 @@ const getPreferenzeByUtenteId = async (utenteId) => {
     DEFAULT_PRIVACY_SETTINGS.mostra_libreria,
     DEFAULT_PRIVACY_SETTINGS.mostra_email,
     DEFAULT_PRIVACY_SETTINGS.raggio_visibilita_km,
-    DEFAULT_PRIVACY_SETTINGS.consenti_messaggi_diretti
+    DEFAULT_PRIVACY_SETTINGS.consenti_messaggi_diretti,
+    DEFAULT_PRIVACY_SETTINGS.modalita_occultamento
   ]);
 
   return formatPrivacyRow(insertResult.rows[0]);
@@ -74,10 +79,25 @@ const upsertPreferenze = async (utenteId, data = {}) => {
   const attuali = await getPreferenzeByUtenteId(utenteId);
 
   const profiloPubblico = data.profilo_pubblico !== undefined ? Boolean(data.profilo_pubblico) : attuali.profilo_pubblico;
-  const mostraPosizione = data.mostra_posizione !== undefined ? Boolean(data.mostra_posizione) : attuali.mostra_posizione;
+  let mostraPosizione = data.mostra_posizione !== undefined ? Boolean(data.mostra_posizione) : attuali.mostra_posizione;
   const mostraLibreria = data.mostra_libreria !== undefined ? Boolean(data.mostra_libreria) : attuali.mostra_libreria;
   const mostraEmail = data.mostra_email !== undefined ? Boolean(data.mostra_email) : attuali.mostra_email;
   const consentiMessaggi = data.consenti_messaggi_diretti !== undefined ? Boolean(data.consenti_messaggi_diretti) : attuali.consenti_messaggi_diretti;
+
+  let modalitaOccultamento = data.modalita_occultamento !== undefined ? data.modalita_occultamento : attuali.modalita_occultamento;
+  if (modalitaOccultamento && !['QUARTIERE', 'AREA_CAP', 'TOTALE'].includes(modalitaOccultamento)) {
+    const error = new Error("Modalità di occultamento non valida. Valori ammessi: 'QUARTIERE', 'AREA_CAP', 'TOTALE'.");
+    error.statusCode = 400;
+    error.code = 'INVALID_OBFUSCATION_MODE';
+    throw error;
+  }
+
+  // Sincronizzazione automatica: se l'utente richiede totale oscuramento, disattiva mostra_posizione
+  if (modalitaOccultamento === 'TOTALE') {
+    mostraPosizione = false;
+  } else if (data.modalita_occultamento && modalitaOccultamento !== 'TOTALE' && data.mostra_posizione === undefined) {
+    mostraPosizione = true;
+  }
 
   let raggio = attuali.raggio_visibilita_km;
   if (data.raggio_visibilita_km !== undefined) {
@@ -100,9 +120,10 @@ const upsertPreferenze = async (utenteId, data = {}) => {
       mostra_email,
       raggio_visibilita_km,
       consenti_messaggi_diretti,
+      modalita_occultamento,
       data_aggiornamento
     )
-    VALUES ($1, $2, $3, $4, $5, $6, $7, CURRENT_TIMESTAMP)
+    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, CURRENT_TIMESTAMP)
     ON CONFLICT (utente_id) DO UPDATE SET
       profilo_pubblico = EXCLUDED.profilo_pubblico,
       mostra_posizione = EXCLUDED.mostra_posizione,
@@ -110,6 +131,7 @@ const upsertPreferenze = async (utenteId, data = {}) => {
       mostra_email = EXCLUDED.mostra_email,
       raggio_visibilita_km = EXCLUDED.raggio_visibilita_km,
       consenti_messaggi_diretti = EXCLUDED.consenti_messaggi_diretti,
+      modalita_occultamento = EXCLUDED.modalita_occultamento,
       data_aggiornamento = CURRENT_TIMESTAMP
     RETURNING *;
   `;
@@ -121,8 +143,12 @@ const upsertPreferenze = async (utenteId, data = {}) => {
     mostraLibreria,
     mostraEmail,
     raggio,
-    consentiMessaggi
+    consentiMessaggi,
+    modalitaOccultamento
   ]);
+
+  // Se la modalità di occultamento o la visibilità sono cambiate, sincronizza le coordinate offuscate su posizione_utenti
+  await posizioneService.ricalcolaCoordinateUtente(utenteId, mostraPosizione ? modalitaOccultamento : 'TOTALE');
 
   return formatPrivacyRow(result.rows[0]);
 };
@@ -150,3 +176,4 @@ module.exports = {
   resetPreferenzeDefault,
   deletePreferenzeByUtenteId
 };
+

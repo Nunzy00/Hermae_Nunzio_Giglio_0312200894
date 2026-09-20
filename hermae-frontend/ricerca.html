@@ -348,6 +348,7 @@
           switch (fascia) {
             case 'Stesso Quartiere': return 'bg-success';
             case 'Stessa Città': return 'bg-primary';
+            case 'Area/CAP (~2 km)': return 'bg-warning text-dark';
             case 'Area Metropolitana': return 'bg-info text-dark';
             case 'Area Provinciale': return 'bg-warning text-dark';
             case 'Solo Città':
@@ -573,8 +574,9 @@
                     <span class="small fw-semibold text-muted">${item.fascia_prossimita}</span>
                   </div>
                   <hr class="my-2">
-                  <div style="font-size: 0.7rem; color: #64748b;">
-                    <i class="bi bi-shield-check text-success"></i> Coordinate offuscate (300–500m)
+                  <div style="font-size: 0.7rem; color: ${item.modalita_occultamento === 'AREA_CAP' ? '#d97706' : '#059669'};">
+                    <i class="bi ${item.modalita_occultamento === 'AREA_CAP' ? 'bi-shield-shaded' : 'bi-shield-check'} me-1"></i>
+                    ${item.modalita_occultamento === 'AREA_CAP' ? 'Area/CAP approssimata (~1.5–3 km)' : 'Coordinate offuscate (300–500m)'}
                   </div>
                 </div>
               `;
@@ -593,7 +595,8 @@
               params: {
                 lat: centerLat.value,
                 lng: centerLng.value,
-                raggio: raggioKm.value
+                raggio: raggioKm.value,
+                includi_solo_citta: true
               }
             });
 

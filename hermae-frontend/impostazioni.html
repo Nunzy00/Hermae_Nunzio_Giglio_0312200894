@@ -209,6 +209,64 @@
               </div>
             </div>
 
+            <!-- Selettore Modalità di Occultamento della Posizione (Fase 17) -->
+            <div class="col-12">
+              <div class="p-3 border rounded-3 bg-body-tertiary">
+                <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-2">
+                  <label class="form-label fw-bold text-dark mb-0">
+                    <i class="bi bi-shield-shaded text-primary me-1" aria-hidden="true"></i>Modalità di Occultamento della Geolocalizzazione:
+                  </label>
+                  <span class="badge" :class="getModalitaBadge(privacyForm.modalita_occultamento)">
+                    {{ getModalitaLabel(privacyForm.modalita_occultamento) }}
+                  </span>
+                </div>
+                <p class="small text-muted mb-3">
+                  Configura il livello di approssimazione spaziale applicato alle tue coordinate per tutelare l'anonimato del domicilio senza azzerare la fruibilità degli scambi culturali di vicinanza.
+                </p>
+
+                <div class="row g-2">
+                  <!-- Opzione 1: Quartiere -->
+                  <div class="col-md-4">
+                    <label class="card h-100 p-3 border" :class="{ 'border-primary bg-primary-subtle shadow-sm': privacyForm.modalita_occultamento === 'QUARTIERE' }" style="cursor: pointer;">
+                      <div class="d-flex align-items-center gap-2 mb-1">
+                        <input type="radio" class="form-check-input mt-0" name="modalitaOccultamento" value="QUARTIERE" v-model="privacyForm.modalita_occultamento" @change="onModalitaOccultamentoChange" />
+                        <span class="fw-bold small text-dark">Quartiere (300–500m)</span>
+                      </div>
+                      <span class="small text-muted" style="font-size: 0.78rem;">
+                        Micro-offuscamento polare standard. Maschera il civico preservando il vicinato immediato per scambi a piedi.
+                      </span>
+                    </label>
+                  </div>
+
+                  <!-- Opzione 2: Area / CAP -->
+                  <div class="col-md-4">
+                    <label class="card h-100 p-3 border" :class="{ 'border-primary bg-primary-subtle shadow-sm': privacyForm.modalita_occultamento === 'AREA_CAP' }" style="cursor: pointer;">
+                      <div class="d-flex align-items-center gap-2 mb-1">
+                        <input type="radio" class="form-check-input mt-0" name="modalitaOccultamento" value="AREA_CAP" v-model="privacyForm.modalita_occultamento" @change="onModalitaOccultamentoChange" />
+                        <span class="fw-bold small text-dark">Area / CAP (1.5–3 km)</span>
+                      </div>
+                      <span class="small text-muted" style="font-size: 0.78rem;">
+                        Approssimazione estesa a scala CAP/distretto. Impedisce triangolazioni mantenendo la reperibilità comunale.
+                      </span>
+                    </label>
+                  </div>
+
+                  <!-- Opzione 3: Totale Oscuramento -->
+                  <div class="col-md-4">
+                    <label class="card h-100 p-3 border" :class="{ 'border-danger bg-danger-subtle shadow-sm': privacyForm.modalita_occultamento === 'TOTALE' }" style="cursor: pointer;">
+                      <div class="d-flex align-items-center gap-2 mb-1">
+                        <input type="radio" class="form-check-input mt-0" name="modalitaOccultamento" value="TOTALE" v-model="privacyForm.modalita_occultamento" @change="onModalitaOccultamentoChange" />
+                        <span class="fw-bold small text-dark">Totale Oscuramento</span>
+                      </div>
+                      <span class="small text-muted" style="font-size: 0.78rem;">
+                        Nessun pin sulla mappa cartografica. Visibilità aggregata limitata alla sola dicitura della città.
+                      </span>
+                    </label>
+                  </div>
+                </div>
+              </div>
+            </div>
+
             <!-- Raggio Massimo di Visibilità -->
             <div class="col-12">
               <div class="p-3 border rounded-3 bg-light">
@@ -471,15 +529,45 @@
         const toasts = ref([]);
         const posizioneEsistente = ref(null);
 
-        // Modello dati delle preferenze di riservatezza (Fase 16 - preferenze_privacy_utenti)
+        // Modello dati delle preferenze di riservatezza (Fase 16-17 - preferenze_privacy_utenti)
         const privacyForm = ref({
           profilo_pubblico: false,
           mostra_posizione: true,
           mostra_libreria: true,
           mostra_email: false,
           raggio_visibilita_km: 10,
-          consenti_messaggi_diretti: true
+          consenti_messaggi_diretti: true,
+          modalita_occultamento: 'QUARTIERE'
         });
+
+        // Restituisce la classe CSS per il badge della modalità di occultamento
+        const getModalitaBadge = (modalita) => {
+          switch (modalita) {
+            case 'QUARTIERE': return 'bg-success-subtle text-success border border-success-subtle';
+            case 'AREA_CAP': return 'bg-warning-subtle text-warning-emphasis border border-warning-subtle';
+            case 'TOTALE': return 'bg-danger-subtle text-danger border border-danger-subtle';
+            default: return 'bg-secondary-subtle text-secondary border';
+          }
+        };
+
+        // Restituisce l'etichetta leggibile della modalità di occultamento
+        const getModalitaLabel = (modalita) => {
+          switch (modalita) {
+            case 'QUARTIERE': return 'Quartiere (~300–500m)';
+            case 'AREA_CAP': return 'Area / CAP (~1.5–3 km)';
+            case 'TOTALE': return 'Totale Oscuramento (Solo Città)';
+            default: return 'Quartiere (~300–500m)';
+          }
+        };
+
+        // Gestisce la variazione reattiva del livello di occultamento della posizione
+        const onModalitaOccultamentoChange = () => {
+          if (privacyForm.value.modalita_occultamento === 'TOTALE') {
+            privacyForm.value.mostra_posizione = false;
+          } else {
+            privacyForm.value.mostra_posizione = true;
+          }
+        };
 
         // Modello dati del form di configurazione geografica
         const form = ref({
@@ -713,7 +801,10 @@
           salvaPosizione,
           salvaPreferenzePrivacy,
           ripristinaPrivacyDefault,
-          confermaEliminaPosizione
+          confermaEliminaPosizione,
+          getModalitaBadge,
+          getModalitaLabel,
+          onModalitaOccultamentoChange
         };
       }
     });

@@ -22,7 +22,8 @@ const aggiornaMiePreferenze = async (req, res, next) => {
       mostra_libreria,
       mostra_email,
       raggio_visibilita_km,
-      consenti_messaggi_diretti
+      consenti_messaggi_diretti,
+      modalita_occultamento
     } = req.body;
 
     const preferenze = await privacyService.upsertPreferenze(req.user.id, {
@@ -31,7 +32,8 @@ const aggiornaMiePreferenze = async (req, res, next) => {
       mostra_libreria,
       mostra_email,
       raggio_visibilita_km,
-      consenti_messaggi_diretti
+      consenti_messaggi_diretti,
+      modalita_occultamento
     });
 
     res.status(200).json({

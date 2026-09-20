@@ -39,7 +39,7 @@ CREATE TABLE IF NOT EXISTS posizione_utenti (
     latitudine NUMERIC(10, 7) NOT NULL,
     longitudine NUMERIC(10, 7) NOT NULL,
     coordinate_reali POINT NOT NULL,
-    coordinate_offuscate POINT NOT NULL,
+    coordinate_offuscate POINT,
     raggio_ricerca_km INTEGER NOT NULL DEFAULT 5,
     data_aggiornamento TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
@@ -55,6 +55,7 @@ CREATE TABLE IF NOT EXISTS preferenze_privacy_utenti (
     mostra_email BOOLEAN NOT NULL DEFAULT FALSE,
     raggio_visibilita_km INTEGER NOT NULL DEFAULT 10,
     consenti_messaggi_diretti BOOLEAN NOT NULL DEFAULT TRUE,
+    modalita_occultamento VARCHAR(20) NOT NULL DEFAULT 'QUARTIERE' CHECK (modalita_occultamento IN ('QUARTIERE', 'AREA_CAP', 'TOTALE')),
     data_aggiornamento TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 

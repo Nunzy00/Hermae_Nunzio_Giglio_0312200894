@@ -93,7 +93,7 @@ const eliminaMiaPosizione = async (req, res, next) => {
 // Esegue una ricerca geospaziale restituendo le posizioni offuscate entro il raggio chilometrico indicato
 const getPosizioniVicine = async (req, res, next) => {
   try {
-    let { lat, lng, raggio = 10, limit = 20 } = req.query;
+    let { lat, lng, raggio = 10, limit = 20, includi_solo_citta = false } = req.query;
 
     // Se le coordinate non sono specificate nella query, utilizza quelle salvate dell'utente connesso
     if (!lat || !lng) {
@@ -114,7 +114,7 @@ const getPosizioniVicine = async (req, res, next) => {
       }
     }
 
-    const posizioni = await posizioneService.findPosizioniVicine(lat, lng, raggio, limit);
+    const posizioni = await posizioneService.findPosizioniVicine(lat, lng, raggio, limit, includi_solo_citta);
 
     res.status(200).json({
       success: true,

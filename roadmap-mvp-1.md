@@ -180,3 +180,12 @@
   Documenti di riferimento: [`SVILUPPO-PROGRAMMA/fase-16.md`](file:///Users/nunziogiglio/Documents/Github/Repositories/Hermae_Nunzio_Giglio_0312200894/SVILUPPO-PROGRAMMA/fase-16.md), [`INFO-DATABASE/schema.sql`](file:///Users/nunziogiglio/Documents/Github/Repositories/Hermae_Nunzio_Giglio_0312200894/INFO-DATABASE/schema.sql) e [`server/src/services/preferenzePrivacyService.js`](file:///Users/nunziogiglio/Documents/Github/Repositories/Hermae_Nunzio_Giglio_0312200894/server/src/services/preferenzePrivacyService.js).
 - **Difficoltà riscontrate:** Non sono state riscontrate difficoltà nella definizione dei vincoli predefiniti orientati alla tutela della privacy (Privacy by Default).
 
+---
+
+### Fase 17 – Implementazione delle funzioni di occultamento della geolocalizzazione dell’utente per richiesta esplicita di tutela privacy
+- **Tempo stimato:** 2 ore | **Tempo effettivo:** 1 ora
+- **Descrizione:** È stata scritta la logica che consente di offuscare la posizione precisa dell’utente (tramite approssimazione ad area/CAP o totale oscuramento) qualora egli attivi le opzioni di tutela della privacy, impedendo il tracciamento diretto da parte di terzi. L'architettura prevede tre modalità operative (`QUARTIERE` con micro-perturbazione $300\text{–}500\text{ m}$, `AREA_CAP` con offuscamento macro-area $1.5\text{–}3\text{ km}$, e `TOTALE` con azzeramento delle coordinate e reperibilità aggregata per sola città). Sul frontend, `impostazioni.html` integra il selettore visivo a tre livelli con sincronizzazione istantanea su PostgreSQL, mentre `ricerca.html` evidenzia le posizioni approssimate ad Area/CAP e gestisce la vista tabellare accessibile.  
+  Documenti di riferimento: [`SVILUPPO-PROGRAMMA/fase-17.md`](file:///Users/nunziogiglio/Documents/Github/Repositories/Hermae_Nunzio_Giglio_0312200894/SVILUPPO-PROGRAMMA/fase-17.md), [`server/src/services/posizioneUtentiService.js`](file:///Users/nunziogiglio/Documents/Github/Repositories/Hermae_Nunzio_Giglio_0312200894/server/src/services/posizioneUtentiService.js) e [`hermae-frontend/impostazioni.html`](file:///Users/nunziogiglio/Documents/Github/Repositories/Hermae_Nunzio_Giglio_0312200894/hermae-frontend/impostazioni.html).
+- **Difficoltà riscontrate:** Definire un algoritmo di offuscamento delle coordinate che tutelasse l'anonimato senza azzerare la fruibilità delle ricerche di prossimità.
+
+
