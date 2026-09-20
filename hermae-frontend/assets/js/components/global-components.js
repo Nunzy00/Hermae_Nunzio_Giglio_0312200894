@@ -71,11 +71,48 @@ const NavbarLogged = {
           <a class="navbar-brand d-flex align-items-center gap-2" href="dashboard.html" aria-label="Hermae Dashboard">
             <img src="assets/img/logo.svg" alt="Logo Hermae" height="36" />
           </a>
-          
-          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navLoggedContent" aria-controls="navLoggedContent" aria-expanded="false" aria-label="Espandi menu riservato">
-            <span class="navbar-toggler-icon"></span>
-          </button>
 
+          <!-- Controlli a destra: Account Utente affiancato all'icona burger su mobile -->
+          <div class="d-flex align-items-center gap-2 order-lg-last ms-auto ms-lg-0">
+            <!-- Menu Utente con Profilo e Logout -->
+            <div class="dropdown">
+              <button class="btn btn-outline-secondary dropdown-toggle d-flex align-items-center gap-2 py-1 px-2 px-md-3" type="button" id="userMenuBtn" data-bs-toggle="dropdown" aria-expanded="false">
+                <i class="bi bi-person-circle fs-5" aria-hidden="true"></i>
+                <span class="d-none d-md-inline fw-semibold text-truncate" style="max-width: 140px;">
+                  {{ user ? user.nome : 'Utente' }}
+                </span>
+              </button>
+              <ul class="dropdown-menu dropdown-menu-end shadow-sm" aria-labelledby="userMenuBtn">
+                <li class="px-3 py-2 border-bottom">
+                  <div class="small text-muted">Accesso effettuato come:</div>
+                  <div class="fw-bold text-truncate" style="max-width: 200px;">{{ user ? user.email : '' }}</div>
+                </li>
+                <li>
+                  <a class="dropdown-item" href="account.html">
+                    <i class="bi bi-person me-2" aria-hidden="true"></i>Profilo Account
+                  </a>
+                </li>
+                <li>
+                  <a class="dropdown-item" href="impostazioni.html">
+                    <i class="bi bi-shield-check me-2" aria-hidden="true"></i>Privacy & Impostazioni
+                  </a>
+                </li>
+                <li><hr class="dropdown-divider"></li>
+                <li>
+                  <button class="dropdown-item text-danger d-flex align-items-center" type="button" @click="handleLogout">
+                    <i class="bi bi-box-arrow-right me-2" aria-hidden="true"></i>Disconnetti
+                  </button>
+                </li>
+              </ul>
+            </div>
+
+            <!-- Icona Burger Menu (visibile solo su schermi piccoli < lg) -->
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navLoggedContent" aria-controls="navLoggedContent" aria-expanded="false" aria-label="Espandi menu riservato">
+              <span class="navbar-toggler-icon"></span>
+            </button>
+          </div>
+
+          <!-- Menu collassabile delle sezioni -->
           <div class="collapse navbar-collapse" id="navLoggedContent">
             <ul class="navbar-nav me-auto mb-2 mb-lg-0 gap-1 ms-lg-3">
               <li class="nav-item">
@@ -104,40 +141,6 @@ const NavbarLogged = {
                 </a>
               </li>
             </ul>
-
-            <div class="d-flex align-items-center gap-3">
-              <!-- Menu Utente con Profilo e Logout -->
-              <div class="dropdown">
-                <button class="btn btn-outline-secondary dropdown-toggle d-flex align-items-center gap-2 py-1 px-3" type="button" id="userMenuBtn" data-bs-toggle="dropdown" aria-expanded="false">
-                  <i class="bi bi-person-circle fs-5" aria-hidden="true"></i>
-                  <span class="d-none d-md-inline fw-semibold text-truncate" style="max-width: 140px;">
-                    {{ user ? user.nome : 'Utente' }}
-                  </span>
-                </button>
-                <ul class="dropdown-menu dropdown-menu-end shadow-sm" aria-labelledby="userMenuBtn">
-                  <li class="px-3 py-2 border-bottom">
-                    <div class="small text-muted">Accesso effettuato come:</div>
-                    <div class="fw-bold text-truncate" style="max-width: 200px;">{{ user ? user.email : '' }}</div>
-                  </li>
-                  <li>
-                    <a class="dropdown-item" href="account.html">
-                      <i class="bi bi-person me-2" aria-hidden="true"></i>Profilo Account
-                    </a>
-                  </li>
-                  <li>
-                    <a class="dropdown-item" href="impostazioni.html">
-                      <i class="bi bi-shield-check me-2" aria-hidden="true"></i>Privacy & Impostazioni
-                    </a>
-                  </li>
-                  <li><hr class="dropdown-divider"></li>
-                  <li>
-                    <button class="dropdown-item text-danger d-flex align-items-center" type="button" @click="handleLogout">
-                      <i class="bi bi-box-arrow-right me-2" aria-hidden="true"></i>Disconnetti
-                    </button>
-                  </li>
-                </ul>
-              </div>
-            </div>
           </div>
         </div>
       </nav>

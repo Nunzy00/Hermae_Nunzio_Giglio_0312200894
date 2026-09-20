@@ -238,6 +238,55 @@ button,
   box-shadow: 0 4px 12px rgba(37, 99, 235, 0.06);
 }
 
+/* Schede metriche con proporzione quadrata smussata su mobile */
+.metric-card-square {
+  background-color: var(--hermae-surface);
+  border: 1px solid var(--hermae-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  padding: 1.1rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  transition: transform 0.15s ease, box-shadow 0.2s ease;
+  height: 100%;
+}
+
+.metric-card-square:hover {
+  box-shadow: var(--shadow-md);
+}
+
+@media (max-width: 575.98px) {
+  .metric-card-square {
+    aspect-ratio: 1 / 1;
+    border-radius: 18px;
+    padding: 0.85rem;
+  }
+  .metric-card-square .metric-title {
+    font-size: 0.68rem;
+    letter-spacing: 0.3px;
+    line-height: 1.1;
+  }
+  .metric-card-square .metric-val {
+    font-size: 1.5rem;
+    line-height: 1;
+    margin: 0.2rem 0;
+  }
+  .metric-card-square .metric-desc {
+    font-size: 0.7rem;
+    line-height: 1.2;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  .metric-card-square .metric-icon {
+    width: 28px;
+    height: 28px;
+    font-size: 0.85rem;
+  }
+}
+
 /* Contenitore fisso per notifiche toast fluttuanti */
 .toast-container-hermae {
   position: fixed;
