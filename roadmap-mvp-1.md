@@ -1,0 +1,110 @@
+# Roadmap di Sviluppo MVP 1 — Tracciamento Fasi di Lavoro
+
+> **Corso di Studio:** Laurea Triennale in Informatica per le Aziende Digitali (L-31)  
+> **Tema n. 4:** Sharing technologies | **Traccia PW n. 14:** Sviluppo di un software di geolocalizzazione culturale per condividere il patrimonio librario degli utenti privati  
+> **Progetto:** Hermae — Candidato: Nunzio Giglio (Matr. 0312200894)  
+> **Riferimento Elaborato Tesi:** Parte Prima — Sezione 2: *Fasi di lavoro, tempi di implementazione e difficoltà riscontrate*  
+
+---
+
+## 1. Tabella Riepilogativa delle Fasi Eseguite (Fasi 1 – 8)
+
+| Fase | Titolo e Obiettivo | Tempo Stimato | Tempo Effettivo | Documento / Deliverable Prodotto | Stato |
+| :---: | :--- | :---: | :---: | :--- | :---: |
+| **Fase 1** | Analisi della situazione-problema esposta | 30 min | 10 min | [`ELABORATO/1-situazione-problema.md`](file:///Users/nunziogiglio/Documents/Github/Repositories/Hermae_Nunzio_Giglio_0312200894/ELABORATO/1-situazione-problema.md) | **Completata** |
+| **Fase 2** | Analisi del contesto operativo e degli obiettivi | 1 h | 45 min | [`RAPPORTO TECNICO/analisi-contesto-operativo.md`](file:///Users/nunziogiglio/Documents/Github/Repositories/Hermae_Nunzio_Giglio_0312200894/RAPPORTO%20TECNICO/analisi-contesto-operativo.md) | **Completata** |
+| **Fase 3** | Analisi dei requisiti di sistema (RF e RNF) | 3 h | 1 h 30 min | [`RAPPORTO TECNICO/requisiti-sistema.md`](file:///Users/nunziogiglio/Documents/Github/Repositories/Hermae_Nunzio_Giglio_0312200894/RAPPORTO%20TECNICO/requisiti-sistema.md) | **Completata** |
+| **Fase 4** | Definizione del Tech Stack Web | 1 h 30 min | 1 h | [`RAPPORTO TECNICO/tech-stack.md`](file:///Users/nunziogiglio/Documents/Github/Repositories/Hermae_Nunzio_Giglio_0312200894/RAPPORTO%20TECNICO/tech-stack.md) | **Completata** |
+| **Fase 5** | Definizione dell'architettura software e UX | 2 h | 1 h | [`RAPPORTO TECNICO/architettura-programma.md`](file:///Users/nunziogiglio/Documents/Github/Repositories/Hermae_Nunzio_Giglio_0312200894/RAPPORTO%20TECNICO/architettura-programma.md) & [`UI-UX-accessibilità.md`](file:///Users/nunziogiglio/Documents/Github/Repositories/Hermae_Nunzio_Giglio_0312200894/RAPPORTO%20TECNICO/UI-UX-accessibilit%C3%A0.md) | **Completata** |
+| **Fase 6** | Analisi delle pagine web necessarie (Sitemap) | 1 h 30 min | 30 min | [`RAPPORTO TECNICO/sitemap-programma.md`](file:///Users/nunziogiglio/Documents/Github/Repositories/Hermae_Nunzio_Giglio_0312200894/RAPPORTO%20TECNICO/sitemap-programma.md) | **Completata** |
+| **Fase 7** | Analisi dei componenti web necessari | 1 h 30 min | 45 min | [`RAPPORTO TECNICO/components-map.md`](file:///Users/nunziogiglio/Documents/Github/Repositories/Hermae_Nunzio_Giglio_0312200894/RAPPORTO%20TECNICO/components-map.md) | **Completata** |
+| **Fase 8** | Definizione modello e schema di Database | 2 h | 1 h | [`INFO-DATABASE/modello-ER.md`](file:///Users/nunziogiglio/Documents/Github/Repositories/Hermae_Nunzio_Giglio_0312200894/INFO-DATABASE/modello-ER.md) & [`modello-logico.md`](file:///Users/nunziogiglio/Documents/Github/Repositories/Hermae_Nunzio_Giglio_0312200894/INFO-DATABASE/modello-logico.md) | **Completata** |
+| **TOTALE** | **Avanzamento Fasi di Analisi e Progettazione** | **13 h 30 min** | **6 h 40 min** | **9 Documenti di Specifica Consolidati** | **100% Progettazione** |
+
+---
+
+## 2. Dettaglio Analitico delle Attività Svolte
+
+### Fase 1 – Analisi della situazione-problema esposta
+- **Tempo stimato:** 30 minuti | **Tempo effettivo:** 10 minuti
+- **Descrizione:** In questa fase preliminare è stato esaminato il documento del Project Work, in particolare la sezione *“Descrizione situazione-problema”*. È stata identificata la criticità della dispersione del piccolo patrimonio librario privato e la necessità di uno strumento digitale di geolocalizzazione culturale per connettere domanda e offerta su scala locale.
+- **Difficoltà riscontrate:** Non sono state riscontrate difficoltà in questa fase.
+
+---
+
+### Fase 2 – Analisi del contesto operativo e degli obiettivi richiesti
+- **Tempo stimato:** 1 ora | **Tempo effettivo:** 45 minuti
+- **Descrizione:** In questa fase preliminare è stato esaminato in dettaglio il documento del Project Work, in cui non vi è stata alcuna difficoltà nel comprendere i 6 requisiti principali richiesti nella sezione *“Obiettivi”* e le 4 macro-attività richieste nella sezione *“Elaborato/artefatto/prodotto”*. L'ambito operativo è stato delimitato alla dimensione cittadina e di prossimità di quartiere, con trattazione implicita delle comunità tematiche per future espansioni.
+- **Difficoltà riscontrate:** Non sono state riscontrate difficoltà in questa fase.
+
+---
+
+### Fase 3 – Analisi dei requisiti di sistema
+- **Tempo stimato:** 3 ore | **Tempo effettivo:** 90 minuti (1 h 30 min)
+- **Descrizione:** Dopo aver compreso gli obiettivi richiesti dal programma e le relative specifiche tecniche, tecnologiche e progettuali (come l’esigenza della tutela della privacy degli utenti), si è proceduto con la stesura dell’elenco dei requisiti funzionali (RF) e non funzionali (RNF).
+  - **Requisiti Funzionali identificati:**
+    - **RF-1:** Autenticazione & Utenti
+    - **RF-2:** Geolocalizzazione
+    - **RF-3:** Gestione Catalogo (CRUD ops)
+    - **RF-4:** Upload Immagini e miniature
+    - **RF-5:** Motore di ricerca testuale
+    - **RF-6:** Ricerca Geospaziale dei contenuti
+    - **RF-7:** Scheda dettagli ed anteprima
+    - **RF-8:** Gestione richieste di contatto e prestito
+    - **RF-9:** Dashboard e statistiche
+  - **Requisiti Non Funzionali identificati:**
+    - **RNF-1:** Accessibilità WCAG 2.1 Livello AA
+    - **RNF-2:** GDPR & Privacy by Design (*Spatial Blurring* per geolocalizzazione ed esemplari)
+    - **RNF-3:** Prestazioni ed ottimizzazione (query PostGIS $< 200\text{ ms}$, compressione WebP)
+    - **RNF-4:** Usabilità ed UX (mobile-to-first)
+- **Difficoltà riscontrate:** Non sono state riscontrate difficoltà in questa fase.
+
+---
+
+### Fase 4 – Definizione del Tech Stack Web
+- **Tempo stimato:** 90 minuti (1 h 30 min) | **Tempo effettivo:** 1 ora
+- **Descrizione:** In questa fase è stato selezionato e convalidato l’insieme delle tecnologie adoperate per l'intero ciclo di vita dell'applicazione: Node.js ed Express.js per il back-end RESTful, Vue.js 3 e Bootstrap 5 per il front-end, Leaflet.js per la resa GIS, Chart.js per la visualizzazione dati e PostgreSQL/PostGIS per il database geospaziale. Sono stati scelti linguaggi, framework e librerie idonei a garantire reattività, modularità e facilità di manutenzione, valutando compatibilità cross-platform e supporto a lungo termine.
+- **Difficoltà riscontrate:** Non sono state riscontrate particolari difficoltà tecniche, se non la ponderazione iniziale tra diverse opzioni per il layer frontend al fine di massimizzare le performance.
+
+---
+
+### Fase 5 – Definizione dell'architettura software
+- **Tempo stimato:** 2 ore | **Tempo effettivo:** 1 ora
+- **Descrizione:** È stato definito il pattern architetturale di riferimento del sistema, delineando chiaramente la separazione dei livelli (layer di presentazione, logica di business e accesso ai dati). Sono state stabilite le convenzioni di instradamento RESTful, i formati di scambio dati (JSON stateless), la pipeline di upload limitata ai formati immagine principali con transcodifica WebP (Sharp) e la modularizzazione dei servizi per agevolare l'espandibilità futura. Sono state integrate le scelte di design responsive *mobile-to-first*, la navigabilità completa da tastiera e la conformità semantica a `schema.org/Book`.
+- **Difficoltà riscontrate:** Nessuna difficoltà rilevante riscontrata; l’impegno principale ha riguardato la corretta strutturazione del flusso dati asincrono tra client e server e l'applicazione dello *spatial blurring* a tutela del domicilio dell'utente.
+
+---
+
+### Fase 6 – Analisi delle pagine web necessarie
+- **Tempo stimato:** 90 minuti (1 h 30 min) | **Tempo effettivo:** 30 minuti
+- **Descrizione:** Dopo aver analizzato gli obiettivi ed i requisiti richiesti, è stata realizzata la struttura gerarchica delle pagine necessarie per il programma.  
+  Di seguito, senza ordine gerarchico, le 11 pagine inserite sono:
+  - **Login** (`login.html` - Accesso)
+  - **Logout** (`logout.html` - Disconnessione)
+  - **Signup** (`registrazione.html` - Registrazione)
+  - **Dashboard** (`dashboard.html` - Pagina principale post-autenticazione)
+  - **Library** (`libreria.html` - Gestione catalogo personale)
+  - **Book[ID]** (`libro.html` - Scheda template volume)
+  - **Search** (`ricerca.html` - Mappa geospaziale e ricerca)
+  - **Settings** (`impostazioni.html` - Impostazioni e consensi GDPR)
+  - **Account** (`account.html` - Profilo personale)
+  - **Chat** (`chat.html` - Messaggistica di scambio)
+  - **Attività** (`attivita.html` - Gestione richieste di prestito)  
+  Le pagine sono formalizzate nel loro corretto ordine e flusso di autenticazione al seguente link: [`RAPPORTO TECNICO/sitemap-programma.md`](file:///Users/nunziogiglio/Documents/Github/Repositories/Hermae_Nunzio_Giglio_0312200894/RAPPORTO%20TECNICO/sitemap-programma.md).
+- **Difficoltà riscontrate:** Non sono state riscontrate difficoltà in questa fase, se non la scelta di procedere con un’architettura “a pagine” navigabile anche a ritroso tramite le funzioni di navigazione tra le pagine HTML come prevista dai moderni browser web, integrando il controllo di accesso che subordina l'intera navigazione all'autenticazione.
+
+---
+
+### Fase 7 – Analisi dei componenti web necessari
+- **Tempo stimato:** 90 minuti (1 h 30 min) | **Tempo effettivo:** 45 minuti
+- **Descrizione:** Sono stati censiti e scomposti gli elementi di interfaccia riutilizzabili necessari alla composizione delle viste, distinti tra **componenti globali** (`navbar-guest`, `navbar-logged`, `app-footer`, `toast-notification`, `loading-spinner`, `modal-dialog`) e **componenti specifici di pagina** (`map-view`, `search-bar`, `spatial-filter`, `book-detail-card`, `book-table-crud`, `loan-request-card`, `analytics-chart`, ecc.). Ciò ha permesso di predisporre una mappa dei componenti atomici coerenti con le linee guida di usabilità e accessibilità WAI-ARIA.  
+  Documento di riferimento: [`RAPPORTO TECNICO/components-map.md`](file:///Users/nunziogiglio/Documents/Github/Repositories/Hermae_Nunzio_Giglio_0312200894/RAPPORTO%20TECNICO/components-map.md).
+- **Difficoltà riscontrate:** Nessuna difficoltà riscontrata; la scomposizione modulare ha favorito la futura riusabilità del codice e la manutenibilità del front-end.
+
+---
+
+### Fase 8 – Definizione del modello e dello schema di Database
+- **Tempo stimato:** 2 ore | **Tempo effettivo:** 1 ora
+- **Descrizione:** È stata condotta la modellazione logica e concettuale della base di dati relazionale con estensione geospaziale PostGIS. L'entità centrale è stata formalizzata come **`ESEMPLARI`** (distinguendo la copia fisica posseduta dall'opera letteraria astratta, in conformità con lo standard *IFLA LRM / FRBR*), e tutti gli identificatori sono stati strutturati come **UUID v4** per prevenire vulnerabilità di tipo IDOR e garantire riservatezza. Sono state individuate le relazioni di cardinalità (1:N), i vincoli di integrità referenziale (`ON DELETE CASCADE`/`RESTRICT`), gli indici spaziali ad albero **GiST** per il calcolo di prossimità geodesica (`ST_DWithin` $< 200\text{ ms}$) e gli indici B-Tree. Lo schema è stato ottimizzato in Terza Forma Normale (3FN) per minimizzare ridondanze e garantire la coerenza transazionale (ACID).  
+  Documenti di riferimento: [`INFO-DATABASE/modello-ER.md`](file:///Users/nunziogiglio/Documents/Github/Repositories/Hermae_Nunzio_Giglio_0312200894/INFO-DATABASE/modello-ER.md) e [`INFO-DATABASE/modello-logico.md`](file:///Users/nunziogiglio/Documents/Github/Repositories/Hermae_Nunzio_Giglio_0312200894/INFO-DATABASE/modello-logico.md).
+- **Difficoltà riscontrate:** Nessuna difficoltà riscontrata nello sviluppo del diagramma E-R e nella normalizzazione delle tabelle.
