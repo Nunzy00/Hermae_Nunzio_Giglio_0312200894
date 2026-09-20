@@ -7,5 +7,14 @@ module.exports = {
   port: process.env.PORT || 3000,
   nodeEnv: process.env.NODE_ENV || 'development',
   clientOrigin: process.env.CLIENT_ORIGIN || '*',
-  apiPrefix: process.env.API_PREFIX || '/api'
+  apiPrefix: process.env.API_PREFIX || '/api',
+  db: {
+    connectionString: process.env.DATABASE_URL || '',
+    host: process.env.DB_HOST || 'localhost',
+    port: parseInt(process.env.DB_PORT, 10) || 5432,
+    name: process.env.DB_NAME || 'hermae_db',
+    user: process.env.DB_USER || 'nunziogiglio',
+    password: process.env.DB_PASSWORD || '',
+    maxConnections: parseInt(process.env.DB_POOL_MAX, 10) || 10
+  }
 };

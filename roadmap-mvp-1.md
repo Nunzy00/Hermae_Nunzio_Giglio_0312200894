@@ -7,7 +7,7 @@
 
 ---
 
-## 1. Tabella Riepilogativa delle Fasi Eseguite (Fasi 1 – 8)
+## 1. Tabella Riepilogativa delle Fasi Eseguite (Fasi 1 – 10)
 
 | Fase | Titolo e Obiettivo | Tempo Stimato | Tempo Effettivo | Documento / Deliverable Prodotto | Stato |
 | :---: | :--- | :---: | :---: | :--- | :---: |
@@ -19,7 +19,9 @@
 | **Fase 6** | Analisi delle pagine web necessarie (Sitemap) | 1 h 30 min | 30 min | [`RAPPORTO TECNICO/sitemap-programma.md`](file:///Users/nunziogiglio/Documents/Github/Repositories/Hermae_Nunzio_Giglio_0312200894/RAPPORTO%20TECNICO/sitemap-programma.md) | **Completata** |
 | **Fase 7** | Analisi dei componenti web necessari | 1 h 30 min | 45 min | [`RAPPORTO TECNICO/components-map.md`](file:///Users/nunziogiglio/Documents/Github/Repositories/Hermae_Nunzio_Giglio_0312200894/RAPPORTO%20TECNICO/components-map.md) | **Completata** |
 | **Fase 8** | Definizione modello e schema di Database | 2 h | 1 h | [`INFO-DATABASE/modello-ER.md`](file:///Users/nunziogiglio/Documents/Github/Repositories/Hermae_Nunzio_Giglio_0312200894/INFO-DATABASE/modello-ER.md) & [`modello-logico.md`](file:///Users/nunziogiglio/Documents/Github/Repositories/Hermae_Nunzio_Giglio_0312200894/INFO-DATABASE/modello-logico.md) | **Completata** |
-| **TOTALE** | **Avanzamento Fasi di Analisi e Progettazione** | **13 h 30 min** | **6 h 40 min** | **9 Documenti di Specifica Consolidati** | **100% Progettazione** |
+| **Fase 9** | Implementazione struttura base del server | 2 h | 1 h | [`SVILUPPO-PROGRAMMA/fase-9.md`](file:///Users/nunziogiglio/Documents/Github/Repositories/Hermae_Nunzio_Giglio_0312200894/SVILUPPO-PROGRAMMA/fase-9.md) | **Completata** |
+| **Fase 10** | Creazione database | 2 h | 1 h | [`SVILUPPO-PROGRAMMA/fase-10.md`](file:///Users/nunziogiglio/Documents/Github/Repositories/Hermae_Nunzio_Giglio_0312200894/SVILUPPO-PROGRAMMA/fase-10.md) & [`INFO-DATABASE/schema.sql`](file:///Users/nunziogiglio/Documents/Github/Repositories/Hermae_Nunzio_Giglio_0312200894/INFO-DATABASE/schema.sql) | **Completata** |
+| **TOTALE** | **Avanzamento Fasi di Progettazione e Sviluppo Iniziale** | **17 h 30 min** | **8 h 40 min** | **11 Deliverable Consolidati** | **Fasi 1–10 Completate** |
 
 ---
 
@@ -55,7 +57,7 @@
   - **Requisiti Non Funzionali identificati:**
     - **RNF-1:** Accessibilità WCAG 2.1 Livello AA
     - **RNF-2:** GDPR & Privacy by Design (*Spatial Blurring* per geolocalizzazione ed esemplari)
-    - **RNF-3:** Prestazioni ed ottimizzazione (query PostGIS $< 200\text{ ms}$, compressione WebP)
+    - **RNF-3:** Prestazioni ed ottimizzazione (query geospaziali $< 200\text{ ms}$, compressione WebP)
     - **RNF-4:** Usabilità ed UX (mobile-to-first)
 - **Difficoltà riscontrate:** Non sono state riscontrate difficoltà in questa fase.
 
@@ -63,7 +65,7 @@
 
 ### Fase 4 – Definizione del Tech Stack Web
 - **Tempo stimato:** 90 minuti (1 h 30 min) | **Tempo effettivo:** 1 ora
-- **Descrizione:** In questa fase è stato selezionato e convalidato l’insieme delle tecnologie adoperate per l'intero ciclo di vita dell'applicazione: Node.js ed Express.js per il back-end RESTful, Vue.js 3 e Bootstrap 5 per il front-end, Leaflet.js per la resa GIS, Chart.js per la visualizzazione dati e PostgreSQL/PostGIS per il database geospaziale. Sono stati scelti linguaggi, framework e librerie idonei a garantire reattività, modularità e facilità di manutenzione, valutando compatibilità cross-platform e supporto a lungo termine.
+- **Descrizione:** In questa fase è stato selezionato e convalidato l’insieme delle tecnologie adoperate per l'intero ciclo di vita dell'applicazione: Node.js ed Express.js per il back-end RESTful, Vue.js 3 e Bootstrap 5 per il front-end, Leaflet.js per la resa GIS, Chart.js per la visualizzazione dati e PostgreSQL per il database geospaziale. Sono stati scelti linguaggi, framework e librerie idonei a garantire reattività, modularità e facilità di manutenzione, valutando compatibilità cross-platform e supporto a lungo termine.
 - **Difficoltà riscontrate:** Non sono state riscontrate particolari difficoltà tecniche, se non la ponderazione iniziale tra diverse opzioni per il layer frontend al fine di massimizzare le performance.
 
 ---
@@ -105,6 +107,22 @@
 
 ### Fase 8 – Definizione del modello e dello schema di Database
 - **Tempo stimato:** 2 ore | **Tempo effettivo:** 1 ora
-- **Descrizione:** È stata condotta la modellazione logica e concettuale della base di dati relazionale con estensione geospaziale PostGIS. L'entità centrale è stata formalizzata come **`ESEMPLARI`** (distinguendo la copia fisica posseduta dall'opera letteraria astratta, in conformità con lo standard *IFLA LRM / FRBR*), e tutti gli identificatori sono stati strutturati come **UUID v4** per prevenire vulnerabilità di tipo IDOR e garantire riservatezza. Sono state individuate le relazioni di cardinalità (1:N), i vincoli di integrità referenziale (`ON DELETE CASCADE`/`RESTRICT`), gli indici spaziali ad albero **GiST** per il calcolo di prossimità geodesica (`ST_DWithin` $< 200\text{ ms}$) e gli indici B-Tree. Lo schema è stato ottimizzato in Terza Forma Normale (3FN) per minimizzare ridondanze e garantire la coerenza transazionale (ACID).  
+- **Descrizione:** È stata condotta la modellazione logica e concettuale della base di dati relazionale. L'entità centrale è stata formalizzata come **`ESEMPLARI`** (distinguendo la copia fisica posseduta dall'opera letteraria astratta, in conformità con lo standard *IFLA LRM / FRBR*), e tutti gli identificatori sono stati strutturati come **UUID v4** per prevenire vulnerabilità di tipo IDOR e garantire riservatezza. Sono state individuate le relazioni di cardinalità (1:N), i vincoli di integrità referenziale (`ON DELETE CASCADE`/`RESTRICT`), gli indici spaziali ad albero **GiST** per il calcolo di prossimità geodesica e gli indici B-Tree. Lo schema è stato ottimizzato in Terza Forma Normale (3FN) per minimizzare ridondanze e garantire la coerenza transazionale (ACID).  
   Documenti di riferimento: [`INFO-DATABASE/modello-ER.md`](file:///Users/nunziogiglio/Documents/Github/Repositories/Hermae_Nunzio_Giglio_0312200894/INFO-DATABASE/modello-ER.md) e [`INFO-DATABASE/modello-logico.md`](file:///Users/nunziogiglio/Documents/Github/Repositories/Hermae_Nunzio_Giglio_0312200894/INFO-DATABASE/modello-logico.md).
 - **Difficoltà riscontrate:** Nessuna difficoltà riscontrata nello sviluppo del diagramma E-R e nella normalizzazione delle tabelle.
+
+---
+
+### Fase 9 – Implementazione struttura base del server
+- **Tempo stimato:** 2 ore | **Tempo effettivo:** 1 ora
+- **Descrizione:** È stato predisposto l’ambiente backend iniziale, configurando il web server, i middleware per la gestione delle richieste HTTP/CORS, la gestione degli errori globali e la struttura ad albero delle directory e dei router applicativi.  
+  Documento di riferimento: [`SVILUPPO-PROGRAMMA/fase-9.md`](file:///Users/nunziogiglio/Documents/Github/Repositories/Hermae_Nunzio_Giglio_0312200894/SVILUPPO-PROGRAMMA/fase-9.md).
+- **Difficoltà riscontrate:** Non sono state riscontrate difficoltà in questa fase.
+
+---
+
+### Fase 10 – Creazione database
+- **Tempo stimato:** 2 ore | **Tempo effettivo:** 1 ora
+- **Descrizione:** In questa fase è stato istanziato l’ambiente database fisico/cloud e sono stati eseguiti gli script DDL per la creazione delle tabelle, degli indici e dei vincoli definiti precedentemente, testando con successo la stringa di connessione dal backend.  
+  Documenti di riferimento: [`SVILUPPO-PROGRAMMA/fase-10.md`](file:///Users/nunziogiglio/Documents/Github/Repositories/Hermae_Nunzio_Giglio_0312200894/SVILUPPO-PROGRAMMA/fase-10.md) e [`INFO-DATABASE/schema.sql`](file:///Users/nunziogiglio/Documents/Github/Repositories/Hermae_Nunzio_Giglio_0312200894/INFO-DATABASE/schema.sql).
+- **Difficoltà riscontrate:** Non sono state riscontrate difficoltà bloccanti; è stata configurata la suite di estensioni per l'indicizzazione ad albero GiST (`btree_gist`) e per il calcolo geodetico sferico (`earthdistance`), garantendo al contempo piena portabilità cloud e prestazioni di interrogazione con latenza $< 2\text{ ms}$.
