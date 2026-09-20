@@ -87,6 +87,170 @@
         </div>
       </section>
 
+      <!-- Sezione Preferenze di Riservatezza & Visibilità Profilo (Fase 16 - preferenze_privacy_utenti) -->
+      <section class="card-hermae p-3 p-md-4 bg-white border-0 shadow-sm mb-4" aria-labelledby="privacySettingsHeading">
+        <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3 pb-2 border-bottom">
+          <div>
+            <h2 id="privacySettingsHeading" class="h5 fw-bold text-dark mb-1">
+              <i class="bi bi-shield-lock-fill text-primary me-2" aria-hidden="true"></i>Preferenze di Riservatezza & Visibilità Profilo
+            </h2>
+            <p class="text-muted small mb-0">
+              Personalizza l'esposizione dei tuoi dati e della tua posizione nel pieno rispetto del principio di <em>Privacy by Default</em> (Art. 25 GDPR).
+            </p>
+          </div>
+          <button
+            type="button"
+            class="btn btn-outline-secondary btn-sm d-inline-flex align-items-center gap-1"
+            @click="ripristinaPrivacyDefault"
+            :disabled="savingPrivacy"
+            title="Ripristina le impostazioni predefinite più restrittive (Privacy by Default)"
+          >
+            <i class="bi bi-arrow-counterclockwise" aria-hidden="true"></i>
+            <span>Ripristina Default GDPR</span>
+          </button>
+        </div>
+
+        <!-- Form di Gestione Preferenze Privacy -->
+        <form @submit.prevent="salvaPreferenzePrivacy" novalidate>
+          <div class="row g-3">
+            
+            <!-- Switch 1: Visibilità Posizione Mappa -->
+            <div class="col-md-6">
+              <div class="p-3 border rounded-3 h-100 bg-body-tertiary d-flex justify-content-between align-items-start gap-3">
+                <div>
+                  <label for="switchPosizione" class="form-check-label fw-bold text-dark d-block mb-1">
+                    <i class="bi bi-geo-alt-fill text-primary me-1" aria-hidden="true"></i>Visibilità sulla Mappa
+                  </label>
+                  <span class="small text-muted d-block">
+                    Mostra il tuo marker offuscato (300–500m) sulla mappa agli altri lettori nelle vicinanze. Se disattivato, non apparirai sulla mappa cartografica: poiché la città è un dato obbligatorio, sarai visibile senza una geolocalizzazione precisa, venendo etichettato solo con la dicitura della città invece che con la distanza.
+                  </span>
+                </div>
+                <div class="form-check form-switch fs-5 mb-0">
+                  <input
+                    class="form-check-input"
+                    type="checkbox"
+                    role="switch"
+                    id="switchPosizione"
+                    v-model="privacyForm.mostra_posizione"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <!-- Switch 2: Visibilità Libreria -->
+            <div class="col-md-6">
+              <div class="p-3 border rounded-3 h-100 bg-body-tertiary d-flex justify-content-between align-items-start gap-3">
+                <div>
+                  <label for="switchLibreria" class="form-check-label fw-bold text-dark d-block mb-1">
+                    <i class="bi bi-bookshelf text-primary me-1" aria-hidden="true"></i>Visibilità della Libreria
+                  </label>
+                  <span class="small text-muted d-block">
+                    Rendi visibili i volumi fisici che hai condiviso nelle ricerche di quartiere e comunali.
+                  </span>
+                </div>
+                <div class="form-check form-switch fs-5 mb-0">
+                  <input
+                    class="form-check-input"
+                    type="checkbox"
+                    role="switch"
+                    id="switchLibreria"
+                    v-model="privacyForm.mostra_libreria"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <!-- Switch 3: Visibilità Email (Privacy by Default) -->
+            <div class="col-md-6">
+              <div class="p-3 border rounded-3 h-100 bg-body-tertiary d-flex justify-content-between align-items-start gap-3">
+                <div>
+                  <div class="d-flex align-items-center gap-2 mb-1">
+                    <label for="switchEmail" class="form-check-label fw-bold text-dark mb-0">
+                      <i class="bi bi-envelope text-primary me-1" aria-hidden="true"></i>Esposizione Indirizzo Email
+                    </label>
+                    <span class="badge bg-secondary-subtle text-secondary" style="font-size: 0.65rem;">Privacy by Default</span>
+                  </div>
+                  <span class="small text-muted d-block">
+                    Disattivato per impostazione predefinita. Le comunicazioni avvengono all'interno della chat peer-to-peer protetta.
+                  </span>
+                </div>
+                <div class="form-check form-switch fs-5 mb-0">
+                  <input
+                    class="form-check-input"
+                    type="checkbox"
+                    role="switch"
+                    id="switchEmail"
+                    v-model="privacyForm.mostra_email"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <!-- Switch 4: Messaggi Diretti -->
+            <div class="col-md-6">
+              <div class="p-3 border rounded-3 h-100 bg-body-tertiary d-flex justify-content-between align-items-start gap-3">
+                <div>
+                  <label for="switchMessaggi" class="form-check-label fw-bold text-dark d-block mb-1">
+                    <i class="bi bi-chat-dots-fill text-primary me-1" aria-hidden="true"></i>Ricezione Messaggi Diretti
+                  </label>
+                  <span class="small text-muted d-block">
+                    Permette ai lettori vicini di inviarti richieste di prestito e messaggi di coordinamento dello scambio.
+                  </span>
+                </div>
+                <div class="form-check form-switch fs-5 mb-0">
+                  <input
+                    class="form-check-input"
+                    type="checkbox"
+                    role="switch"
+                    id="switchMessaggi"
+                    v-model="privacyForm.consenti_messaggi_diretti"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <!-- Raggio Massimo di Visibilità -->
+            <div class="col-12">
+              <div class="p-3 border rounded-3 bg-light">
+                <div class="d-flex justify-content-between align-items-center mb-1">
+                  <label for="raggioVisibilitaRange" class="form-label fw-bold small text-dark mb-0">
+                    <i class="bi bi-broadcast-pin text-primary me-1" aria-hidden="true"></i>Raggio Massimo di Visibilità Territoriale:
+                  </label>
+                  <span class="badge bg-primary px-2 py-1 fs-6">{{ privacyForm.raggio_visibilita_km }} km</span>
+                </div>
+                <input
+                  type="range"
+                  class="form-range"
+                  id="raggioVisibilitaRange"
+                  min="1"
+                  max="50"
+                  step="1"
+                  v-model.number="privacyForm.raggio_visibilita_km"
+                />
+                <div class="d-flex justify-content-between text-muted" style="font-size: 0.72rem;">
+                  <span>1 km (Solo Quartiere)</span>
+                  <span>25 km (Area Urbana/Metropolitana)</span>
+                  <span>50 km (Intera Provincia)</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Pulsante Salvataggio Preferenze Privacy -->
+          <div class="d-flex justify-content-end mt-3">
+            <button
+              type="submit"
+              class="btn btn-primary px-4 py-2 d-inline-flex align-items-center gap-2"
+              :disabled="savingPrivacy"
+            >
+              <span v-if="savingPrivacy" class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+              <i v-else class="bi bi-shield-check" aria-hidden="true"></i>
+              <span>{{ savingPrivacy ? 'Salvataggio...' : 'Salva Preferenze Privacy' }}</span>
+            </button>
+          </div>
+        </form>
+      </section>
+
       <!-- Sezione Riferimento Territoriale e Coordinate -->
       <section class="card-hermae p-4 bg-white border-0 shadow-sm mb-4" aria-labelledby="riferimentoTerritorialeHeading">
         <div class="mb-3 pb-2 border-bottom">
@@ -300,11 +464,22 @@
         const user = ref(null);
         const loading = ref(false);
         const saving = ref(false);
+        const savingPrivacy = ref(false);
         const deleting = ref(false);
         const detectingGps = ref(false);
         const gpsAccuracy = ref(null);
         const toasts = ref([]);
         const posizioneEsistente = ref(null);
+
+        // Modello dati delle preferenze di riservatezza (Fase 16 - preferenze_privacy_utenti)
+        const privacyForm = ref({
+          profilo_pubblico: false,
+          mostra_posizione: true,
+          mostra_libreria: true,
+          mostra_email: false,
+          raggio_visibilita_km: 10,
+          consenti_messaggi_diretti: true
+        });
 
         // Modello dati del form di configurazione geografica
         const form = ref({
@@ -461,24 +636,74 @@
           }
         };
 
-        // Inizializza la pagina verificando la sessione e caricando i dati
+        // Carica le preferenze di riservatezza dell'utente dal backend
+        const caricaPreferenzePrivacy = async () => {
+          try {
+            const res = await window.apiClient.get('/privacy/me');
+            if (res.data && res.data.data) {
+              privacyForm.value = { ...res.data.data };
+            }
+          } catch (err) {
+            // In caso di errore o assenza, mantieni le impostazioni predefinite Privacy by Default
+          }
+        };
+
+        // Salva le preferenze di riservatezza aggiornate dall'utente
+        const salvaPreferenzePrivacy = async () => {
+          savingPrivacy.value = true;
+          try {
+            const res = await window.apiClient.put('/privacy/me', privacyForm.value);
+            if (res.data && res.data.data) {
+              privacyForm.value = { ...res.data.data };
+              addToast('Privacy Aggiornata', 'Preferenze di riservatezza e visibilità salvate con successo.', 'success');
+            }
+          } catch (err) {
+            const msg = err.response?.data?.error?.message || 'Impossibile salvare le preferenze di riservatezza.';
+            addToast('Errore Privacy', msg, 'danger');
+          } finally {
+            savingPrivacy.value = false;
+          }
+        };
+
+        // Ripristina le preferenze di riservatezza ai valori restrittivi predefiniti (Privacy by Default)
+        const ripristinaPrivacyDefault = async () => {
+          savingPrivacy.value = true;
+          try {
+            const res = await window.apiClient.delete('/privacy/me');
+            if (res.data && res.data.data) {
+              privacyForm.value = { ...res.data.data };
+              addToast('Privacy by Default', 'Ripristinate le impostazioni predefinite di massima tutela (Art. 25 GDPR).', 'info');
+            }
+          } catch (err) {
+            addToast('Errore Reset', 'Impossibile ripristinare le impostazioni predefinite.', 'danger');
+          } finally {
+            savingPrivacy.value = false;
+          }
+        };
+
+        // Inizializza la pagina verificando la sessione e caricando i dati geografici e di privacy
         onMounted(async () => {
           if (!window.auth.requireAuth('login.html')) {
             return;
           }
 
           user.value = window.auth.getUser();
-          await caricaDatiPosizione();
+          await Promise.all([
+            caricaDatiPosizione(),
+            caricaPreferenzePrivacy()
+          ]);
         });
 
         return {
           user,
           loading,
           saving,
+          savingPrivacy,
           deleting,
           detectingGps,
           toasts,
           form,
+          privacyForm,
           posizioneEsistente,
           gpsAccuracy,
           addToast,
@@ -486,6 +711,8 @@
           formatDate,
           rilevaGPS,
           salvaPosizione,
+          salvaPreferenzePrivacy,
+          ripristinaPrivacyDefault,
           confermaEliminaPosizione
         };
       }

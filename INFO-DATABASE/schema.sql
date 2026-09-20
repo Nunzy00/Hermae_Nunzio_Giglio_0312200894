@@ -44,6 +44,20 @@ CREATE TABLE IF NOT EXISTS posizione_utenti (
     data_aggiornamento TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+-- 4. Creazione Tabella PREFERENZE_PRIVACY_UTENTI (Fase 16)
+-- Struttura dati per la memorizzazione di flag di riservatezza, visibilità spaziale e permessi profilo (Privacy by Default)
+CREATE TABLE IF NOT EXISTS preferenze_privacy_utenti (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    utente_id UUID NOT NULL UNIQUE REFERENCES utenti(id) ON DELETE CASCADE,
+    profilo_pubblico BOOLEAN NOT NULL DEFAULT FALSE,
+    mostra_posizione BOOLEAN NOT NULL DEFAULT TRUE,
+    mostra_libreria BOOLEAN NOT NULL DEFAULT TRUE,
+    mostra_email BOOLEAN NOT NULL DEFAULT FALSE,
+    raggio_visibilita_km INTEGER NOT NULL DEFAULT 10,
+    consenti_messaggi_diretti BOOLEAN NOT NULL DEFAULT TRUE,
+    data_aggiornamento TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
 -- 4. Creazione Tabella CATEGORIE
 -- Tassonomia per la categorizzazione disciplinare e letteraria degli esemplari
 CREATE TABLE IF NOT EXISTS categorie (
@@ -115,6 +129,7 @@ CREATE INDEX IF NOT EXISTS idx_posizione_utenti_coords ON posizione_utenti USING
 -- 9. Indici B-Tree su Chiavi Esterne (UUID) e Parametri di Ricerca
 CREATE INDEX IF NOT EXISTS idx_posizione_utenti_utente ON posizione_utenti (utente_id);
 CREATE INDEX IF NOT EXISTS idx_posizione_utenti_citta ON posizione_utenti (citta);
+CREATE INDEX IF NOT EXISTS idx_preferenze_privacy_utente ON preferenze_privacy_utenti (utente_id);
 CREATE INDEX IF NOT EXISTS idx_esemplari_titolo ON esemplari (titolo);
 CREATE INDEX IF NOT EXISTS idx_esemplari_autore ON esemplari (autore);
 CREATE INDEX IF NOT EXISTS idx_esemplari_isbn ON esemplari (isbn);

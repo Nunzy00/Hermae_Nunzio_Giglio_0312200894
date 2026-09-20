@@ -244,8 +244,14 @@
                   <span v-if="item.indirizzo_approssimato" class="text-muted small ms-1">({{ item.indirizzo_approssimato }})</span>
                 </td>
                 <td>
-                  <span class="fw-bold text-primary">{{ item.distanza_km }} km</span>
-                  <span class="text-muted small d-block">~{{ item.distanza_metri }} m</span>
+                  <template v-if="item.distanza_km !== null && item.distanza_km !== undefined">
+                    <span class="fw-bold text-primary">{{ item.distanza_km }} km</span>
+                    <span class="text-muted small d-block">~{{ item.distanza_metri }} m</span>
+                  </template>
+                  <template v-else>
+                    <span class="badge bg-secondary-subtle text-secondary border">Solo Città</span>
+                    <span class="text-muted small d-block" style="font-size: 0.72rem;">Distanza non calcolata</span>
+                  </template>
                 </td>
                 <td>
                   <span class="badge" :class="getFasciaBadge(item.fascia_prossimita)">
@@ -344,6 +350,8 @@
             case 'Stessa Città': return 'bg-primary';
             case 'Area Metropolitana': return 'bg-info text-dark';
             case 'Area Provinciale': return 'bg-warning text-dark';
+            case 'Solo Città':
+            case 'Riferimento Città': return 'bg-secondary';
             default: return 'bg-secondary';
           }
         };

@@ -136,7 +136,7 @@ const findPosizioniVicine = async (lat, lng, raggioKm = 10, limit = 20) => {
   const targetLng = parseFloat(lng);
   const radius = parseFloat(raggioKm);
 
-  // Calcola la distanza sferica in metri tramite estensione earthdistance di PostgreSQL
+  // Calcola la distanza sferica in metri tramite estensione earthdistance di PostgreSQL filtrando per preferenze privacy
   const query = `
     SELECT 
       p.id,
@@ -150,8 +150,10 @@ const findPosizioniVicine = async (lat, lng, raggioKm = 10, limit = 20) => {
       round((earth_distance(ll_to_earth($1, $2), ll_to_earth((p.coordinate_offuscate)[1], (p.coordinate_offuscate)[0])))::numeric, 1) as distanza_metri
     FROM posizione_utenti p
     JOIN utenti u ON p.utente_id = u.id
+    LEFT JOIN preferenze_privacy_utenti ppu ON p.utente_id = ppu.utente_id
     WHERE earth_box(ll_to_earth($1, $2), $3 * 1000) @> ll_to_earth((p.coordinate_offuscate)[1], (p.coordinate_offuscate)[0])
       AND earth_distance(ll_to_earth($1, $2), ll_to_earth((p.coordinate_offuscate)[1], (p.coordinate_offuscate)[0])) <= $3 * 1000
+      AND COALESCE(ppu.mostra_posizione, TRUE) = TRUE
     ORDER BY distanza_metri ASC
     LIMIT $4;
   `;

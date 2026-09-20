@@ -3,6 +3,7 @@ const { testConnection } = require('../config/db');
 const userRoutes = require('./userRoutes');
 const authRoutes = require('./authRoutes');
 const posizioneRoutes = require('./posizioneUtentiRoutes');
+const privacyRoutes = require('./preferenzePrivacyRoutes');
 
 // Istanzia il router principale di Express per aggregare tutti gli endpoint applicativi
 const router = express.Router();
@@ -59,6 +60,9 @@ router.use('/users', userRoutes);
 
 // Monta il router delle operazioni geospaziali e gestione posizione sul percorso /posizioni
 router.use('/posizioni', posizioneRoutes);
+
+// Monta il router delle preferenze di riservatezza e permessi profilo sul percorso /privacy
+router.use('/privacy', privacyRoutes);
 
 // Esporta il router principale per essere montato sull'applicazione Express con il prefisso /api
 module.exports = router;
