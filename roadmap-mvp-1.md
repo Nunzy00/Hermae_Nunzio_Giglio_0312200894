@@ -7,7 +7,7 @@
 
 ---
 
-## 1. Tabella Riepilogativa delle Fasi Eseguite (Fasi 1 – 15)
+## 1. Tabella Riepilogativa delle Fasi Eseguite (Fasi 1 – 17)
 
 | Fase | Titolo e Obiettivo | Tempo Stimato | Tempo Effettivo | Documento / Deliverable Prodotto | Stato |
 | :---: | :--- | :---: | :---: | :--- | :---: |
@@ -26,7 +26,9 @@
 | **Fase 13** | Generazione dei componenti HTML e testing delle funzioni di autenticazione | 2 h | 1 h | [`SVILUPPO-PROGRAMMA/fase-13.md`](file:///Users/nunziogiglio/Documents/Github/Repositories/Hermae_Nunzio_Giglio_0312200894/SVILUPPO-PROGRAMMA/fase-13.md) & [`hermae-frontend/`](file:///Users/nunziogiglio/Documents/Github/Repositories/Hermae_Nunzio_Giglio_0312200894/hermae-frontend) | **Completata** |
 | **Fase 14** | Definizione nel database dell’entità “posizione_utenti”, del suo schema e delle sue operazioni CRUD | 2 h | 1 h | [`SVILUPPO-PROGRAMMA/fase-14.md`](file:///Users/nunziogiglio/Documents/Github/Repositories/Hermae_Nunzio_Giglio_0312200894/SVILUPPO-PROGRAMMA/fase-14.md) & [`INFO-DATABASE/schema.sql`](file:///Users/nunziogiglio/Documents/Github/Repositories/Hermae_Nunzio_Giglio_0312200894/INFO-DATABASE/schema.sql) | **Completata** |
 | **Fase 15** | Implementazione delle funzioni di geolocalizzazione dell'utente | 2 h | 1 h | [`SVILUPPO-PROGRAMMA/fase-15.md`](file:///Users/nunziogiglio/Documents/Github/Repositories/Hermae_Nunzio_Giglio_0312200894/SVILUPPO-PROGRAMMA/fase-15.md) & [`hermae-frontend/ricerca.html`](file:///Users/nunziogiglio/Documents/Github/Repositories/Hermae_Nunzio_Giglio_0312200894/hermae-frontend/ricerca.html) | **Completata** |
-| **TOTALE** | **Avanzamento Fasi di Progettazione, Database, Backend e Front-end** | **27 h 30 min** | **13 h 40 min** | **16 Deliverable Consolidati** | **Fasi 1–15 Completate** |
+| **Fase 16** | Definizione nel database dell’entità “preferenze_privacy_utenti”, del suo schema e delle sue operazioni CRUD | 2 h | 1 h | [`SVILUPPO-PROGRAMMA/fase-16.md`](file:///Users/nunziogiglio/Documents/Github/Repositories/Hermae_Nunzio_Giglio_0312200894/SVILUPPO-PROGRAMMA/fase-16.md) & [`INFO-DATABASE/schema.sql`](file:///Users/nunziogiglio/Documents/Github/Repositories/Hermae_Nunzio_Giglio_0312200894/INFO-DATABASE/schema.sql) | **Completata** |
+| **Fase 17** | Implementazione delle funzioni di occultamento della geolocalizzazione dell’utente per richiesta esplicita di tutela privacy | 2 h | 1 h | [`SVILUPPO-PROGRAMMA/fase-17.md`](file:///Users/nunziogiglio/Documents/Github/Repositories/Hermae_Nunzio_Giglio_0312200894/SVILUPPO-PROGRAMMA/fase-17.md) & [`hermae-frontend/impostazioni.html`](file:///Users/nunziogiglio/Documents/Github/Repositories/Hermae_Nunzio_Giglio_0312200894/hermae-frontend/impostazioni.html) | **Completata** |
+| **TOTALE** | **Avanzamento Fasi di Progettazione, Database, Backend e Front-end** | **31 h 30 min** | **15 h 40 min** | **18 Deliverable Consolidati** | **Fasi 1–17 Completate** |
 
 ---
 
