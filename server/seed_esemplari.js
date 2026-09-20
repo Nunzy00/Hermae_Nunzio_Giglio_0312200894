@@ -2,8 +2,7 @@ const db = require('./src/config/db');
 
 async function seedEsemplari() {
   try {
-    const currentCount = await db.query('SELECT count(*) FROM esemplari');
-    console.log('Current esemplari count:', currentCount.rows[0].count);
+    console.log('--- Popolamento Esemplari con Tassonomia Gerarchica a Due Livelli ---');
 
     const usersRes = await db.query('SELECT id, email FROM utenti');
     const users = {};
@@ -23,6 +22,7 @@ async function seedEsemplari() {
       {
         utente_id: users['demo@hermae.it'],
         categoria_id: cats['narrativa-romanzi'],
+        sottogenere: 'Giallo & Thriller',
         titolo: 'Il nome della rosa',
         autore: 'Umberto Eco',
         editore: 'Bompiani',
@@ -38,6 +38,7 @@ async function seedEsemplari() {
       {
         utente_id: users['demo@hermae.it'],
         categoria_id: cats['informatica-tecnologia'],
+        sottogenere: 'Ingegneria del Software',
         titolo: 'Clean Code: A Handbook of Agile Software Craftsmanship',
         autore: 'Robert C. Martin',
         editore: 'Prentice Hall',
@@ -53,6 +54,7 @@ async function seedEsemplari() {
       {
         utente_id: users['demo@hermae.it'],
         categoria_id: cats['saggistica-filosofia'],
+        sottogenere: 'Psicologia & Psicoanalisi',
         titolo: 'Pensieri lenti e veloci',
         autore: 'Daniel Kahneman',
         editore: 'Mondadori',
@@ -68,6 +70,7 @@ async function seedEsemplari() {
       {
         utente_id: users['laura.bianchi@example.com'],
         categoria_id: cats['storia-biografie'],
+        sottogenere: 'Storia Contemporanea & Guerre Mondiali',
         titolo: 'Se questo è un uomo',
         autore: 'Primo Levi',
         editore: 'Einaudi',
@@ -83,6 +86,7 @@ async function seedEsemplari() {
       {
         utente_id: users['laura.bianchi@example.com'],
         categoria_id: cats['scienze-matematica'],
+        sottogenere: 'Fisica Quantistica & Relatività',
         titolo: 'L\'ordine del tempo',
         autore: 'Carlo Rovelli',
         editore: 'Adelphi',
@@ -98,6 +102,7 @@ async function seedEsemplari() {
       {
         utente_id: users['laura.bianchi@example.com'],
         categoria_id: cats['informatica-tecnologia'],
+        sottogenere: 'Ingegneria del Software',
         titolo: 'Design Patterns: Elements of Reusable Object-Oriented Software',
         autore: 'Erich Gamma, Richard Helm, Ralph Johnson, John Vlissides',
         editore: 'Addison-Wesley',
@@ -113,6 +118,7 @@ async function seedEsemplari() {
       {
         utente_id: users['marco.deluca@example.com'],
         categoria_id: cats['narrativa-romanzi'],
+        sottogenere: 'Classici Letterari',
         titolo: 'Le città invisibili',
         autore: 'Italo Calvino',
         editore: 'Einaudi',
@@ -128,6 +134,7 @@ async function seedEsemplari() {
       {
         utente_id: users['marco.deluca@example.com'],
         categoria_id: cats['arte-architettura'],
+        sottogenere: 'Storia dell\'Arte',
         titolo: 'Storia della bellezza',
         autore: 'Umberto Eco',
         editore: 'Bompiani',
@@ -143,6 +150,7 @@ async function seedEsemplari() {
       {
         utente_id: users['giulia.romano@example.com'],
         categoria_id: cats['saggistica-filosofia'],
+        sottogenere: 'Filosofia della Scienza',
         titolo: 'Gödel, Escher, Bach: un\'Eterna Ghirlanda Brillante',
         autore: 'Douglas Hofstadter',
         editore: 'Adelphi',
@@ -158,6 +166,7 @@ async function seedEsemplari() {
       {
         utente_id: users['giulia.romano@example.com'],
         categoria_id: cats['scienze-matematica'],
+        sottogenere: 'Astrofisica & Cosmologia',
         titolo: 'Dal big bang ai buchi neri: Breve storia del tempo',
         autore: 'Stephen Hawking',
         editore: 'Rizzoli',
@@ -172,23 +181,26 @@ async function seedEsemplari() {
       }
     ];
 
+    // Pulizia e re-inserimento coerente
+    await db.query('DELETE FROM esemplari;');
+
     for (const b of books) {
       await db.query(`
         INSERT INTO esemplari (
-          utente_id, categoria_id, titolo, autore, editore, anno_pubblicazione, 
+          utente_id, categoria_id, sottogenere, titolo, autore, editore, anno_pubblicazione, 
           isbn, lingua, descrizione, note, stato_conservazione, stato_disponibilita, coordinate_esemplare
         ) VALUES (
-          $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13
+          $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14
         )
       `, [
-        b.utente_id, b.categoria_id, b.titolo, b.autore, b.editore, b.anno_pubblicazione,
+        b.utente_id, b.categoria_id, b.sottogenere, b.titolo, b.autore, b.editore, b.anno_pubblicazione,
         b.isbn, b.lingua, b.descrizione, b.note, b.stato_conservazione, b.stato_disponibilita, b.coordinate
       ]);
     }
 
-    console.log(`Successfully inserted ${books.length} mock esemplari!`);
+    console.log(`Successfully seeded ${books.length} mock esemplari with 2-level taxonomy!`);
     const check = await db.query(`
-      SELECT e.id, e.titolo, e.autore, e.stato_conservazione, e.stato_disponibilita, c.nome as categoria, u.email as proprietario
+      SELECT e.titolo, e.autore, c.nome as categoria, e.sottogenere, e.stato_conservazione, e.stato_disponibilita, u.email as proprietario
       FROM esemplari e
       JOIN categorie c ON e.categoria_id = c.id
       JOIN utenti u ON e.utente_id = u.id

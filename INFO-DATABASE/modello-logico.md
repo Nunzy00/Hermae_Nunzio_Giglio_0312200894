@@ -31,8 +31,8 @@ Lo schema relazionale rispetta rigorosamente i requisiti della **Terza Forma Nor
 In notazione formale (in grassetto la chiave primaria **PK**, con asterisco le chiavi esterne **FK\***):
 
 * **UTENTI** (**id**, email, password_hash, nome, cognome, citta, coordinate_reali, coordinate_offuscate, consenso_privacy, consenso_geo, data_registrazione)
-* **CATEGORIE** (**id**, nome, slug, descrizione)
-* **ESEMPLARI** (**id**, utente_id\*, categoria_id\*, titolo, autore, anno_pubblicazione, isbn, descrizione, stato_conservazione, stato_disponibilita, immagine_copertina, immagine_miniatura, coordinate_esemplare, data_creazione)
+* **CATEGORIE** (**id**, nome, slug, descrizione, icona, colore_hex, sottogeneri_predefiniti)
+* **ESEMPLARI** (**id**, utente_id\*, categoria_id\*, sottogenere, titolo, autore, editore, anno_pubblicazione, isbn, lingua, descrizione, note, stato_conservazione, stato_disponibilita, immagine_copertina, immagine_miniatura, coordinate_esemplare, data_creazione)
 * **RICHIESTE_PRESTITO** (**id**, esemplare_id\*, richiedente_id\*, proprietario_id\*, stato, messaggio_iniziale, data_richiesta, data_aggiornamento)
 * **MESSAGGI_CHAT** (**id**, richiesta_id\*, mittente_id\*, testo, letto, data_invio)
 * **METRICHE_VISITE** (**id**, esemplare_id\*, tipo_evento, citta, data_evento)
@@ -59,33 +59,40 @@ Memorizza i profili registrati, le credenziali cifrate con `bcrypt` e le coordin
 | `data_registrazione` | `TIMESTAMP` | No | `DEFAULT CURRENT_TIMESTAMP` | Data e ora di creazione account. |
 
 ### 4.2 Tabella `categorie`
-Tassonomia disciplinare controllata per la classificazione e i filtri di ricerca degli esemplari.
+Tassonomia gerarchica controllata (Livello 1) con vocabolario tematico associato (Livello 2).
 
 | Colonna | Tipo SQL | Null | Vincoli & Default | Descrizione e Ruolo Logico |
 | :--- | :--- | :---: | :--- | :--- |
 | `id` | `UUID` | No | `PK, DEFAULT gen_random_uuid()` | Identificatore univoco della categoria tematica. |
-| `nome` | `VARCHAR(100)` | No | `UNIQUE` | Nome visualizzato (es. *Narrativa*, *Informatica*, *Storia*). |
+| `nome` | `VARCHAR(100)` | No | `UNIQUE` | Nome visualizzato della macro-area (es. *Narrativa & Romanzi*). |
 | `slug` | `VARCHAR(100)` | No | `UNIQUE` | Stringa URL-friendly per filtri di navigazione web. |
-| `descrizione` | `TEXT` | Sì | — | Descrizione estesa dell'ambito della categoria. |
+| `descrizione` | `TEXT` | Sì | — | Descrizione estesa dell'ambito disciplinare. |
+| `icona` | `VARCHAR(50)` | No | `DEFAULT 'bi-book'` | Identificativo icona Bootstrap Icons per UI e mappa. |
+| `colore_hex` | `VARCHAR(20)` | No | `DEFAULT '#1e40af'` | Codice cromatico esadecimale per badge e temi copertina. |
+| `sottogeneri_predefiniti` | `TEXT[]` | No | `DEFAULT '{}'` | Array di sottogeneri Thema/BISAC raccomandati (Livello 2). |
 
 ### 4.3 Tabella `esemplari` *(Ex Libri)*
-Catalogo delle copie fisiche materiali possedute dai privati, con metadati bibliografici editoriali e collocazione geografica.
+Catalogo delle copie fisiche materiali possedute dai privati, con classificazione a due livelli e collocazione geografica.
 
 | Colonna | Tipo SQL | Null | Vincoli & Default | Descrizione e Ruolo Logico |
 | :--- | :--- | :---: | :--- | :--- |
 | `id` | `UUID` | No | `PK, DEFAULT gen_random_uuid()` | Identificatore univoco dell'esemplare fisico. |
 | `utente_id` | `UUID` | No | `FK -> utenti(id) ON DELETE CASCADE` | Proprietario della copia (se l'utente si cancella, i libri decadono). |
-| `categoria_id` | `UUID` | No | `FK -> categorie(id) ON DELETE RESTRICT` | Categoria di appartenenza (eliminazione bloccata se ci sono copie). |
+| `categoria_id` | `UUID` | No | `FK -> categorie(id) ON DELETE RESTRICT` | Macro-categoria Livello 1 (eliminazione bloccata se ci sono copie). |
+| `sottogenere` | `VARCHAR(100)` | Sì | — | Sottogenere specifico Livello 2 (Thema/BISAC o tag tematico). |
 | `titolo` | `VARCHAR(255)` | No | — | Titolo dell'opera (`schema.org/Book: name`). |
 | `autore` | `VARCHAR(255)` | No | — | Autore dell'opera (`schema.org/Book: author`). |
+| `editore` | `VARCHAR(150)` | Sì | — | Casa editrice dell'edizione posseduta. |
 | `anno_pubblicazione` | `SMALLINT` | Sì | — | Anno di edizione dell'esemplare posseduto. |
 | `isbn` | `VARCHAR(20)` | Sì | — | Codice ISBN-10 o ISBN-13 (per ricerche bibliografiche dirette). |
-| `descrizione` | `TEXT` | Sì | — | Note d'edizione o breve sinossi. |
-| `stato_conservazione` | `VARCHAR(50)` | No | `DEFAULT 'Buono'` | Condizione fisica (es. *Come nuovo*, *Buono*, *Usurato*). |
+| `lingua` | `VARCHAR(50)` | No | `DEFAULT 'Italiano'` | Lingua in cui è stampato l'esemplare fisico. |
+| `descrizione` | `TEXT` | Sì | — | Breve trama, sinossi o tema generale dell'opera. |
+| `note` | `TEXT` | Sì | — | Note personali di possesso (dediche, condizioni di prestito). |
+| `stato_conservazione` | `VARCHAR(50)` | No | `DEFAULT 'Buono'` | Condizione fisica (es. *Come nuovo*, *Ottimo*, *Buono*, *Usurato*). |
 | `stato_disponibilita` | `VARCHAR(30)` | No | `DEFAULT 'DISPONIBILE'` | Stato copia: `DISPONIBILE`, `IN_PRESTITO`, `NON_DISPONIBILE`. |
 | `immagine_copertina` | `VARCHAR(255)` | Sì | — | Percorso relativo dell'immagine standard WebP (800px). |
 | `immagine_miniatura` | `VARCHAR(255)` | Sì | — | Percorso relativo del thumbnail compresso WebP (200px). |
-| `coordinate_esemplare`| `GEOMETRY(Point, 4326)` | No | — | Collocazione territoriale con raggio di confidenzialità (300–500 m). |
+| `coordinate_esemplare`| `POINT` | Sì | — | Collocazione spaziale WGS84 ereditata dall'utente proprietario. |
 | `data_creazione` | `TIMESTAMP` | No | `DEFAULT CURRENT_TIMESTAMP` | Data e ora di inserimento nel catalogo. |
 
 ### 4.4 Tabella `richieste_prestito`

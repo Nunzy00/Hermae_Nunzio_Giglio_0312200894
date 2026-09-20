@@ -10,6 +10,10 @@ const formatEsemplareRow = (row) => {
     categoria_id: row.categoria_id,
     categoria_nome: row.categoria_nome || null,
     categoria_slug: row.categoria_slug || null,
+    categoria_icona: row.categoria_icona || null,
+    categoria_colore: row.categoria_colore || null,
+    categoria_sottogeneri: row.categoria_sottogeneri || [],
+    sottogenere: row.sottogenere || null,
     titolo: row.titolo,
     autore: row.autore,
     editore: row.editore || null,
@@ -46,6 +50,7 @@ const STATI_DISPONIBILITA_VALIDI = ['DISPONIBILE', 'IN_PRESTITO', 'NON_DISPONIBI
 const createEsemplare = async (utenteId, data) => {
   const {
     categoria_id,
+    sottogenere,
     titolo,
     autore,
     editore,
@@ -120,6 +125,7 @@ const createEsemplare = async (utenteId, data) => {
     INSERT INTO esemplari (
       utente_id,
       categoria_id,
+      sottogenere,
       titolo,
       autore,
       editore,
@@ -134,7 +140,7 @@ const createEsemplare = async (utenteId, data) => {
       immagine_miniatura,
       coordinate_esemplare
     ) VALUES (
-      $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15
+      $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16
     )
     RETURNING *;
   `;
@@ -142,6 +148,7 @@ const createEsemplare = async (utenteId, data) => {
   const values = [
     utenteId,
     categoria_id,
+    sottogenere ? sottogenere.trim() : null,
     titolo.trim(),
     autore.trim(),
     editore ? editore.trim() : null,
@@ -169,7 +176,10 @@ const getMyEsemplari = async (utenteId, filters = {}) => {
     SELECT 
       e.*,
       c.nome as categoria_nome,
-      c.slug as categoria_slug
+      c.slug as categoria_slug,
+      c.icona as categoria_icona,
+      c.colore_hex as categoria_colore,
+      c.sottogeneri_predefiniti as categoria_sottogeneri
     FROM esemplari e
     JOIN categorie c ON e.categoria_id = c.id
     WHERE e.utente_id = $1
@@ -183,6 +193,12 @@ const getMyEsemplari = async (utenteId, filters = {}) => {
     paramIdx++;
   }
 
+  if (filters.sottogenere && filters.sottogenere.trim()) {
+    query += ` AND LOWER(e.sottogenere) = LOWER($${paramIdx})`;
+    params.push(filters.sottogenere.trim());
+    paramIdx++;
+  }
+
   if (filters.stato_disponibilita) {
     query += ` AND e.stato_disponibilita = $${paramIdx}`;
     params.push(filters.stato_disponibilita);
@@ -193,6 +209,7 @@ const getMyEsemplari = async (utenteId, filters = {}) => {
     query += ` AND (
       LOWER(e.titolo) LIKE LOWER($${paramIdx}) OR 
       LOWER(e.autore) LIKE LOWER($${paramIdx}) OR 
+      LOWER(COALESCE(e.sottogenere, '')) LIKE LOWER($${paramIdx}) OR
       LOWER(COALESCE(e.isbn, '')) LIKE LOWER($${paramIdx}) OR
       LOWER(COALESCE(e.editore, '')) LIKE LOWER($${paramIdx})
     )`;
@@ -215,6 +232,9 @@ const getEsemplareById = async (id) => {
       e.*,
       c.nome as categoria_nome,
       c.slug as categoria_slug,
+      c.icona as categoria_icona,
+      c.colore_hex as categoria_colore,
+      c.sottogeneri_predefiniti as categoria_sottogeneri,
       u.nome as proprietario_nome,
       u.cognome as proprietario_cognome,
       p.citta as proprietario_citta
@@ -297,6 +317,12 @@ const updateEsemplare = async (id, utenteId, updateData) => {
     }
     setClauses.push(`categoria_id = $${paramIdx}`);
     params.push(updateData.categoria_id);
+    paramIdx++;
+  }
+
+  if (typeof updateData.sottogenere !== 'undefined') {
+    setClauses.push(`sottogenere = $${paramIdx}`);
+    params.push(updateData.sottogenere ? updateData.sottogenere.trim() : null);
     paramIdx++;
   }
 
@@ -413,6 +439,9 @@ const searchEsemplari = async (filters = {}) => {
       e.*,
       c.nome as categoria_nome,
       c.slug as categoria_slug,
+      c.icona as categoria_icona,
+      c.colore_hex as categoria_colore,
+      c.sottogeneri_predefiniti as categoria_sottogeneri,
       u.nome as proprietario_nome,
       u.cognome as proprietario_cognome,
       p.citta as proprietario_citta
@@ -441,10 +470,17 @@ const searchEsemplari = async (filters = {}) => {
     paramIdx++;
   }
 
+  if (filters.sottogenere && filters.sottogenere.trim()) {
+    query += ` AND LOWER(e.sottogenere) = LOWER($${paramIdx})`;
+    params.push(filters.sottogenere.trim());
+    paramIdx++;
+  }
+
   if (filters.search && filters.search.trim()) {
     query += ` AND (
       LOWER(e.titolo) LIKE LOWER($${paramIdx}) OR 
       LOWER(e.autore) LIKE LOWER($${paramIdx}) OR 
+      LOWER(COALESCE(e.sottogenere, '')) LIKE LOWER($${paramIdx}) OR
       LOWER(COALESCE(e.isbn, '')) LIKE LOWER($${paramIdx})
     )`;
     params.push(`%${filters.search.trim()}%`);
@@ -459,11 +495,11 @@ const searchEsemplari = async (filters = {}) => {
 };
 
 /**
- * Recupera l'intera tassonomia delle categorie disciplinari
+ * Recupera l'intera tassonomia delle categorie disciplinari con metadati e sottogeneri predefiniti
  */
 const getAllCategorie = async () => {
   const query = `
-    SELECT id, nome, slug, descrizione,
+    SELECT id, nome, slug, descrizione, icona, colore_hex, sottogeneri_predefiniti,
       (SELECT COUNT(*) FROM esemplari WHERE categoria_id = c.id) as totale_esemplari
     FROM categorie c
     ORDER BY nome ASC;
@@ -474,6 +510,9 @@ const getAllCategorie = async () => {
     nome: r.nome,
     slug: r.slug,
     descrizione: r.descrizione,
+    icona: r.icona || 'bi-book',
+    colore_hex: r.colore_hex || '#1e40af',
+    sottogeneri_predefiniti: r.sottogeneri_predefiniti || [],
     totale_esemplari: parseInt(r.totale_esemplari, 10)
   }));
 };

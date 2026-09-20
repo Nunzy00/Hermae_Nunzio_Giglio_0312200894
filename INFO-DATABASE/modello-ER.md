@@ -13,7 +13,7 @@ Il modello concettuale formalizza i requisiti informativi della piattaforma **He
 
 ### 1.1 Entità Fondamentali del Sistema
 1. **UTENTI:** Rappresenta i soggetti registrati alla piattaforma. Ciascun utente detiene un profilo personale, rilascia consensi obbligatori per la privacy (GDPR) e la geolocalizzazione, e possiede una coppia di coordinate (reali per i calcoli interni, offuscate per la visualizzazione pubblica).
-2. **CATEGORIE:** Tassonomia tematica e disciplinare controllata per classificare gli esemplari (es. *Narrativa*, *Saggistica*, *Informatica/Tecnologia*, *Storia*).
+2. **CATEGORIE:** Tassonomia gerarchica ibrida a due livelli (Livello 1: macro-aree disciplinari controllate con iconografia e codici colore; Livello 2: vocabolario guidato di sottogeneri Thema/BISAC semplificati).
 3. **ESEMPLARI:** Rappresenta la **singola copia fisica materiale** posseduta e custodita da un utente privato (distinta dall'astrazione del "libro/opera", secondo lo standard catalografico **IFLA LRM / FRBR**). L'esemplare è caratterizzato da metadati editoriali, stato di usura materiale, foto reale della copertina in formato WebP, disponibilità e collocazione territoriale con raggio di confidenzialità.
 4. **RICHIESTE_PRESTITO:** Modella l'interazione transazionale peer-to-peer per l'accesso a un determinato esemplare, gestita tramite una macchina a stati (*In attesa*, *Accettata*, *Rifiutata*, *Conclusa*).
 5. **MESSAGGI_CHAT:** Scambio asincrono di messaggi testuali tra richiedente e proprietario, vincolato a una specifica richiesta di prestito per definire privatamente i dettagli dello scambio fisico.
@@ -56,16 +56,22 @@ erDiagram
         string nome UK
         string slug UK
         string descrizione
+        string icona
+        string colore_hex
+        string_array sottogeneri_predefiniti
     }
 
     ESEMPLARI {
         uuid id PK
         uuid utente_id FK
         uuid categoria_id FK
+        string sottogenere
         string titolo
         string autore
+        string editore
         int anno_pubblicazione
         string isbn
+        string lingua
         string stato_conservazione
         string stato_disponibilita
         string immagine_copertina

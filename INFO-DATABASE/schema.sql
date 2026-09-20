@@ -59,21 +59,25 @@ CREATE TABLE IF NOT EXISTS preferenze_privacy_utenti (
     data_aggiornamento TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- 4. Creazione Tabella CATEGORIE
--- Tassonomia per la categorizzazione disciplinare e letteraria degli esemplari
+-- 4. Creazione Tabella CATEGORIE (Livello 1 Tassonomia Controllata)
+-- Tassonomia gerarchica per la categorizzazione disciplinare e letteraria degli esemplari
 CREATE TABLE IF NOT EXISTS categorie (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     nome VARCHAR(100) NOT NULL UNIQUE,
     slug VARCHAR(100) NOT NULL UNIQUE,
-    descrizione TEXT
+    descrizione TEXT,
+    icona VARCHAR(50) DEFAULT 'bi-book',
+    colore_hex VARCHAR(20) DEFAULT '#1e40af',
+    sottogeneri_predefiniti TEXT[] DEFAULT '{}'
 );
 
 -- 4. Creazione Tabella ESEMPLARI (Copia fisica del volume posseduta dal privato)
--- Formalizzata secondo standard IFLA LRM / FRBR (esemplare fisico materiale)
+-- Formalizzata secondo standard IFLA LRM / FRBR con Tassonomia Ibrida a Due Livelli
 CREATE TABLE IF NOT EXISTS esemplari (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     utente_id UUID NOT NULL REFERENCES utenti(id) ON DELETE CASCADE,
     categoria_id UUID NOT NULL REFERENCES categorie(id) ON DELETE RESTRICT,
+    sottogenere VARCHAR(100),
     titolo VARCHAR(255) NOT NULL,
     autore VARCHAR(255) NOT NULL,
     editore VARCHAR(150),
@@ -140,17 +144,27 @@ CREATE INDEX IF NOT EXISTS idx_esemplari_isbn ON esemplari (isbn);
 CREATE INDEX IF NOT EXISTS idx_esemplari_disponibilita ON esemplari (stato_disponibilita);
 CREATE INDEX IF NOT EXISTS idx_esemplari_utente ON esemplari (utente_id);
 CREATE INDEX IF NOT EXISTS idx_esemplari_categoria ON esemplari (categoria_id);
+CREATE INDEX IF NOT EXISTS idx_esemplari_sottogenere ON esemplari (sottogenere);
 CREATE INDEX IF NOT EXISTS idx_richieste_esemplare ON richieste_prestito (esemplare_id);
 CREATE INDEX IF NOT EXISTS idx_richieste_richiedente ON richieste_prestito (richiedente_id);
 CREATE INDEX IF NOT EXISTS idx_richieste_proprietario ON richieste_prestito (proprietario_id);
 CREATE INDEX IF NOT EXISTS idx_chat_richiesta ON messaggi_chat (richiesta_id);
 
--- 10. Popolamento Dati Iniziali (Seed Tassonomia Categorie)
-INSERT INTO categorie (nome, slug, descrizione) VALUES
-    ('Narrativa & Romanzi', 'narrativa-romanzi', 'Opere di narrativa italiana e internazionale, narrativa contemporanea e classica'),
-    ('Saggistica & Filosofia', 'saggistica-filosofia', 'Testi saggistici, trattati filosofici, scienze umane e sociali'),
-    ('Informatica & Tecnologia', 'informatica-tecnologia', 'Manuali di programmazione, architetture software, intelligenza artificiale e reti'),
-    ('Scienze & Matematica', 'scienze-matematica', 'Fisica, chimica, biologia, matematica pura e applicata'),
-    ('Storia & Biografie', 'storia-biografie', 'Saggi storici, cronache, memorie e biografie di personaggi rilevanti'),
-    ('Arte & Architettura', 'arte-architettura', 'Cataloghi d''arte, critica visiva, design, urbanistica e architettura')
-ON CONFLICT (slug) DO NOTHING;
+-- 10. Popolamento Dati Iniziali (Seed Tassonomia Gerarchica a Due Livelli)
+INSERT INTO categorie (nome, slug, descrizione, icona, colore_hex, sottogeneri_predefiniti) VALUES
+    ('Narrativa & Romanzi', 'narrativa-romanzi', 'Opere di narrativa italiana e internazionale, narrativa contemporanea, classica e di genere', 'bi-book', '#be123c', ARRAY['Classici Letterari', 'Narrativa Contemporanea', 'Giallo & Thriller', 'Fantascienza & Distopia', 'Fantasy & Avventura', 'Romanzo Storico', 'Poesia & Teatro']),
+    ('Saggistica & Filosofia', 'saggistica-filosofia', 'Testi saggistici, trattati filosofici, scienze umane, psicologia e società', 'bi-lightbulb', '#6d28d9', ARRAY['Filosofia Morale & Politica', 'Filosofia della Scienza', 'Psicologia & Psicoanalisi', 'Scienze Sociali & Antropologia', 'Linguistica & Semiotica', 'Critica Letteraria']),
+    ('Informatica & Tecnologia', 'informatica-tecnologia', 'Ingegneria del software, linguaggi, intelligenza artificiale, architetture e reti', 'bi-laptop', '#1d4ed8', ARRAY['Algoritmi & Strutture Dati', 'Intelligenza Artificiale & Machine Learning', 'Reti & Cybersecurity', 'Ingegneria del Software', 'Sviluppo Web & Cloud', 'Sistemi Operativi & Database', 'Hardware & Elettronica']),
+    ('Scienze & Matematica', 'scienze-matematica', 'Fisica teorica, chimica, biologia, genetica, matematica pura e applicata', 'bi-calculator', '#047857', ARRAY['Fisica Quantistica & Relatività', 'Astrofisica & Cosmologia', 'Matematica & Geometria', 'Biologia & Genetica', 'Chimica & Materiali', 'Neuroscienze']),
+    ('Storia & Biografie', 'storia-biografie', 'Storiografia universale, cronache, memorie, biografie e archeologia', 'bi-hourglass-split', '#b45309', ARRAY['Storia Antica & Archeologia', 'Storia Medievale', 'Storia Moderna & Risorgimento', 'Storia Contemporanea & Guerre Mondiali', 'Biografie & Diari', 'Geopolitica']),
+    ('Arte, Architettura & Design', 'arte-architettura', 'Cataloghi d''arte, critica visiva, design grafico, urbanistica e architettura', 'bi-palette', '#c2410c', ARRAY['Storia dell''Arte', 'Architettura Contemporanea', 'Design & Grafica', 'Fotografia & Cinema', 'Urbanistica & Territorio']),
+    ('Economia, Diritto & Società', 'economia-diritto', 'Teoria economica, finanza, diritto pubblico e privato, sociologia del lavoro', 'bi-briefcase', '#0f766e', ARRAY['Micro & Macro Economia', 'Finanza & Mercati', 'Diritto Costituzionale & Civile', 'Diritto Digitale & Privacy', 'Management & Startup']),
+    ('Fumetti, Manga & Graphic Novel', 'fumetti-manga', 'Graphic novel d''autore, manga giapponesi, comic americani e fumetto europeo', 'bi-chat-square-dots', '#db2777', ARRAY['Graphic Novel', 'Manga Seinen & Shonen', 'Comics Supereroi', 'Fumetto Franco-Belga', 'Fumetto Italiano d''Autore']),
+    ('Bambini & Ragazzi', 'bambini-ragazzi', 'Letteratura per l''infanzia, young adult, fiabe e divulgazione per giovani', 'bi-balloon', '#0284c7', ARRAY['Primi Lettori (0-6)', 'Narrativa Junior (7-12)', 'Young Adult', 'Fiabe & Miti', 'Scienza per Ragazzi']),
+    ('Altro & Miscellanea', 'altro-miscellanea', 'Guide, linguistica applicata, viaggi, cucina, benessere e opere multitematiche', 'bi-collection', '#475569', ARRAY['Viaggi & Luoghi', 'Cucina & Enogastronomia', 'Crescita Personale', 'Dizionari & Manualistica Generale'])
+ON CONFLICT (slug) DO UPDATE SET
+    nome = EXCLUDED.nome,
+    descrizione = EXCLUDED.descrizione,
+    icona = EXCLUDED.icona,
+    colore_hex = EXCLUDED.colore_hex,
+    sottogeneri_predefiniti = EXCLUDED.sottogeneri_predefiniti;

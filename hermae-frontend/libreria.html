@@ -359,7 +359,15 @@
     .book-theme-scienze { background: linear-gradient(145deg, #065f46 0%, #022c22 100%); }
     .book-theme-storia { background: linear-gradient(145deg, #78350f 0%, #451a03 100%); }
     .book-theme-arte { background: linear-gradient(145deg, #9a3412 0%, #431407 100%); }
+    .book-theme-economia { background: linear-gradient(145deg, #0f766e 0%, #042f2e 100%); }
+    .book-theme-fumetti { background: linear-gradient(145deg, #be185d 0%, #700732 100%); }
+    .book-theme-bambini { background: linear-gradient(145deg, #0284c7 0%, #075985 100%); }
+    .book-theme-altro { background: linear-gradient(145deg, #475569 0%, #1e293b 100%); }
     .book-theme-default { background: linear-gradient(145deg, #334155 0%, #0f172a 100%); }
+
+    /* Chip suggerimenti sottogeneri */
+    .hover-subgenre-chip { transition: all 0.15s ease; cursor: pointer; }
+    .hover-subgenre-chip:hover { background-color: #e0e7ff !important; color: #1e40af !important; border-color: #93c5fd !important; }
   </style>
 </head>
 <body>
@@ -547,20 +555,30 @@
           </div>
         </div>
 
-        <!-- Riga 2: Filtri Compattati su Un'Unica Riga (3 Colonne Paritetiche) -->
+        <!-- Riga 2: Filtri Compattati su Un'Unica Riga (4 Colonne Paritetiche Responsive) -->
         <div class="row g-2 align-items-center">
-          <!-- Categoria -->
-          <div class="col-4">
-            <select id="catSelect" class="form-select form-select-sm" v-model="filtri.categoria_id" aria-label="Filtro per categoria disciplinare">
-              <option value="">Tutte le categorie</option>
+          <!-- Categoria Disciplinare (Livello 1) -->
+          <div class="col-6 col-md-3">
+            <select id="catSelect" class="form-select form-select-sm" v-model="filtri.categoria_id" @change="filtri.sottogenere = ''" aria-label="Filtro per macro-categoria disciplinare">
+              <option value="">Tutte le macro-aree</option>
               <option v-for="cat in categorie" :key="cat.id" :value="cat.id">
                 {{ cat.nome }}
               </option>
             </select>
           </div>
 
+          <!-- Sottogenere / Tag (Livello 2) -->
+          <div class="col-6 col-md-3">
+            <select id="subSelect" class="form-select form-select-sm" v-model="filtri.sottogenere" aria-label="Filtro per sottogenere o tag tematico">
+              <option value="">Tutti i sottogeneri</option>
+              <option v-for="sub in sottogeneriDisponibiliFiltri" :key="sub" :value="sub">
+                {{ sub }}
+              </option>
+            </select>
+          </div>
+
           <!-- Disponibilità -->
-          <div class="col-4">
+          <div class="col-6 col-md-3">
             <select id="dispSelect" class="form-select form-select-sm" v-model="filtri.stato_disponibilita" aria-label="Filtro per disponibilità">
               <option value="">Tutti gli stati</option>
               <option value="DISPONIBILE">Disponibile</option>
@@ -570,7 +588,7 @@
           </div>
 
           <!-- Usura / Conservazione -->
-          <div class="col-4">
+          <div class="col-6 col-md-3">
             <select id="consSelect" class="form-select form-select-sm" v-model="filtri.stato_conservazione" aria-label="Filtro per usura">
               <option value="">Tutti i livelli</option>
               <option value="Come nuovo">Come nuovo</option>
@@ -678,7 +696,7 @@
             <thead class="table-light">
               <tr>
                 <th scope="col" style="min-width: 250px;">Libro & Autore</th>
-                <th scope="col" style="min-width: 140px;">Categoria</th>
+                <th scope="col" style="min-width: 170px;">Macro-Area & Tag</th>
                 <th scope="col" style="min-width: 120px;">Stato Usura</th>
                 <th scope="col" style="min-width: 130px;">Disponibilità</th>
                 <th scope="col" style="min-width: 160px;">Editore / Note</th>
@@ -703,11 +721,17 @@
                   </div>
                 </td>
 
-                <!-- Categoria -->
+                <!-- Macro-Categoria & Sottogenere -->
                 <td>
-                  <span class="badge bg-light text-dark border">
-                    {{ libro.categoria_nome || 'Non specificata' }}
-                  </span>
+                  <div class="d-flex flex-column gap-1 align-items-start">
+                    <span class="badge bg-light text-dark border d-inline-flex align-items-center">
+                      <i v-if="libro.categoria_icona" :class="'bi ' + libro.categoria_icona + ' me-1 text-primary'"></i>
+                      {{ libro.categoria_nome || 'Non specificata' }}
+                    </span>
+                    <span v-if="libro.sottogenere" class="badge bg-primary-subtle text-primary border border-primary-subtle fw-normal" style="font-size: 0.72rem;">
+                      <i class="bi bi-tag-fill me-1" style="font-size: 0.65rem;"></i>{{ libro.sottogenere }}
+                    </span>
+                  </div>
                 </td>
 
                 <!-- Stato Usura -->
@@ -769,12 +793,19 @@
           <div class="row g-3 row-cols-1 row-cols-md-2 row-cols-xl-3">
             <div class="col" v-for="libro in filteredLibri" :key="libro.id">
               <div class="book-card-item p-3">
-                <!-- Intestazione Card: Categoria e Disponibilità -->
+                <!-- Intestazione Card: Categoria, Sottogenere e Disponibilità -->
                 <div class="d-flex justify-content-between align-items-start gap-2 mb-2 pb-2 border-bottom">
-                  <span class="badge bg-light text-dark border small text-truncate" style="max-width: 160px;">
-                    <i class="bi bi-tag-fill text-primary me-1"></i>{{ libro.categoria_nome }}
-                  </span>
-                  <span class="badge small" :class="getDisponibilitaBadgeClass(libro.stato_disponibilita)">
+                  <div class="d-flex flex-wrap gap-1 align-items-center">
+                    <span class="badge bg-light text-dark border small text-truncate" style="max-width: 170px;">
+                      <i v-if="libro.categoria_icona" :class="'bi ' + libro.categoria_icona + ' text-primary me-1'"></i>
+                      <i v-else class="bi bi-tag-fill text-primary me-1"></i>
+                      {{ libro.categoria_nome }}
+                    </span>
+                    <span v-if="libro.sottogenere" class="badge bg-primary-subtle text-primary border border-primary-subtle fw-normal small">
+                      {{ libro.sottogenere }}
+                    </span>
+                  </div>
+                  <span class="badge small flex-shrink-0" :class="getDisponibilitaBadgeClass(libro.stato_disponibilita)">
                     <i class="bi" :class="getDisponibilitaIconClass(libro.stato_disponibilita)" aria-hidden="true"></i>
                     {{ formatDisponibilitaLabel(libro.stato_disponibilita) }}
                   </span>
@@ -901,6 +932,9 @@
                       {{ libro.anno_pubblicazione }}
                     </span>
                   </div>
+                  <div v-if="libro.sottogenere" class="text-truncate text-primary fw-semibold mb-1" style="font-size: 0.62rem;">
+                    <i class="bi bi-tag me-1"></i>{{ libro.sottogenere }}
+                  </div>
                   <div class="d-flex justify-content-between align-items-center gap-1">
                     <span class="badge p-1" :class="getConservazioneBadgeClass(libro.stato_conservazione)" style="font-size: 0.6rem;">
                       {{ libro.stato_conservazione }}
@@ -913,8 +947,11 @@
 
                 <!-- Overlay Azioni al passaggio del mouse / focus -->
                 <div class="physical-book-overlay">
-                  <div class="text-white text-center small fw-bold mb-2 text-truncate px-2 w-100">
+                  <div class="text-white text-center small fw-bold mb-1 text-truncate px-2 w-100">
                     {{ libro.titolo }}
+                  </div>
+                  <div v-if="libro.sottogenere" class="badge bg-light text-dark mb-2 small text-truncate" style="max-width: 90%;">
+                    {{ libro.sottogenere }}
                   </div>
                   <button 
                     type="button" 
@@ -1011,15 +1048,51 @@
                   />
                 </div>
 
-                <!-- Categoria (obbligatoria) -->
+                <!-- Categoria Disciplinare (Livello 1) -->
                 <div class="col-md-6">
-                  <label for="formCategoria" class="form-label fw-semibold">Categoria Disciplinare <span class="text-danger">*</span></label>
+                  <label for="formCategoria" class="form-label fw-semibold">Macro-Categoria (Livello 1) <span class="text-danger">*</span></label>
                   <select id="formCategoria" class="form-select" required v-model="form.categoria_id">
-                    <option value="" disabled>Seleziona la categoria...</option>
+                    <option value="" disabled>Seleziona la macro-area...</option>
                     <option v-for="cat in categorie" :key="cat.id" :value="cat.id">
                       {{ cat.nome }}
                     </option>
                   </select>
+                </div>
+
+                <!-- Sottogenere / Tag Tematico (Livello 2) -->
+                <div class="col-12">
+                  <label for="formSottogenere" class="form-label fw-semibold d-flex justify-content-between">
+                    <span>Sottogenere / Tag Tematico (Livello 2)</span>
+                    <span class="text-muted fw-normal small">Standard Thema/BISAC con suggerimenti rapidi o tag libero</span>
+                  </label>
+                  <div class="input-group">
+                    <span class="input-group-text bg-light text-muted"><i class="bi bi-tag"></i></span>
+                    <input 
+                      id="formSottogenere" 
+                      type="text" 
+                      class="form-control" 
+                      list="sottogeneriList"
+                      placeholder="Es. Saggistica Storica, Ingegneria del Software, Fantascienza..."
+                      v-model="form.sottogenere"
+                    />
+                    <datalist id="sottogeneriList">
+                      <option v-for="sub in sottogeneriDisponibiliForm" :key="sub" :value="sub"></option>
+                    </datalist>
+                  </div>
+                  <!-- Chip di suggerimento rapido da tassonomia Thema/BISAC -->
+                  <div v-if="sottogeneriDisponibiliForm.length > 0" class="d-flex flex-wrap align-items-center gap-1 mt-2">
+                    <span class="text-muted small me-1"><i class="bi bi-stars text-warning me-1"></i>Suggeriti per quest'area:</span>
+                    <button 
+                      type="button" 
+                      v-for="sub in sottogeneriDisponibiliForm" 
+                      :key="sub"
+                      class="badge bg-light text-primary border hover-subgenre-chip py-1 px-2 text-decoration-none"
+                      style="font-size: 0.72rem; font-weight: 500;"
+                      @click="form.sottogenere = sub"
+                    >
+                      + {{ sub }}
+                    </button>
+                  </div>
                 </div>
 
                 <!-- Editore -->
@@ -1250,6 +1323,7 @@
           titolo: '',
           autore: '',
           categoria_id: '',
+          sottogenere: '',
           editore: '',
           anno_pubblicazione: null,
           isbn: '',
@@ -1264,6 +1338,7 @@
         const filtri = ref({
           search: '',
           categoria_id: '',
+          sottogenere: '',
           stato_disponibilita: '',
           stato_conservazione: ''
         });
@@ -1273,9 +1348,39 @@
           return Boolean(
             (filtri.value.search && filtri.value.search.trim()) ||
             filtri.value.categoria_id ||
+            filtri.value.sottogenere ||
             filtri.value.stato_disponibilita ||
             filtri.value.stato_conservazione
           );
+        });
+
+        // Sottogeneri disponibili per la categoria selezionata nel form
+        const sottogeneriDisponibiliForm = computed(() => {
+          if (!form.value.categoria_id) return [];
+          const cat = categorie.value.find(c => c.id === form.value.categoria_id);
+          return (cat && Array.isArray(cat.sottogeneri_predefiniti)) ? cat.sottogeneri_predefiniti : [];
+        });
+
+        // Sottogeneri disponibili per il filtro (dipendenti dalla categoria selezionata o unione di tutti)
+        const sottogeneriDisponibiliFiltri = computed(() => {
+          if (filtri.value.categoria_id) {
+            const cat = categorie.value.find(c => c.id === filtri.value.categoria_id);
+            if (cat && Array.isArray(cat.sottogeneri_predefiniti)) {
+              return cat.sottogeneri_predefiniti;
+            }
+          }
+          const set = new Set();
+          categorie.value.forEach(c => {
+            if (Array.isArray(c.sottogeneri_predefiniti)) {
+              c.sottogeneri_predefiniti.forEach(s => set.add(s));
+            }
+          });
+          libri.value.forEach(b => {
+            if (b.sottogenere && b.sottogenere.trim()) {
+              set.add(b.sottogenere.trim());
+            }
+          });
+          return Array.from(set).sort();
         });
 
         // Gestione notifiche toast
@@ -1313,6 +1418,10 @@
             if (filtri.value.categoria_id && book.categoria_id !== filtri.value.categoria_id) {
               return false;
             }
+            // Filtro Sottogenere
+            if (filtri.value.sottogenere && (book.sottogenere || '').toLowerCase() !== filtri.value.sottogenere.toLowerCase()) {
+              return false;
+            }
             // Filtro Disponibilità
             if (filtri.value.stato_disponibilita && book.stato_disponibilita !== filtri.value.stato_disponibilita) {
               return false;
@@ -1328,7 +1437,8 @@
               const autMatch = (book.autore || '').toLowerCase().includes(q);
               const isbnMatch = (book.isbn || '').toLowerCase().includes(q);
               const edMatch = (book.editore || '').toLowerCase().includes(q);
-              if (!titMatch && !autMatch && !isbnMatch && !edMatch) {
+              const subMatch = (book.sottogenere || '').toLowerCase().includes(q);
+              if (!titMatch && !autMatch && !isbnMatch && !edMatch && !subMatch) {
                 return false;
               }
             }
@@ -1340,6 +1450,7 @@
           filtri.value = {
             search: '',
             categoria_id: '',
+            sottogenere: '',
             stato_disponibilita: '',
             stato_conservazione: ''
           };
@@ -1381,6 +1492,7 @@
             titolo: '',
             autore: '',
             categoria_id: categorie.value.length > 0 ? categorie.value[0].id : '',
+            sottogenere: '',
             editore: '',
             anno_pubblicazione: null,
             isbn: '',
@@ -1403,6 +1515,7 @@
             titolo: libro.titolo,
             autore: libro.autore,
             categoria_id: libro.categoria_id,
+            sottogenere: libro.sottogenere || '',
             editore: libro.editore || '',
             anno_pubblicazione: libro.anno_pubblicazione || null,
             isbn: libro.isbn || '',
@@ -1516,6 +1629,10 @@
           if (s.includes('scienze') || s.includes('matematica')) return 'book-theme-scienze';
           if (s.includes('storia') || s.includes('biografie')) return 'book-theme-storia';
           if (s.includes('arte') || s.includes('architettura')) return 'book-theme-arte';
+          if (s.includes('economia') || s.includes('diritto')) return 'book-theme-economia';
+          if (s.includes('fumetti') || s.includes('manga')) return 'book-theme-fumetti';
+          if (s.includes('bambini') || s.includes('ragazzi')) return 'book-theme-bambini';
+          if (s.includes('altro') || s.includes('miscellanea')) return 'book-theme-altro';
           return 'book-theme-default';
         };
 
@@ -1568,6 +1685,8 @@
           filteredLibri,
           viewMode,
           hasActiveFilters,
+          sottogeneriDisponibiliForm,
+          sottogeneriDisponibiliFiltri,
           setViewMode,
           addToast,
           removeToast,

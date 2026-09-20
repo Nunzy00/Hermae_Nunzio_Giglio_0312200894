@@ -20,20 +20,20 @@ In conformità con il modello concettuale bibliografico internazionale **IFLA LR
 
 ---
 
-## 2. Tabella Sinottica degli Esemplari Mock
+## 2. Tabella Sinottica degli Esemplari Mock (Tassonomia Gerarchica a Due Livelli)
 
-| Titolo Opera | Autore | Editore / Anno | ISBN | Categoria | Stato Usura | Disponibilità | Proprietario Mock |
-| :--- | :--- | :---: | :---: | :--- | :---: | :---: | :--- |
-| **Il nome della rosa** | Umberto Eco | Bompiani (1980) | `9788845278655` | Narrativa & Romanzi | Ottimo | `DISPONIBILE` | Nunzio Giglio (`demo@hermae.it`) |
-| **Clean Code** | Robert C. Martin | Prentice Hall (2008) | `9780132350884` | Informatica & Tecnologia | Come nuovo | `DISPONIBILE` | Nunzio Giglio (`demo@hermae.it`) |
-| **Pensieri lenti e veloci** | Daniel Kahneman | Mondadori (2012) | `9788804623120` | Saggistica & Filosofia | Buono | `IN_PRESTITO` | Nunzio Giglio (`demo@hermae.it`) |
-| **Se questo è un uomo** | Primo Levi | Einaudi (1958) | `9788806219345` | Storia & Biografie | Ottimo | `DISPONIBILE` | Laura Bianchi (`laura.bianchi@example.com`) |
-| **L'ordine del tempo** | Carlo Rovelli | Adelphi (2017) | `9788845931925` | Scienze & Matematica | Come nuovo | `DISPONIBILE` | Laura Bianchi (`laura.bianchi@example.com`) |
-| **Design Patterns** | Gamma, Helm, Johnson, Vlissides | Addison-Wesley (1994) | `9780201633610` | Informatica & Tecnologia | Buono | `DISPONIBILE` | Laura Bianchi (`laura.bianchi@example.com`) |
-| **Le città invisibili** | Italo Calvino | Einaudi (1972) | `9788806218751` | Narrativa & Romanzi | Usurato | `DISPONIBILE` | Marco De Luca (`marco.deluca@example.com`) |
-| **Storia della bellezza** | Umberto Eco | Bompiani (2004) | `9788845232497` | Arte & Architettura | Ottimo | `DISPONIBILE` | Marco De Luca (`marco.deluca@example.com`) |
-| **Gödel, Escher, Bach** | Douglas Hofstadter | Adelphi (1984) | `9788845907555` | Saggistica & Filosofia | Ottimo | `DISPONIBILE` | Giulia Romano (`giulia.romano@example.com`) |
-| **Breve storia del tempo** | Stephen Hawking | Rizzoli (1988) | `9788817079754` | Scienze & Matematica | Buono | `NON_DISPONIBILE` | Giulia Romano (`giulia.romano@example.com`) |
+| Titolo Opera | Autore | Editore / Anno | ISBN | Categoria (Livello 1) | Sottogenere (Livello 2) | Stato Usura | Disponibilità | Proprietario Mock |
+| :--- | :--- | :---: | :---: | :--- | :--- | :---: | :---: | :--- |
+| **Il nome della rosa** | Umberto Eco | Bompiani (1980) | `9788845278655` | Narrativa & Romanzi | Giallo & Thriller | Ottimo | `DISPONIBILE` | Nunzio Giglio (`demo@hermae.it`) |
+| **Clean Code** | Robert C. Martin | Prentice Hall (2008) | `9780132350884` | Informatica & Tecnologia | Ingegneria del Software | Come nuovo | `DISPONIBILE` | Nunzio Giglio (`demo@hermae.it`) |
+| **Pensieri lenti e veloci** | Daniel Kahneman | Mondadori (2012) | `9788804623120` | Saggistica & Filosofia | Psicologia & Psicoanalisi | Buono | `IN_PRESTITO` | Nunzio Giglio (`demo@hermae.it`) |
+| **Se questo è un uomo** | Primo Levi | Einaudi (1958) | `9788806219345` | Storia & Biografie | Storia Contemporanea & Guerre Mondiali | Ottimo | `DISPONIBILE` | Laura Bianchi (`laura.bianchi@example.com`) |
+| **L'ordine del tempo** | Carlo Rovelli | Adelphi (2017) | `9788845931925` | Scienze & Matematica | Fisica Quantistica & Relatività | Come nuovo | `DISPONIBILE` | Laura Bianchi (`laura.bianchi@example.com`) |
+| **Design Patterns** | Gamma, Helm, Johnson, Vlissides | Addison-Wesley (1994) | `9780201633610` | Informatica & Tecnologia | Ingegneria del Software | Buono | `DISPONIBILE` | Laura Bianchi (`laura.bianchi@example.com`) |
+| **Le città invisibili** | Italo Calvino | Einaudi (1972) | `9788806218751` | Narrativa & Romanzi | Classici Letterari | Usurato | `DISPONIBILE` | Marco De Luca (`marco.deluca@example.com`) |
+| **Storia della bellezza** | Umberto Eco | Bompiani (2004) | `9788845232497` | Arte, Architettura & Design | Storia dell'Arte | Ottimo | `DISPONIBILE` | Marco De Luca (`marco.deluca@example.com`) |
+| **Gödel, Escher, Bach** | Douglas Hofstadter | Adelphi (1984) | `9788845907555` | Saggistica & Filosofia | Filosofia della Scienza | Ottimo | `DISPONIBILE` | Giulia Romano (`giulia.romano@example.com`) |
+| **Breve storia del tempo** | Stephen Hawking | Rizzoli (1988) | `9788817079754` | Scienze & Matematica | Astrofisica & Cosmologia | Buono | `NON_DISPONIBILE` | Giulia Romano (`giulia.romano@example.com`) |
 
 ---
 

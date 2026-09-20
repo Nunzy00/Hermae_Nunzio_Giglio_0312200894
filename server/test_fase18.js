@@ -87,7 +87,7 @@ async function runTests() {
 
   try {
     // 1. Test categorie
-    console.log('[GRUPPO 1] Tassonomia Categorie Disciplinari');
+    console.log('[GRUPPO 1] Tassonomia Categorie Disciplinari (Livello 1 e 2)');
     const catRes = await request({
       hostname: '127.0.0.1',
       port,
@@ -95,10 +95,12 @@ async function runTests() {
       method: 'GET'
     });
     assert(catRes.statusCode === 200, 'GET /api/categorie restituisce 200 OK');
-    assert(Array.isArray(catRes.body?.data) && catRes.body.data.length >= 6, 'Categorie presenti >= 6 con conteggio volumi');
+    assert(Array.isArray(catRes.body?.data) && catRes.body.data.length === 10, 'Macro-categorie presenti = 10 (standard Thema/BISAC)');
     const categories = catRes.body?.data || [];
     const catNarrativa = categories.find(c => c.slug === 'narrativa-romanzi');
     assert(Boolean(catNarrativa), 'Categoria "narrativa-romanzi" identificata correttamente');
+    assert(catNarrativa.icona === 'bi-book' && catNarrativa.colore_hex === '#be123c', 'Metadati grafici icona e colore presenti');
+    assert(Array.isArray(catNarrativa.sottogeneri_predefiniti) && catNarrativa.sottogeneri_predefiniti.includes('Fantascienza & Distopia'), 'Array sottogeneri predefiniti Thema/BISAC valorizzato');
 
     // 2. Test autenticazione e sicurezza
     console.log('\n[GRUPPO 2] Protezione Endpoints Riservati e Autenticazione');
@@ -157,7 +159,7 @@ async function runTests() {
     }, { titolo: 'Titolo Test', categoria_id: catNarrativa.id });
     assert(inv2.statusCode === 400 && inv2.body?.error?.code === 'AUTORE_REQUIRED', 'Rifiuta creazione senza autore (400 AUTORE_REQUIRED)');
 
-    // 4.3 Creazione valida con ereditarietà coordinate geospaziali
+    // 4.3 Creazione valida con ereditarietà coordinate geospaziali e sottogenere L2
     const newBookPayload = {
       titolo: 'Saggio sulla lucidità',
       autore: 'José Saramago',
@@ -169,7 +171,8 @@ async function runTests() {
       note: 'Copertina integra, lievi segni di piega all\'angolo superiore.',
       stato_conservazione: 'Buono',
       stato_disponibilita: 'DISPONIBILE',
-      categoria_id: catNarrativa.id
+      categoria_id: catNarrativa.id,
+      sottogenere: 'Fantascienza & Distopia'
     };
 
     const createRes = await request({
@@ -186,6 +189,7 @@ async function runTests() {
     assert(createRes.statusCode === 201, 'POST /api/esemplari restituisce 201 Created');
     assert(createRes.body?.data?.id, 'ID UUID generato per il nuovo esemplare');
     assert(createRes.body?.data?.titolo === newBookPayload.titolo, 'Titolo memorizzato correttamente');
+    assert(createRes.body?.data?.sottogenere === 'Fantascienza & Distopia', 'Sottogenere (Livello 2) memorizzato correttamente');
     assert(createRes.body?.data?.coordinate?.lat !== null, 'Coordinate geospaziali ereditate automaticamente dalla posizione utente');
     const createdId = createRes.body?.data?.id;
 
@@ -199,6 +203,7 @@ async function runTests() {
     });
     assert(getByIdRes.statusCode === 200, 'GET /api/esemplari/:id restituisce 200 OK');
     assert(getByIdRes.body?.data?.proprietario?.nome === 'Nunzio', 'Dettaglio include informazioni proprietario e città');
+    assert(getByIdRes.body?.data?.sottogenere === 'Fantascienza & Distopia', 'Dettaglio include sottogenere L2');
 
     // 6. Test sicurezza di titolarità (Ownership / Authorization 403)
     console.log('\n[GRUPPO 6] Controllo di Titolarità e Sicurezza Autorizzativa');
@@ -228,7 +233,7 @@ async function runTests() {
     });
     assert(forbiddenDel.statusCode === 403, 'DELETE /api/esemplari/:id da utente non titolare restituisce 403 Forbidden');
 
-    // 7. Test aggiornamento autorizzato da parte del proprietario
+    // 7. Test aggiornamento autorizzato da parte del proprietario (incluso sottogenere)
     console.log('\n[GRUPPO 7] Aggiornamento Metadati da Proprietario (updateBook)');
     const updateRes = await request({
       hostname: '127.0.0.1',
@@ -241,10 +246,12 @@ async function runTests() {
       }
     }, {
       stato_conservazione: 'Ottimo',
-      note: 'Note aggiornate: copertina ripulita e protetta.'
+      note: 'Note aggiornate: copertina ripulita e protetta.',
+      sottogenere: 'Narrativa Filosofica'
     });
     assert(updateRes.statusCode === 200, 'PUT /api/esemplari/:id da proprietario restituisce 200 OK');
     assert(updateRes.body?.data?.stato_conservazione === 'Ottimo', 'Stato di conservazione aggiornato a "Ottimo"');
+    assert(updateRes.body?.data?.sottogenere === 'Narrativa Filosofica', 'Sottogenere aggiornato con successo a "Narrativa Filosofica"');
     assert(updateRes.body?.data?.note.includes('protetta'), 'Note bibliografiche aggiornate con successo');
 
     // 8. Test cancellazione autorizzata (deleteBook)
@@ -281,7 +288,8 @@ async function runTests() {
     assert(searchRes.statusCode === 200, 'GET /api/esemplari?search=Eco restituisce 200 OK');
     assert(searchRes.body?.data?.length >= 2, `Trovati ${searchRes.body?.data?.length} volumi di Umberto Eco`);
 
-    // 10. Test filtri avanzati per categoria
+    // 10. Test filtri avanzati per macro-categoria e sottogenere (Tassonomia a 2 Livelli)
+    console.log('\n[GRUPPO 10] Filtri Tassonomia Ibrida a Due Livelli (searchBooks)');
     const catSearch = await request({
       hostname: '127.0.0.1',
       port,
@@ -289,7 +297,18 @@ async function runTests() {
       method: 'GET'
     });
     assert(catSearch.statusCode === 200, 'GET /api/esemplari per categoria specifica restituisce 200 OK');
-    assert(catSearch.body?.data?.every(b => b.categoria_id === catNarrativa.id), 'Tutti i risultati appartengono alla categoria richiesta');
+    assert(catSearch.body?.data?.every(b => b.categoria_id === catNarrativa.id), 'Tutti i risultati appartengono alla macro-categoria richiesta');
+
+    // Ricerca per sottogenere
+    const subSearch = await request({
+      hostname: '127.0.0.1',
+      port,
+      path: '/api/esemplari?sottogenere=Ingegneria%20del%20Software',
+      method: 'GET'
+    });
+    assert(subSearch.statusCode === 200, 'GET /api/esemplari?sottogenere=... restituisce 200 OK');
+    assert(subSearch.body?.data?.length >= 1, `Trovati ${subSearch.body?.data?.length} volumi nel sottogenere "Ingegneria del Software"`);
+    assert(subSearch.body?.data?.every(b => b.sottogenere === 'Ingegneria del Software'), 'Tutti i volumi filtrati matchano esattamente il sottogenere');
 
   } catch (err) {
     console.error('Errore imprevisto durante l\'esecuzione dei test:', err);

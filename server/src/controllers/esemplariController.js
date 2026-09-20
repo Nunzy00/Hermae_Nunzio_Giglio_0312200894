@@ -6,9 +6,10 @@ const esemplariService = require('../services/esemplariService');
  */
 const getMyBooks = async (req, res, next) => {
   try {
-    const { categoria_id, stato_disponibilita, search } = req.query;
+    const { categoria_id, sottogenere, stato_disponibilita, search } = req.query;
     const books = await esemplariService.getMyEsemplari(req.user.id, {
       categoria_id,
+      sottogenere,
       stato_disponibilita,
       search
     });
@@ -87,10 +88,11 @@ const deleteBook = async (req, res, next) => {
  */
 const searchBooks = async (req, res, next) => {
   try {
-    const { search, categoria_id, stato_disponibilita, limit } = req.query;
+    const { search, categoria_id, sottogenere, stato_disponibilita, limit } = req.query;
     const books = await esemplariService.searchEsemplari({
       search,
       categoria_id,
+      sottogenere,
       stato_disponibilita,
       limit
     });
