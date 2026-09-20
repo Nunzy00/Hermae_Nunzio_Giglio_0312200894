@@ -1,5 +1,6 @@
 const express = require('express');
 const { testConnection } = require('../config/db');
+const userRoutes = require('./userRoutes');
 
 // Istanzia il router principale di Express per aggregare tutti gli endpoint applicativi
 const router = express.Router();
@@ -47,6 +48,9 @@ router.get('/db-status', async (req, res, next) => {
     next(err);
   }
 });
+
+// Monta il router delle operazioni CRUD dell'entità utenti sul percorso /users
+router.use('/users', userRoutes);
 
 // Esporta il router principale per essere montato sull'applicazione Express con il prefisso /api
 module.exports = router;

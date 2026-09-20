@@ -21,7 +21,8 @@
 | **Fase 8** | Definizione modello e schema di Database | 2 h | 1 h | [`INFO-DATABASE/modello-ER.md`](file:///Users/nunziogiglio/Documents/Github/Repositories/Hermae_Nunzio_Giglio_0312200894/INFO-DATABASE/modello-ER.md) & [`modello-logico.md`](file:///Users/nunziogiglio/Documents/Github/Repositories/Hermae_Nunzio_Giglio_0312200894/INFO-DATABASE/modello-logico.md) | **Completata** |
 | **Fase 9** | Implementazione struttura base del server | 2 h | 1 h | [`SVILUPPO-PROGRAMMA/fase-9.md`](file:///Users/nunziogiglio/Documents/Github/Repositories/Hermae_Nunzio_Giglio_0312200894/SVILUPPO-PROGRAMMA/fase-9.md) | **Completata** |
 | **Fase 10** | Creazione database | 2 h | 1 h | [`SVILUPPO-PROGRAMMA/fase-10.md`](file:///Users/nunziogiglio/Documents/Github/Repositories/Hermae_Nunzio_Giglio_0312200894/SVILUPPO-PROGRAMMA/fase-10.md) & [`INFO-DATABASE/schema.sql`](file:///Users/nunziogiglio/Documents/Github/Repositories/Hermae_Nunzio_Giglio_0312200894/INFO-DATABASE/schema.sql) | **Completata** |
-| **TOTALE** | **Avanzamento Fasi di Progettazione e Sviluppo Iniziale** | **17 h 30 min** | **8 h 40 min** | **11 Deliverable Consolidati** | **Fasi 1–10 Completate** |
+| **Fase 11** | Definizione nel database dell’entità “utenti”, del suo schema e delle sue operazioni CRUD | 2 h | 1 h | [`SVILUPPO-PROGRAMMA/fase-11.md`](file:///Users/nunziogiglio/Documents/Github/Repositories/Hermae_Nunzio_Giglio_0312200894/SVILUPPO-PROGRAMMA/fase-11.md) | **Completata** |
+| **TOTALE** | **Avanzamento Fasi di Progettazione e Sviluppo Backend** | **19 h 30 min** | **9 h 40 min** | **12 Deliverable Consolidati** | **Fasi 1–11 Completate** |
 
 ---
 
@@ -126,3 +127,11 @@
 - **Descrizione:** In questa fase è stato istanziato l’ambiente database fisico/cloud e sono stati eseguiti gli script DDL per la creazione delle tabelle, degli indici e dei vincoli definiti precedentemente, testando con successo la stringa di connessione dal backend.  
   Documenti di riferimento: [`SVILUPPO-PROGRAMMA/fase-10.md`](file:///Users/nunziogiglio/Documents/Github/Repositories/Hermae_Nunzio_Giglio_0312200894/SVILUPPO-PROGRAMMA/fase-10.md) e [`INFO-DATABASE/schema.sql`](file:///Users/nunziogiglio/Documents/Github/Repositories/Hermae_Nunzio_Giglio_0312200894/INFO-DATABASE/schema.sql).
 - **Difficoltà riscontrate:** Non sono state riscontrate difficoltà bloccanti; è stata configurata la suite di estensioni per l'indicizzazione ad albero GiST (`btree_gist`) e per il calcolo geodetico sferico (`earthdistance`), garantendo al contempo piena portabilità cloud e prestazioni di interrogazione con latenza $< 2\text{ ms}$.
+
+---
+
+### Fase 11 – Definizione nel database dell’entità “utenti”, del suo schema e delle sue operazioni CRUD
+- **Tempo stimato:** 2 ore | **Tempo effettivo:** 1 ora
+- **Descrizione:** È stata implementata la tabella dell’entità utente con i relativi campi anagrafici e di sicurezza, corredata dai metodi del layer di persistenza per le operazioni di Create, Read, Update e Delete dei profili registrati.  
+  Documento di riferimento: [`SVILUPPO-PROGRAMMA/fase-11.md`](file:///Users/nunziogiglio/Documents/Github/Repositories/Hermae_Nunzio_Giglio_0312200894/SVILUPPO-PROGRAMMA/fase-11.md).
+- **Difficoltà riscontrate:** Non sono state riscontrate problematiche nell'integrazione delle query e dei vincoli di unicità (es. email/username).
