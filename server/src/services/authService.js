@@ -3,6 +3,7 @@ const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 const env = require('../config/env');
 const userService = require('./userService');
+const posizioneService = require('./posizioneUtentiService');
 
 // Genera la coppia di token firmati Access Token e Refresh Token per la sessione dell'utente
 const generateTokens = (user) => {
@@ -47,6 +48,21 @@ const verifyRefreshToken = (token) => {
 // Registra un nuovo utente nel sistema e genera contestualmente i token di sessione iniziali
 const registerUser = async (userData) => {
   const newUser = await userService.createUser(userData);
+
+  // Inizializza automaticamente la posizione geografica dedicata per il nuovo utente
+  if (userData.coordinate_reali && typeof userData.coordinate_reali === 'object') {
+    try {
+      await posizioneService.upsertPosizione(newUser.id, {
+        citta: newUser.citta,
+        latitudine: userData.coordinate_reali.lat,
+        longitudine: userData.coordinate_reali.lng,
+        raggio_ricerca_km: 5
+      });
+    } catch (posErr) {
+      // Non blocca la registrazione utente qualora si verifichi un'anomalia secondaria sulla posizione
+    }
+  }
+
   const tokens = generateTokens(newUser);
 
   return {

@@ -29,7 +29,22 @@ CREATE TABLE IF NOT EXISTS utenti (
     data_registrazione TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- 3. Creazione Tabella CATEGORIE
+-- 3. Creazione Tabella POSIZIONE_UTENTI (Fase 14)
+-- Entità dedicata alla memorizzazione delle coordinate geografiche e preferenze territoriali dell'utente
+CREATE TABLE IF NOT EXISTS posizione_utenti (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    utente_id UUID NOT NULL UNIQUE REFERENCES utenti(id) ON DELETE CASCADE,
+    citta VARCHAR(100) NOT NULL,
+    indirizzo_approssimato VARCHAR(255),
+    latitudine NUMERIC(10, 7) NOT NULL,
+    longitudine NUMERIC(10, 7) NOT NULL,
+    coordinate_reali POINT NOT NULL,
+    coordinate_offuscate POINT NOT NULL,
+    raggio_ricerca_km INTEGER NOT NULL DEFAULT 5,
+    data_aggiornamento TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- 4. Creazione Tabella CATEGORIE
 -- Tassonomia per la categorizzazione disciplinare e letteraria degli esemplari
 CREATE TABLE IF NOT EXISTS categorie (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -95,8 +110,11 @@ CREATE TABLE IF NOT EXISTS metriche_visite (
 -- Ottimizzano le query geospaziali di prossimità metrica a raggio urbano/quartiere
 CREATE INDEX IF NOT EXISTS idx_esemplari_coordinate ON esemplari USING GIST (coordinate_esemplare);
 CREATE INDEX IF NOT EXISTS idx_utenti_coordinate_offuscate ON utenti USING GIST (coordinate_offuscate);
+CREATE INDEX IF NOT EXISTS idx_posizione_utenti_coords ON posizione_utenti USING GIST (coordinate_offuscate);
 
 -- 9. Indici B-Tree su Chiavi Esterne (UUID) e Parametri di Ricerca
+CREATE INDEX IF NOT EXISTS idx_posizione_utenti_utente ON posizione_utenti (utente_id);
+CREATE INDEX IF NOT EXISTS idx_posizione_utenti_citta ON posizione_utenti (citta);
 CREATE INDEX IF NOT EXISTS idx_esemplari_titolo ON esemplari (titolo);
 CREATE INDEX IF NOT EXISTS idx_esemplari_autore ON esemplari (autore);
 CREATE INDEX IF NOT EXISTS idx_esemplari_isbn ON esemplari (isbn);

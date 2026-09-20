@@ -7,7 +7,7 @@
 
 ---
 
-## 1. Tabella Riepilogativa delle Fasi Eseguite (Fasi 1 – 10)
+## 1. Tabella Riepilogativa delle Fasi Eseguite (Fasi 1 – 14)
 
 | Fase | Titolo e Obiettivo | Tempo Stimato | Tempo Effettivo | Documento / Deliverable Prodotto | Stato |
 | :---: | :--- | :---: | :---: | :--- | :---: |
@@ -24,7 +24,8 @@
 | **Fase 11** | Definizione nel database dell’entità “utenti”, del suo schema e delle sue operazioni CRUD | 2 h | 1 h | [`SVILUPPO-PROGRAMMA/fase-11.md`](file:///Users/nunziogiglio/Documents/Github/Repositories/Hermae_Nunzio_Giglio_0312200894/SVILUPPO-PROGRAMMA/fase-11.md) | **Completata** |
 | **Fase 12** | Implementazione sistema di Account ed autenticazione | 2 h | 1 h | [`SVILUPPO-PROGRAMMA/fase-12.md`](file:///Users/nunziogiglio/Documents/Github/Repositories/Hermae_Nunzio_Giglio_0312200894/SVILUPPO-PROGRAMMA/fase-12.md) | **Completata** |
 | **Fase 13** | Generazione dei componenti HTML e testing delle funzioni di autenticazione | 2 h | 1 h | [`SVILUPPO-PROGRAMMA/fase-13.md`](file:///Users/nunziogiglio/Documents/Github/Repositories/Hermae_Nunzio_Giglio_0312200894/SVILUPPO-PROGRAMMA/fase-13.md) & [`hermae-frontend/`](file:///Users/nunziogiglio/Documents/Github/Repositories/Hermae_Nunzio_Giglio_0312200894/hermae-frontend) | **Completata** |
-| **TOTALE** | **Avanzamento Fasi di Progettazione, Backend e Front-end Base** | **23 h 30 min** | **11 h 40 min** | **14 Deliverable Consolidati** | **Fasi 1–13 Completate** |
+| **Fase 14** | Definizione nel database dell’entità “posizione_utenti”, del suo schema e delle sue operazioni CRUD | 2 h | 1 h | [`SVILUPPO-PROGRAMMA/fase-14.md`](file:///Users/nunziogiglio/Documents/Github/Repositories/Hermae_Nunzio_Giglio_0312200894/SVILUPPO-PROGRAMMA/fase-14.md) & [`INFO-DATABASE/schema.sql`](file:///Users/nunziogiglio/Documents/Github/Repositories/Hermae_Nunzio_Giglio_0312200894/INFO-DATABASE/schema.sql) | **Completata** |
+| **TOTALE** | **Avanzamento Fasi di Progettazione, Database, Backend e Front-end** | **25 h 30 min** | **12 h 40 min** | **15 Deliverable Consolidati** | **Fasi 1–14 Completate** |
 
 ---
 
@@ -153,3 +154,11 @@
 - **Descrizione:** È stata realizzata l'infrastruttura front-end multi-pagina e la suite di componenti globali riutilizzabili (`navbar-guest`, `navbar-logged`, `app-footer`, `toast-notification`, `loading-spinner`), corredata dalle viste di autenticazione (`login.html`, `registrazione.html`, `logout.html`) e dalla cabina di regia riservata (`dashboard.html`). L'interfaccia rispetta rigorosamente i requisiti di accessibilità WCAG 2.1 Livello AA (contrasti $\ge 4.5:1$, touch targets $\ge 44\text{px}$, navigazione da tastiera e skip-link), integra i moduli client-side `api.js` (con Axios interceptor e refresh token automatico) e `auth.js` (con session management e gatekeeping).  
   Documenti di riferimento: [`SVILUPPO-PROGRAMMA/fase-13.md`](file:///Users/nunziogiglio/Documents/Github/Repositories/Hermae_Nunzio_Giglio_0312200894/SVILUPPO-PROGRAMMA/fase-13.md) e la cartella [`hermae-frontend/`](file:///Users/nunziogiglio/Documents/Github/Repositories/Hermae_Nunzio_Giglio_0312200894/hermae-frontend).
 - **Difficoltà riscontrate:** Non sono state riscontrate difficoltà bloccanti nell'integrazione reattiva di Vue 3 con il backend REST e nella gestione asincrona del ciclo di vita dei token di sessione.
+
+---
+
+### Fase 14 – Definizione nel database dell’entità “posizione_utenti”, del suo schema e delle sue operazioni CRUD
+- **Tempo stimato:** 2 ore | **Tempo effettivo:** 1 ora
+- **Descrizione:** È stata creata l'entità dedicata alla memorizzazione delle coordinate geografiche e dei riferimenti di localizzazione dell'utente, predisponendo le funzioni CRUD per il salvataggio e l'aggiornamento dinamico delle posizioni. L'architettura include indici spaziali GiST su PostgreSQL per ricerche di prossimità performanti, un algoritmo di offuscamento spaziale (*spatial blurring* tra 300 e 500 metri) per preservare la privacy dell'utente e la pagina front-end dedicata `impostazioni.html` con slider interattivo per il raggio chilometrico di ricerca ($1\text{–}50\text{ km}$), rilevamento GPS nativo e gestione consensi GDPR.  
+  Documenti di riferimento: [`SVILUPPO-PROGRAMMA/fase-14.md`](file:///Users/nunziogiglio/Documents/Github/Repositories/Hermae_Nunzio_Giglio_0312200894/SVILUPPO-PROGRAMMA/fase-14.md), [`INFO-DATABASE/schema.sql`](file:///Users/nunziogiglio/Documents/Github/Repositories/Hermae_Nunzio_Giglio_0312200894/INFO-DATABASE/schema.sql) e [`hermae-frontend/impostazioni.html`](file:///Users/nunziogiglio/Documents/Github/Repositories/Hermae_Nunzio_Giglio_0312200894/hermae-frontend/impostazioni.html).
+- **Difficoltà riscontrate:** Non sono state riscontrate difficoltà nella strutturazione dei campi dedicati a latitudine e longitudine.
