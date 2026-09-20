@@ -1,5 +1,6 @@
 // Controller per la gestione delle richieste HTTP afferenti all'entità Esemplare e Categorie
 const esemplariService = require('../services/esemplariService');
+const imageService = require('../services/imageService');
 
 /**
  * Restituisce l'elenco degli esemplari appartenenti all'utente autenticato
@@ -84,6 +85,54 @@ const deleteBook = async (req, res, next) => {
 };
 
 /**
+ * Carica ed elabora la copertina di un esemplare in formato WebP (standard e miniatura)
+ */
+const uploadCover = async (req, res, next) => {
+  try {
+    if (!req.file || !req.file.buffer) {
+      const error = new Error('Nessun file immagine fornito nel corpo della richiesta (campo "copertina").');
+      error.statusCode = 400;
+      error.code = 'FILE_REQUIRED';
+      throw error;
+    }
+
+    const { id } = req.params;
+    const { copertinaUrl, miniaturaUrl } = await imageService.processBookCover(req.file.buffer, id);
+
+    const updatedBook = await esemplariService.updateBookCover(id, req.user.id, {
+      copertinaUrl,
+      miniaturaUrl
+    });
+
+    res.status(200).json({
+      success: true,
+      message: 'Copertina e miniatura WebP elaborate e associate con successo all\'esemplare.',
+      data: updatedBook
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * Rimuove la copertina personalizzata associata a un esemplare
+ */
+const removeCover = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const updatedBook = await esemplariService.removeBookCover(id, req.user.id);
+
+    res.status(200).json({
+      success: true,
+      message: 'Copertina personalizzata rimossa con successo dall\'esemplare.',
+      data: updatedBook
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
  * Esegue una ricerca pubblica/filtrata degli esemplari disponibili
  */
 const searchBooks = async (req, res, next) => {
@@ -129,6 +178,8 @@ module.exports = {
   getBookById,
   updateBook,
   deleteBook,
+  uploadCover,
+  removeCover,
   searchBooks,
   getCategories
 };

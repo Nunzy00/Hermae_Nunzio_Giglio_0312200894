@@ -195,6 +195,23 @@
       box-shadow: -2px 3px 6px rgba(0,0,0,0.2), inset 2px 0 3px rgba(255,255,255,0.25);
       border-left: 3px solid rgba(0,0,0,0.3);
     }
+    .book-cover-thumb-wrapper {
+      width: 44px;
+      height: 60px;
+      border-radius: 3px 6px 6px 3px;
+      overflow: hidden;
+      flex-shrink: 0;
+      box-shadow: -2px 3px 6px rgba(0,0,0,0.2);
+      border-left: 3px solid rgba(0,0,0,0.3);
+      background-color: #f1f5f9;
+      position: relative;
+    }
+    .book-cover-thumb-img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
     .table-hover tbody tr:hover {
       background-color: rgba(30, 64, 175, 0.03);
     }
@@ -227,6 +244,23 @@
       position: relative;
       flex-shrink: 0;
       border-left: 4px solid rgba(0,0,0,0.3);
+    }
+    .book-card-cover-wrapper {
+      width: 62px;
+      height: 88px;
+      border-radius: 3px 6px 6px 3px;
+      overflow: hidden;
+      box-shadow: -3px 4px 8px rgba(0,0,0,0.22);
+      flex-shrink: 0;
+      border-left: 4px solid rgba(0,0,0,0.3);
+      background-color: #f1f5f9;
+      position: relative;
+    }
+    .book-card-cover-img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
     }
 
     /* VISTA 3: BOOK-STILE (Scaffale Virtuale) */
@@ -322,7 +356,30 @@
       overflow: hidden;
       text-overflow: ellipsis;
     }
+    .physical-book .book-cover-bg {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      z-index: 1;
+    }
+    .physical-book .book-gradient-overlay {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(180deg, rgba(15,23,42,0.2) 0%, rgba(15,23,42,0.4) 50%, rgba(15,23,42,0.85) 100%);
+      z-index: 1;
+    }
+    .physical-book .book-header-top,
+    .physical-book .book-title-foil,
+    .physical-book .book-author-foil {
+      position: relative;
+      z-index: 2;
+    }
     .physical-book .book-plate-label {
+      position: relative;
+      z-index: 2;
       background: rgba(255, 255, 255, 0.95);
       color: #0f172a;
       border-radius: 5px;
@@ -350,6 +407,38 @@
     .physical-book:focus-within .physical-book-overlay {
       opacity: 1;
       pointer-events: auto;
+    }
+
+    /* Stili Upload Copertina nel Modal */
+    .cover-upload-dropzone {
+      border: 2px dashed #cbd5e1;
+      border-radius: var(--radius-md);
+      padding: 1.25rem;
+      text-align: center;
+      background-color: #f8fafc;
+      transition: all 0.2s ease;
+      cursor: pointer;
+    }
+    .cover-upload-dropzone:hover, .cover-upload-dropzone.is-dragover {
+      border-color: var(--hermae-primary);
+      background-color: #eff6ff;
+    }
+    .cover-preview-box {
+      width: 110px;
+      height: 155px;
+      border-radius: 4px 8px 8px 4px;
+      overflow: hidden;
+      box-shadow: -3px 5px 12px rgba(0,0,0,0.18);
+      border-left: 4px solid rgba(0,0,0,0.3);
+      position: relative;
+      flex-shrink: 0;
+      background-color: #e2e8f0;
+    }
+    .cover-preview-box img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
     }
 
     /* Palette tematiche copertine libri */
@@ -708,7 +797,15 @@
                 <!-- Titolo, Autore & Copertina Mini -->
                 <td>
                   <div class="d-flex align-items-center gap-3">
-                    <div class="book-cover-placeholder" :class="getCategoryThemeClass(libro.categoria_slug)">
+                    <div v-if="libro.immagine_miniatura || libro.immagine_copertina" class="book-cover-thumb-wrapper">
+                      <img 
+                        :src="getImageUrl(libro.immagine_miniatura || libro.immagine_copertina)" 
+                        :alt="'Copertina di ' + libro.titolo" 
+                        class="book-cover-thumb-img"
+                        loading="lazy"
+                      />
+                    </div>
+                    <div v-else class="book-cover-placeholder" :class="getCategoryThemeClass(libro.categoria_slug)">
                       <i class="bi bi-book-half"></i>
                     </div>
                     <div>
@@ -813,8 +910,16 @@
 
                 <!-- Corpo Card: Miniatura Copertina + Dati -->
                 <div class="d-flex gap-3 mb-2 flex-grow-1">
-                  <!-- Mini Copertina Libro -->
-                  <div class="book-card-cover-mini" :class="getCategoryThemeClass(libro.categoria_slug)">
+                  <!-- Mini Copertina Libro (Immagine Reale o Mockup) -->
+                  <div v-if="libro.immagine_copertina || libro.immagine_miniatura" class="book-card-cover-wrapper">
+                    <img 
+                      :src="getImageUrl(libro.immagine_copertina || libro.immagine_miniatura)" 
+                      :alt="'Copertina di ' + libro.titolo" 
+                      class="book-card-cover-img"
+                      loading="lazy"
+                    />
+                  </div>
+                  <div v-else class="book-card-cover-mini" :class="getCategoryThemeClass(libro.categoria_slug)">
                     <div class="d-flex justify-content-between align-items-center">
                       <span class="small" style="font-size: 0.6rem; opacity: 0.85;">HERMAE</span>
                       <i class="bi bi-bookmark-fill text-danger" style="font-size: 0.75rem;"></i>
@@ -899,8 +1004,19 @@
                 <!-- Piegatura Costa/Dorso -->
                 <div class="book-crease-line"></div>
 
+                <!-- Sfondo Copertina Reale (se presente) -->
+                <template v-if="libro.immagine_copertina">
+                  <img 
+                    :src="getImageUrl(libro.immagine_copertina)" 
+                    :alt="'Copertina ' + libro.titolo" 
+                    class="book-cover-bg"
+                    loading="lazy"
+                  />
+                  <div class="book-gradient-overlay"></div>
+                </template>
+
                 <!-- Testata Superiore Copertina -->
-                <div>
+                <div class="book-header-top">
                   <div class="d-flex justify-content-between align-items-center mb-2" style="font-size: 0.65rem; opacity: 0.9;">
                     <span class="text-uppercase fw-bold letter-spacing-1">Collezione Hermae</span>
                     <span class="badge bg-black bg-opacity-40 border border-white border-opacity-25" style="font-size: 0.6rem;">
@@ -918,9 +1034,10 @@
                 </div>
 
                 <!-- Sezione Centrale: Sigillo / Icona Categoria -->
-                <div class="text-center my-2" style="opacity: 0.25;">
+                <div v-if="!libro.immagine_copertina" class="text-center my-2" style="opacity: 0.25;">
                   <i class="bi bi-book-half display-6"></i>
                 </div>
+                <div v-else class="my-auto"></div>
 
                 <!-- Targhetta Inferiore Tipo Ex-Libris -->
                 <div class="book-plate-label">
@@ -1008,6 +1125,78 @@
               </div>
 
               <div class="row g-3">
+                <!-- Sezione Upload Copertina (WebP Ottimizzato) -->
+                <div class="col-12">
+                  <div class="p-3 bg-light rounded-3 border">
+                    <div class="d-flex flex-column flex-sm-row align-items-center gap-3">
+                      <!-- Riquadro Anteprima Copertina -->
+                      <div class="cover-preview-box d-flex align-items-center justify-content-center">
+                        <img v-if="coverPreviewUrl" :src="coverPreviewUrl" alt="Anteprima copertina" />
+                        <div v-else class="text-center p-2 text-muted">
+                          <i class="bi bi-image fs-1 opacity-50"></i>
+                          <div style="font-size: 0.65rem;" class="mt-1">Nessuna copertina</div>
+                        </div>
+                      </div>
+
+                      <!-- Azioni e Drag & Drop Dropzone -->
+                      <div class="flex-grow-1 w-100">
+                        <label class="form-label fw-semibold mb-1 d-flex justify-content-between align-items-center">
+                          <span>Copertina dell'Opera</span>
+                          <span class="badge bg-primary-subtle text-primary border border-primary-subtle fw-normal">
+                            <i class="bi bi-shield-check me-1"></i>WebP 800px & 200px
+                          </span>
+                        </label>
+                        
+                        <div 
+                          class="cover-upload-dropzone" 
+                          :class="{ 'is-dragover': isDragOver }"
+                          @dragover.prevent="isDragOver = true"
+                          @dragleave.prevent="isDragOver = false"
+                          @drop.prevent="handleFileDrop"
+                          @click="triggerFileInput"
+                          role="button"
+                          tabindex="0"
+                          aria-label="Zona di caricamento file copertina"
+                        >
+                          <input 
+                            type="file" 
+                            ref="fileInputRef" 
+                            class="d-none" 
+                            accept="image/jpeg,image/png,image/webp,image/avif" 
+                            @change="onCoverSelected"
+                          />
+                          <div class="d-flex align-items-center justify-content-center gap-2 text-primary fw-medium mb-1">
+                            <i class="bi bi-cloud-arrow-up fs-4"></i>
+                            <span>{{ coverPreviewUrl ? 'Sostituisci immagine copertina' : 'Trascina qui la copertina o fai clic per selezionarla' }}</span>
+                          </div>
+                          <div class="text-muted small">
+                            Formati ammessi: JPEG, PNG, WebP, AVIF &bull; Dimensione max 5 MB &bull; Conversione automatica in WebP
+                          </div>
+                        </div>
+
+                        <!-- Dettagli e Pulsante Rimozione Copertina -->
+                        <div v-if="coverPreviewUrl" class="d-flex align-items-center gap-2 mt-2">
+                          <span class="small text-muted text-truncate" style="max-width: 260px;">
+                            <i class="bi bi-file-earmark-image me-1"></i>{{ selectedCoverFileName || 'Copertina configurata' }}
+                          </span>
+                          <button 
+                            type="button" 
+                            class="btn btn-outline-danger btn-sm py-0 px-2 ms-auto" 
+                            @click.stop="rimuoviCopertina"
+                            title="Rimuovi immagine copertina"
+                          >
+                            <i class="bi bi-trash3 me-1"></i>Rimuovi
+                          </button>
+                        </div>
+
+                        <div v-if="coverUploadError" class="text-danger small mt-1">
+                          <i class="bi bi-exclamation-circle me-1"></i>{{ coverUploadError }}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
                 <!-- Titolo Opera (obbligatorio) -->
                 <div class="col-md-8">
                   <label for="formTitolo" class="form-label fw-semibold">Titolo dell'Opera <span class="text-danger">*</span></label>
@@ -1015,10 +1204,15 @@
                     id="formTitolo" 
                     type="text" 
                     class="form-control" 
+                    :class="{ 'is-invalid': validationErrors.titolo }"
                     required 
                     placeholder="Es. Il nome della rosa"
                     v-model="form.titolo"
+                    @input="delete validationErrors.titolo"
                   />
+                  <div v-if="validationErrors.titolo" class="invalid-feedback">
+                    {{ validationErrors.titolo }}
+                  </div>
                 </div>
 
                 <!-- Anno Pubblicazione -->
@@ -1028,11 +1222,16 @@
                     id="formAnno" 
                     type="number" 
                     class="form-control" 
+                    :class="{ 'is-invalid': validationErrors.anno_pubblicazione }"
                     min="1450" 
                     max="2030" 
                     placeholder="Es. 1980"
                     v-model.number="form.anno_pubblicazione"
+                    @input="delete validationErrors.anno_pubblicazione"
                   />
+                  <div v-if="validationErrors.anno_pubblicazione" class="invalid-feedback">
+                    {{ validationErrors.anno_pubblicazione }}
+                  </div>
                 </div>
 
                 <!-- Autore (obbligatorio) -->
@@ -1042,21 +1241,36 @@
                     id="formAutore" 
                     type="text" 
                     class="form-control" 
+                    :class="{ 'is-invalid': validationErrors.autore }"
                     required 
                     placeholder="Es. Umberto Eco"
                     v-model="form.autore"
+                    @input="delete validationErrors.autore"
                   />
+                  <div v-if="validationErrors.autore" class="invalid-feedback">
+                    {{ validationErrors.autore }}
+                  </div>
                 </div>
 
                 <!-- Categoria Disciplinare (Livello 1) -->
                 <div class="col-md-6">
                   <label for="formCategoria" class="form-label fw-semibold">Macro-Categoria (Livello 1) <span class="text-danger">*</span></label>
-                  <select id="formCategoria" class="form-select" required v-model="form.categoria_id">
+                  <select 
+                    id="formCategoria" 
+                    class="form-select" 
+                    :class="{ 'is-invalid': validationErrors.categoria_id }"
+                    required 
+                    v-model="form.categoria_id"
+                    @change="delete validationErrors.categoria_id"
+                  >
                     <option value="" disabled>Seleziona la macro-area...</option>
                     <option v-for="cat in categorie" :key="cat.id" :value="cat.id">
                       {{ cat.nome }}
                     </option>
                   </select>
+                  <div v-if="validationErrors.categoria_id" class="invalid-feedback">
+                    {{ validationErrors.categoria_id }}
+                  </div>
                 </div>
 
                 <!-- Sottogenere / Tag Tematico (Livello 2) -->
@@ -1114,9 +1328,14 @@
                     id="formIsbn" 
                     type="text" 
                     class="form-control font-monospace" 
+                    :class="{ 'is-invalid': validationErrors.isbn }"
                     placeholder="978-88-..."
                     v-model="form.isbn"
+                    @input="delete validationErrors.isbn"
                   />
+                  <div v-if="validationErrors.isbn" class="invalid-feedback">
+                    {{ validationErrors.isbn }}
+                  </div>
                 </div>
 
                 <!-- Lingua -->
@@ -1294,6 +1513,111 @@
         const toasts = ref([]);
         const showInfoTooltip = ref(false);
         let infoTimeout = null;
+
+        // Gestione copertina e file upload
+        const selectedCoverFile = ref(null);
+        const selectedCoverFileName = ref('');
+        const coverPreviewUrl = ref('');
+        const removeCoverRequested = ref(false);
+        const coverUploadError = ref('');
+        const fileInputRef = ref(null);
+        const isDragOver = ref(false);
+        const validationErrors = ref({});
+
+        const getImageUrl = (url) => {
+          if (!url) return null;
+          if (url.startsWith('http://') || url.startsWith('https://')) return url;
+          const baseUrl = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
+            ? 'http://localhost:3000'
+            : '';
+          return `${baseUrl}${url.startsWith('/') ? '' : '/'}${url}`;
+        };
+
+        const triggerFileInput = () => {
+          if (fileInputRef.value) {
+            fileInputRef.value.click();
+          }
+        };
+
+        const onCoverSelected = (e) => {
+          coverUploadError.value = '';
+          const file = e.target.files && e.target.files[0];
+          if (!file) return;
+
+          const allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/avif'];
+          if (!allowedTypes.includes(file.type)) {
+            coverUploadError.value = 'Formato non supportato. Seleziona JPEG, PNG, WebP o AVIF.';
+            return;
+          }
+          if (file.size > 5 * 1024 * 1024) {
+            coverUploadError.value = 'Il file supera la dimensione massima consentita di 5 MB.';
+            return;
+          }
+
+          selectedCoverFile.value = file;
+          selectedCoverFileName.value = file.name;
+          removeCoverRequested.value = false;
+
+          const reader = new FileReader();
+          reader.onload = (ev) => {
+            coverPreviewUrl.value = ev.target.result;
+          };
+          reader.readAsDataURL(file);
+        };
+
+        const handleFileDrop = (e) => {
+          isDragOver.value = false;
+          if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+            onCoverSelected({ target: { files: e.dataTransfer.files } });
+          }
+        };
+
+        const rimuoviCopertina = () => {
+          selectedCoverFile.value = null;
+          selectedCoverFileName.value = '';
+          coverPreviewUrl.value = '';
+          removeCoverRequested.value = true;
+          if (fileInputRef.value) {
+            fileInputRef.value.value = '';
+          }
+        };
+
+        const validaForm = () => {
+          const errors = {};
+          if (!form.value.titolo || !form.value.titolo.trim()) {
+            errors.titolo = 'Il titolo dell\'opera è obbligatorio.';
+          } else if (form.value.titolo.trim().length > 255) {
+            errors.titolo = 'Il titolo non può superare i 255 caratteri.';
+          }
+
+          if (!form.value.autore || !form.value.autore.trim()) {
+            errors.autore = 'L\'autore o curatore è obbligatorio.';
+          } else if (form.value.autore.trim().length > 255) {
+            errors.autore = 'L\'autore non può superare i 255 caratteri.';
+          }
+
+          if (!form.value.categoria_id) {
+            errors.categoria_id = 'La macro-categoria disciplinare è obbligatoria.';
+          }
+
+          if (form.value.anno_pubblicazione !== null && form.value.anno_pubblicazione !== undefined && form.value.anno_pubblicazione !== '') {
+            const currentYear = new Date().getFullYear();
+            const anno = Number(form.value.anno_pubblicazione);
+            if (isNaN(anno) || anno < 1450 || anno > currentYear + 1) {
+              errors.anno_pubblicazione = `Inserire un anno valido compreso tra 1450 e ${currentYear + 1}.`;
+            }
+          }
+
+          if (form.value.isbn && form.value.isbn.trim()) {
+            const cleanIsbn = form.value.isbn.trim().replace(/[-\s]/g, '');
+            if (!/^(?:\d{9}[\dX]|\d{13})$/i.test(cleanIsbn)) {
+              errors.isbn = 'Il codice ISBN inserito non è valido (sono ammessi ISBN-10 o ISBN-13).';
+            }
+          }
+
+          validationErrors.value = errors;
+          return Object.keys(errors).length === 0;
+        };
 
         const toggleInfoTooltip = () => {
           showInfoTooltip.value = !showInfoTooltip.value;
@@ -1487,6 +1811,14 @@
         const apriModalNuovo = () => {
           isEditMode.value = false;
           modalError.value = '';
+          coverUploadError.value = '';
+          validationErrors.value = {};
+          selectedCoverFile.value = null;
+          selectedCoverFileName.value = '';
+          coverPreviewUrl.value = '';
+          removeCoverRequested.value = false;
+          if (fileInputRef.value) fileInputRef.value.value = '';
+
           form.value = {
             id: null,
             titolo: '',
@@ -1510,6 +1842,14 @@
         const apriModalModifica = (libro) => {
           isEditMode.value = true;
           modalError.value = '';
+          coverUploadError.value = '';
+          validationErrors.value = {};
+          selectedCoverFile.value = null;
+          selectedCoverFileName.value = '';
+          coverPreviewUrl.value = getImageUrl(libro.immagine_copertina || libro.immagine_miniatura) || '';
+          removeCoverRequested.value = false;
+          if (fileInputRef.value) fileInputRef.value.value = '';
+
           form.value = {
             id: libro.id,
             titolo: libro.titolo,
@@ -1537,25 +1877,64 @@
           }
         };
 
-        // Invio form di salvataggio
+        // Invio form di salvataggio con validazione e upload multipart copertina
         const salvaEsemplare = async () => {
           modalError.value = '';
+          coverUploadError.value = '';
+
+          if (!validaForm()) {
+            modalError.value = 'Per favore, correggi i campi evidenziati prima di procedere.';
+            return;
+          }
+
           isSaving.value = true;
 
           try {
+            let bookId = form.value.id;
             if (isEditMode.value) {
-              const res = await window.apiClient.put(`/esemplari/${form.value.id}`, form.value);
-              addToast('Libro Aggiornato', `"${form.value.titolo}" è stato aggiornato con successo.`, 'success');
+              await window.apiClient.put(`/esemplari/${bookId}`, form.value);
             } else {
               const res = await window.apiClient.post('/esemplari', form.value);
-              addToast('Nuovo Libro Censito', `"${form.value.titolo}" è stato aggiunto alla tua libreria.`, 'success');
+              bookId = res.data?.data?.id;
             }
+
+            // Upload della copertina se selezionata
+            if (selectedCoverFile.value && bookId) {
+              const formData = new FormData();
+              formData.append('copertina', selectedCoverFile.value);
+              await window.apiClient.post(`/esemplari/${bookId}/copertina`, formData, {
+                headers: { 'Content-Type': 'multipart/form-data' }
+              });
+            } else if (removeCoverRequested.value && isEditMode.value && bookId) {
+              await window.apiClient.delete(`/esemplari/${bookId}/copertina`);
+            }
+
+            addToast(
+              isEditMode.value ? 'Libro Aggiornato' : 'Nuovo Libro Censito',
+              `"${form.value.titolo}" è stato salvato con successo.`,
+              'success'
+            );
+
             if (modalEsemplareInstance) {
               modalEsemplareInstance.hide();
             }
             await caricaLibreria();
           } catch (err) {
-            modalError.value = err.response?.data?.error?.message || 'Si è verificato un errore durante il salvataggio.';
+            console.error('Errore nel salvataggio:', err);
+            const errCode = err.response?.data?.error?.code;
+            const errMsg = err.response?.data?.error?.message;
+            if (errCode === 'TITOLO_REQUIRED' || errCode === 'TITOLO_TOO_LONG') {
+              validationErrors.value.titolo = errMsg;
+            } else if (errCode === 'AUTORE_REQUIRED' || errCode === 'AUTORE_TOO_LONG') {
+              validationErrors.value.autore = errMsg;
+            } else if (errCode === 'CATEGORIA_REQUIRED' || errCode === 'CATEGORIA_INVALID') {
+              validationErrors.value.categoria_id = errMsg;
+            } else if (errCode === 'ANNO_INVALID') {
+              validationErrors.value.anno_pubblicazione = errMsg;
+            } else if (errCode === 'ISBN_INVALID') {
+              validationErrors.value.isbn = errMsg;
+            }
+            modalError.value = errMsg || 'Si è verificato un errore durante il salvataggio.';
           } finally {
             isSaving.value = false;
           }
@@ -1687,6 +2066,20 @@
           hasActiveFilters,
           sottogeneriDisponibiliForm,
           sottogeneriDisponibiliFiltri,
+          selectedCoverFile,
+          selectedCoverFileName,
+          coverPreviewUrl,
+          removeCoverRequested,
+          coverUploadError,
+          fileInputRef,
+          isDragOver,
+          validationErrors,
+          getImageUrl,
+          triggerFileInput,
+          onCoverSelected,
+          handleFileDrop,
+          rimuoviCopertina,
+          validaForm,
           setViewMode,
           addToast,
           removeToast,

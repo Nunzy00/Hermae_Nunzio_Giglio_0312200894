@@ -1,6 +1,7 @@
 // Router Express per la gestione degli endpoint dell'entità Esemplare
 const express = require('express');
 const { authenticate } = require('../middlewares/authMiddleware');
+const { uploadCoverMiddleware } = require('../middlewares/uploadMiddleware');
 const esemplariController = require('../controllers/esemplariController');
 
 const router = express.Router();
@@ -22,5 +23,11 @@ router.put('/:id', authenticate, esemplariController.updateBook);
 
 // 6. Elimina esemplare dal catalogo (richiede autenticazione e titolarità)
 router.delete('/:id', authenticate, esemplariController.deleteBook);
+
+// 7. Carica ed elabora copertina e miniatura WebP (richiede autenticazione e titolarità)
+router.post('/:id/copertina', authenticate, uploadCoverMiddleware, esemplariController.uploadCover);
+
+// 8. Rimuove la copertina personalizzata associata all'esemplare (richiede autenticazione e titolarità)
+router.delete('/:id/copertina', authenticate, esemplariController.removeCover);
 
 module.exports = router;

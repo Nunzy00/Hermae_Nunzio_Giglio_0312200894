@@ -1,5 +1,12 @@
 // Service per la gestione del ciclo di vita dell'entità Esemplare (copia fisica del libro)
 const db = require('../config/db');
+const imageService = require('./imageService');
+
+// Verifica sintattica formato UUIDv4
+const isValidUUID = (str) => {
+  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+  return typeof str === 'string' && uuidRegex.test(str);
+};
 
 // Formatta e tipizza un record restituito dal database relazionale
 const formatEsemplareRow = (row) => {
@@ -72,6 +79,12 @@ const createEsemplare = async (utenteId, data) => {
     error.code = 'TITOLO_REQUIRED';
     throw error;
   }
+  if (titolo.trim().length > 255) {
+    const error = new Error('Il titolo dell\'opera non può superare i 255 caratteri.');
+    error.statusCode = 400;
+    error.code = 'TITOLO_TOO_LONG';
+    throw error;
+  }
 
   if (!autore || typeof autore !== 'string' || !autore.trim()) {
     const error = new Error('L\'autore dell\'opera è obbligatorio.');
@@ -79,11 +92,24 @@ const createEsemplare = async (utenteId, data) => {
     error.code = 'AUTORE_REQUIRED';
     throw error;
   }
+  if (autore.trim().length > 255) {
+    const error = new Error('L\'autore dell\'opera non può superare i 255 caratteri.');
+    error.statusCode = 400;
+    error.code = 'AUTORE_TOO_LONG';
+    throw error;
+  }
 
   if (!categoria_id) {
     const error = new Error('La categoria tematica/disciplinare è obbligatoria.');
     error.statusCode = 400;
     error.code = 'CATEGORIA_REQUIRED';
+    throw error;
+  }
+
+  if (!isValidUUID(categoria_id)) {
+    const error = new Error('La categoria specificata non è un identificativo valido.');
+    error.statusCode = 400;
+    error.code = 'CATEGORIA_INVALID';
     throw error;
   }
 
@@ -96,15 +122,52 @@ const createEsemplare = async (utenteId, data) => {
     throw error;
   }
 
+  // Validazione anno di pubblicazione (se specificato)
+  let finalAnno = null;
+  if (typeof anno_pubblicazione !== 'undefined' && anno_pubblicazione !== null && anno_pubblicazione !== '') {
+    const yearNum = Number(anno_pubblicazione);
+    const currentYear = new Date().getFullYear();
+    if (!Number.isInteger(yearNum) || yearNum < 1450 || yearNum > currentYear + 1) {
+      const error = new Error(`L'anno di pubblicazione deve essere un numero intero compreso tra il 1450 e il ${currentYear + 1}.`);
+      error.statusCode = 400;
+      error.code = 'ANNO_INVALID';
+      throw error;
+    }
+    finalAnno = yearNum;
+  }
+
+  // Validazione codice ISBN (se specificato, 10 o 13 cifre)
+  let finalIsbn = null;
+  if (isbn && typeof isbn === 'string' && isbn.trim()) {
+    const cleanIsbn = isbn.replace(/[-\s]/g, '');
+    const isbn10Regex = /^[0-9]{9}[0-9X]$/i;
+    const isbn13Regex = /^(978|979)[0-9]{10}$/;
+    if (!isbn10Regex.test(cleanIsbn) && !isbn13Regex.test(cleanIsbn)) {
+      const error = new Error('Il codice ISBN specificato non è valido. Inserire un codice ISBN-10 o ISBN-13 valido.');
+      error.statusCode = 400;
+      error.code = 'ISBN_INVALID';
+      throw error;
+    }
+    finalIsbn = isbn.trim();
+  }
+
   // Validazione stato di conservazione
-  const finalStatoCons = stato_conservazione && STATI_CONSERVAZIONE_VALIDI.includes(stato_conservazione)
-    ? stato_conservazione
-    : 'Buono';
+  if (stato_conservazione && !STATI_CONSERVAZIONE_VALIDI.includes(stato_conservazione)) {
+    const error = new Error(`Lo stato di conservazione '${stato_conservazione}' non è valido. Valori ammessi: ${STATI_CONSERVAZIONE_VALIDI.join(', ')}.`);
+    error.statusCode = 400;
+    error.code = 'STATO_CONSERVAZIONE_INVALID';
+    throw error;
+  }
+  const finalStatoCons = stato_conservazione || 'Buono';
 
   // Validazione stato di disponibilità
-  const finalStatoDisp = stato_disponibilita && STATI_DISPONIBILITA_VALIDI.includes(stato_disponibilita)
-    ? stato_disponibilita
-    : 'DISPONIBILE';
+  if (stato_disponibilita && !STATI_DISPONIBILITA_VALIDI.includes(stato_disponibilita)) {
+    const error = new Error(`Lo stato di disponibilità '${stato_disponibilita}' non è valido. Valori ammessi: ${STATI_DISPONIBILITA_VALIDI.join(', ')}.`);
+    error.statusCode = 400;
+    error.code = 'STATO_DISPONIBILITA_INVALID';
+    throw error;
+  }
+  const finalStatoDisp = stato_disponibilita || 'DISPONIBILE';
 
   // Determinazione automatica delle coordinate geografiche dell'esemplare:
   // Se fornite esplicitamente usa quelle, altrimenti eredita la posizione attuale dell'utente
@@ -333,15 +396,44 @@ const updateEsemplare = async (id, utenteId, updateData) => {
   }
 
   if (typeof updateData.anno_pubblicazione !== 'undefined') {
-    setClauses.push(`anno_pubblicazione = $${paramIdx}`);
-    params.push(updateData.anno_pubblicazione ? parseInt(updateData.anno_pubblicazione, 10) : null);
-    paramIdx++;
+    if (updateData.anno_pubblicazione === null || updateData.anno_pubblicazione === '') {
+      setClauses.push(`anno_pubblicazione = $${paramIdx}`);
+      params.push(null);
+      paramIdx++;
+    } else {
+      const yearNum = Number(updateData.anno_pubblicazione);
+      const currentYear = new Date().getFullYear();
+      if (!Number.isInteger(yearNum) || yearNum < 1450 || yearNum > currentYear + 1) {
+        const error = new Error(`L'anno di pubblicazione deve essere un numero intero compreso tra il 1450 e il ${currentYear + 1}.`);
+        error.statusCode = 400;
+        error.code = 'ANNO_INVALID';
+        throw error;
+      }
+      setClauses.push(`anno_pubblicazione = $${paramIdx}`);
+      params.push(yearNum);
+      paramIdx++;
+    }
   }
 
   if (typeof updateData.isbn !== 'undefined') {
-    setClauses.push(`isbn = $${paramIdx}`);
-    params.push(updateData.isbn ? updateData.isbn.trim() : null);
-    paramIdx++;
+    if (updateData.isbn === null || updateData.isbn === '') {
+      setClauses.push(`isbn = $${paramIdx}`);
+      params.push(null);
+      paramIdx++;
+    } else {
+      const cleanIsbn = updateData.isbn.replace(/[-\s]/g, '');
+      const isbn10Regex = /^[0-9]{9}[0-9X]$/i;
+      const isbn13Regex = /^(978|979)[0-9]{10}$/;
+      if (!isbn10Regex.test(cleanIsbn) && !isbn13Regex.test(cleanIsbn)) {
+        const error = new Error('Il codice ISBN specificato non è valido. Inserire un codice ISBN-10 o ISBN-13 valido.');
+        error.statusCode = 400;
+        error.code = 'ISBN_INVALID';
+        throw error;
+      }
+      setClauses.push(`isbn = $${paramIdx}`);
+      params.push(updateData.isbn.trim());
+      paramIdx++;
+    }
   }
 
   if (typeof updateData.lingua !== 'undefined') {
@@ -411,7 +503,11 @@ const updateEsemplare = async (id, utenteId, updateData) => {
  * Elimina un esemplare dal database verificando la titolarità del richiedente
  */
 const deleteEsemplare = async (id, utenteId) => {
-  const checkRes = await db.query('SELECT utente_id FROM esemplari WHERE id = $1', [id]);
+  // Recupera eventuali immagini copertina/miniatura associate per rimuoverle fisicamente dal disco
+  const checkRes = await db.query(
+    'SELECT utente_id, immagine_copertina, immagine_miniatura FROM esemplari WHERE id = $1',
+    [id]
+  );
   if (checkRes.rows.length === 0) {
     const error = new Error('Esemplare non trovato.');
     error.statusCode = 404;
@@ -426,8 +522,88 @@ const deleteEsemplare = async (id, utenteId) => {
     throw error;
   }
 
+  // Rimuove fisicamente dal disco le immagini associate
+  const oldCover = checkRes.rows[0].immagine_copertina;
+  const oldThumb = checkRes.rows[0].immagine_miniatura;
+  if (oldCover || oldThumb) {
+    await imageService.deleteBookCoverFiles(oldCover, oldThumb);
+  }
+
   await db.query('DELETE FROM esemplari WHERE id = $1', [id]);
   return { success: true, message: 'Esemplare eliminato con successo dal catalogo personale.' };
+};
+
+/**
+ * Aggiorna le copertine (standard e miniatura) di un esemplare, verificando la titolarità
+ */
+const updateBookCover = async (id, utenteId, { copertinaUrl, miniaturaUrl }) => {
+  const checkRes = await db.query(
+    'SELECT utente_id, immagine_copertina, immagine_miniatura FROM esemplari WHERE id = $1',
+    [id]
+  );
+  if (checkRes.rows.length === 0) {
+    const error = new Error('Esemplare non trovato.');
+    error.statusCode = 404;
+    error.code = 'ESEMPLARE_NOT_FOUND';
+    throw error;
+  }
+
+  if (checkRes.rows[0].utente_id !== utenteId) {
+    const error = new Error('Accesso negato. Non disponi dei permessi per modificare questo esemplare.');
+    error.statusCode = 403;
+    error.code = 'FORBIDDEN_NOT_OWNER';
+    throw error;
+  }
+
+  // Rimuove eventuali immagini precedenti se già presenti
+  const oldCover = checkRes.rows[0].immagine_copertina;
+  const oldThumb = checkRes.rows[0].immagine_miniatura;
+  if (oldCover || oldThumb) {
+    await imageService.deleteBookCoverFiles(oldCover, oldThumb);
+  }
+
+  await db.query(
+    'UPDATE esemplari SET immagine_copertina = $1, immagine_miniatura = $2 WHERE id = $3',
+    [copertinaUrl, miniaturaUrl, id]
+  );
+
+  return getEsemplareById(id);
+};
+
+/**
+ * Rimuove la copertina e la miniatura da un esemplare, verificando la titolarità
+ */
+const removeBookCover = async (id, utenteId) => {
+  const checkRes = await db.query(
+    'SELECT utente_id, immagine_copertina, immagine_miniatura FROM esemplari WHERE id = $1',
+    [id]
+  );
+  if (checkRes.rows.length === 0) {
+    const error = new Error('Esemplare non trovato.');
+    error.statusCode = 404;
+    error.code = 'ESEMPLARE_NOT_FOUND';
+    throw error;
+  }
+
+  if (checkRes.rows[0].utente_id !== utenteId) {
+    const error = new Error('Accesso negato. Non disponi dei permessi per modificare questo esemplare.');
+    error.statusCode = 403;
+    error.code = 'FORBIDDEN_NOT_OWNER';
+    throw error;
+  }
+
+  const oldCover = checkRes.rows[0].immagine_copertina;
+  const oldThumb = checkRes.rows[0].immagine_miniatura;
+  if (oldCover || oldThumb) {
+    await imageService.deleteBookCoverFiles(oldCover, oldThumb);
+  }
+
+  await db.query(
+    'UPDATE esemplari SET immagine_copertina = NULL, immagine_miniatura = NULL WHERE id = $1',
+    [id]
+  );
+
+  return getEsemplareById(id);
 };
 
 /**
@@ -523,6 +699,8 @@ module.exports = {
   getEsemplareById,
   updateEsemplare,
   deleteEsemplare,
+  updateBookCover,
+  removeBookCover,
   searchEsemplari,
   getAllCategorie
 };
