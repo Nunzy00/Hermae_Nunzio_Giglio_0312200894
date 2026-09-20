@@ -1,6 +1,7 @@
 const express = require('express');
 const { testConnection } = require('../config/db');
 const userRoutes = require('./userRoutes');
+const authRoutes = require('./authRoutes');
 
 // Istanzia il router principale di Express per aggregare tutti gli endpoint applicativi
 const router = express.Router();
@@ -48,6 +49,9 @@ router.get('/db-status', async (req, res, next) => {
     next(err);
   }
 });
+
+// Monta il router delle operazioni di autenticazione e gestione sessione sul percorso /auth
+router.use('/auth', authRoutes);
 
 // Monta il router delle operazioni CRUD dell'entità utenti sul percorso /users
 router.use('/users', userRoutes);

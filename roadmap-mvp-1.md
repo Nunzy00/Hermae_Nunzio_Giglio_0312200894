@@ -22,7 +22,8 @@
 | **Fase 9** | Implementazione struttura base del server | 2 h | 1 h | [`SVILUPPO-PROGRAMMA/fase-9.md`](file:///Users/nunziogiglio/Documents/Github/Repositories/Hermae_Nunzio_Giglio_0312200894/SVILUPPO-PROGRAMMA/fase-9.md) | **Completata** |
 | **Fase 10** | Creazione database | 2 h | 1 h | [`SVILUPPO-PROGRAMMA/fase-10.md`](file:///Users/nunziogiglio/Documents/Github/Repositories/Hermae_Nunzio_Giglio_0312200894/SVILUPPO-PROGRAMMA/fase-10.md) & [`INFO-DATABASE/schema.sql`](file:///Users/nunziogiglio/Documents/Github/Repositories/Hermae_Nunzio_Giglio_0312200894/INFO-DATABASE/schema.sql) | **Completata** |
 | **Fase 11** | Definizione nel database dell’entità “utenti”, del suo schema e delle sue operazioni CRUD | 2 h | 1 h | [`SVILUPPO-PROGRAMMA/fase-11.md`](file:///Users/nunziogiglio/Documents/Github/Repositories/Hermae_Nunzio_Giglio_0312200894/SVILUPPO-PROGRAMMA/fase-11.md) | **Completata** |
-| **TOTALE** | **Avanzamento Fasi di Progettazione e Sviluppo Backend** | **19 h 30 min** | **9 h 40 min** | **12 Deliverable Consolidati** | **Fasi 1–11 Completate** |
+| **Fase 12** | Implementazione sistema di Account ed autenticazione | 2 h | 1 h | [`SVILUPPO-PROGRAMMA/fase-12.md`](file:///Users/nunziogiglio/Documents/Github/Repositories/Hermae_Nunzio_Giglio_0312200894/SVILUPPO-PROGRAMMA/fase-12.md) | **Completata** |
+| **TOTALE** | **Avanzamento Fasi di Progettazione e Sviluppo Backend** | **21 h 30 min** | **10 h 40 min** | **13 Deliverable Consolidati** | **Fasi 1–12 Completate** |
 
 ---
 
@@ -135,3 +136,11 @@
 - **Descrizione:** È stata implementata la tabella dell’entità utente con i relativi campi anagrafici e di sicurezza, corredata dai metodi del layer di persistenza per le operazioni di Create, Read, Update e Delete dei profili registrati.  
   Documento di riferimento: [`SVILUPPO-PROGRAMMA/fase-11.md`](file:///Users/nunziogiglio/Documents/Github/Repositories/Hermae_Nunzio_Giglio_0312200894/SVILUPPO-PROGRAMMA/fase-11.md).
 - **Difficoltà riscontrate:** Non sono state riscontrate problematiche nell'integrazione delle query e dei vincoli di unicità (es. email/username).
+
+---
+
+### Fase 12 – Implementazione sistema di Account ed autenticazione
+- **Tempo stimato:** 2 ore | **Tempo effettivo:** 1 ora
+- **Descrizione:** È stato sviluppato il sistema completo di registrazione, login e gestione della sessione utente, integrando algoritmi sicuri di hashing delle password, generazione e verifica di token di autorizzazione e protezione degli endpoint riservati.  
+  Documento di riferimento: [`SVILUPPO-PROGRAMMA/fase-12.md`](file:///Users/nunziogiglio/Documents/Github/Repositories/Hermae_Nunzio_Giglio_0312200894/SVILUPPO-PROGRAMMA/fase-12.md).
+- **Difficoltà riscontrate:** La corretta gestione del ciclo di vita dei token di sessione e dei meccanismi di rinnovo ha richiesto particolare attenzione.
