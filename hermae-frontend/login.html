@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Accedi — Hermae Piattaforma di Geolocalizzazione Culturale</title>
+  <meta name="description" content="Accedi a Hermae per condividere ed esplorare il patrimonio librario geolocalizzato nel tuo quartiere." />
+
+  <!-- CSS Framework Bootstrap 5.3 & Bootstrap Icons -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
+
+  <!-- Tipografia Inter da Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+
+  <!-- Stile personalizzato e Design System Hermae (WCAG 2.1 AA) -->
+  <link rel="stylesheet" href="assets/css/main.css" />
+</head>
+<body>
+  <div id="app" class="d-flex flex-column min-vh-100">
+    <!-- Comando di salto accessibile per tastiera e screen reader -->
+    <a href="#main-content" class="skip-link">Salta al contenuto principale</a>
+
+    <!-- Intestazione globale per utenti visitatori -->
+    <navbar-guest active-page="login"></navbar-guest>
+
+    <!-- Contenuto principale della vista di autenticazione -->
+    <main id="main-content" class="container py-4 flex-grow-1 d-flex align-items-center">
+      <div class="auth-card-container">
+        <div class="card-hermae p-4 p-md-5">
+          <div class="text-center mb-4">
+            <div class="d-inline-flex p-3 rounded-circle bg-primary bg-opacity-10 text-primary mb-3">
+              <i class="bi bi-book-half fs-2" aria-hidden="true"></i>
+            </div>
+            <h1 class="h3 fw-bold text-dark mb-1">Bentornato su Hermae</h1>
+            <p class="text-muted small">Accedi per consultare e condividere libri nella tua comunità di prossimità</p>
+          </div>
+
+          <!-- Modulo di Accesso Utente -->
+          <form @submit.prevent="handleLogin" novalidate aria-label="Modulo di accesso con credenziali">
+            <!-- Campo Email -->
+            <div class="mb-3">
+              <label for="email" class="form-label">Indirizzo Email <span class="text-danger" aria-hidden="true">*</span></label>
+              <div class="input-group">
+                <span class="input-group-text bg-light text-muted"><i class="bi bi-envelope" aria-hidden="true"></i></span>
+                <input 
+                  type="email" 
+                  id="email" 
+                  v-model.trim="form.email" 
+                  class="form-control" 
+                  :class="{ 'is-invalid': errors.email }"
+                  placeholder="nome@esempio.it" 
+                  required 
+                  autocomplete="email"
+                  aria-describedby="emailHelp"
+                />
+              </div>
+              <div id="emailHelp" class="form-text">L'indirizzo email specificato in fase di registrazione.</div>
+              <div v-if="errors.email" class="invalid-feedback d-block">{{ errors.email }}</div>
+            </div>
+
+            <!-- Campo Password con Toggle Visibilità -->
+            <div class="mb-3">
+              <div class="d-flex justify-content-between align-items-center">
+                <label for="password" class="form-label">Password <span class="text-danger" aria-hidden="true">*</span></label>
+              </div>
+              <div class="input-group">
+                <span class="input-group-text bg-light text-muted"><i class="bi bi-lock" aria-hidden="true"></i></span>
+                <input 
+                  :type="showPassword ? 'text' : 'password'" 
+                  id="password" 
+                  v-model="form.password" 
+                  class="form-control" 
+                  :class="{ 'is-invalid': errors.password }"
+                  placeholder="Inserisci la password" 
+                  required 
+                  autocomplete="current-password"
+                />
+                <button 
+                  type="button" 
+                  class="btn btn-outline-secondary" 
+                  @click="showPassword = !showPassword" 
+                  :aria-label="showPassword ? 'Nascondi caratteri password' : 'Mostra caratteri password'"
+                >
+                  <i class="bi" :class="showPassword ? 'bi-eye-slash' : 'bi-eye'" aria-hidden="true"></i>
+                </button>
+              </div>
+              <div v-if="errors.password" class="invalid-feedback d-block">{{ errors.password }}</div>
+            </div>
+
+            <!-- Opzioni Aggiuntive: Ricordami -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+              <div class="form-check">
+                <input class="form-check-input" type="checkbox" id="rememberMe" v-model="form.rememberMe" />
+                <label class="form-check-label small text-muted" for="rememberMe">
+                  Resta connesso su questo dispositivo
+                </label>
+              </div>
+            </div>
+
+            <!-- Pulsante di Invio Form con Feedback di Caricamento -->
+            <button type="submit" class="btn btn-primary w-100 py-2 fs-6 fw-bold" :disabled="loading">
+              <span v-if="loading" class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+              <i v-else class="bi bi-box-arrow-in-right me-2" aria-hidden="true"></i>
+              {{ loading ? 'Autenticazione in corso...' : 'Accedi alla Piattaforma' }}
+            </button>
+          </form>
+
+          <!-- Collegamento alla Registrazione -->
+          <div class="text-center mt-4 pt-3 border-top">
+            <p class="small text-muted mb-0">
+              Non hai ancora un profilo attivo? 
+              <a href="registrazione.html" class="fw-semibold text-primary text-decoration-none">Registrati subito</a>
+            </p>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <!-- Notifiche Toast Asincrone -->
+    <toast-notification :toasts="toasts" @remove-toast="removeToast"></toast-notification>
+
+    <!-- Indicatore di Caricamento Globale -->
+    <loading-spinner :active="loading" message="Verifica delle credenziali di accesso in corso..."></loading-spinner>
+
+    <!-- Piè di pagina globale dell'applicazione -->
+    <app-footer></app-footer>
+  </div>
+
+  <!-- Dipendenze Esterne: Bootstrap JS, Axios, Vue 3 CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/axios@1.6.8/dist/axios.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/vue@3.4.21/dist/vue.global.prod.js"></script>
+
+  <!-- Script Applicativi Interni -->
+  <script src="assets/js/api.js"></script>
+  <script src="assets/js/auth.js"></script>
+  <script src="assets/js/components/global-components.js"></script>
+
+  <!-- Logica Reattiva della Vista Login -->
+  <script>
+    const { createApp, ref, reactive, onMounted } = Vue;
+
+    // Crea l'istanza Vue per la pagina di accesso
+    const app = createApp({
+      setup() {
+        const form = reactive({
+          email: '',
+          password: '',
+          rememberMe: true
+        });
+
+        const errors = reactive({
+          email: '',
+          password: ''
+        });
+
+        const showPassword = ref(false);
+        const loading = ref(false);
+        const toasts = ref([]);
+
+        // Aggiunge una notifica alla coda visiva
+        const addToast = (title, message, type = 'info') => {
+          const id = Date.now() + Math.random();
+          toasts.value.push({ id, title, message, type });
+          setTimeout(() => removeToast(id), 5000);
+        };
+
+        // Rimuove una notifica dalla lista
+        const removeToast = (id) => {
+          toasts.value = toasts.value.filter(t => t.id !== id);
+        };
+
+        // Verifica la presenza di parametri di stato nell'URL all'avvio
+        onMounted(() => {
+          // Reindirizza alla dashboard se l'utente risulta già autenticato
+          window.auth.requireGuest();
+
+          const params = new URLSearchParams(window.location.search);
+          if (params.get('session_expired')) {
+            addToast('Sessione Scaduta', 'La tua sessione di lavoro è terminata. Effettua nuovamente il login.', 'warning');
+          }
+          if (params.get('registered')) {
+            addToast('Registrazione Completata', 'Account creato con successo! Puoi ora effettuare il primo accesso.', 'success');
+          }
+          if (params.get('logged_out')) {
+            addToast('Disconnessione', 'Disconnessione avvenuta con successo.', 'info');
+          }
+        });
+
+        // Valida i campi del modulo prima dell'inoltro HTTP
+        const validateForm = () => {
+          let isValid = true;
+          errors.email = '';
+          errors.password = '';
+
+          if (!form.email) {
+            errors.email = 'Inserisci un indirizzo email valido.';
+            isValid = false;
+          } else if (!/^\S+@\S+\.\S+$/.test(form.email)) {
+            errors.email = 'Il formato dell\'indirizzo email non è corretto.';
+            isValid = false;
+          }
+
+          if (!form.password) {
+            errors.password = 'Inserisci la tua password.';
+            isValid = false;
+          }
+
+          return isValid;
+        };
+
+        // Invia le credenziali al backend tramite il modulo auth.js
+        const handleLogin = async () => {
+          if (!validateForm()) return;
+
+          loading.value = true;
+          try {
+            await window.auth.login(form.email, form.password);
+            addToast('Accesso Riuscito', 'Bentornato! Reindirizzamento alla dashboard in corso...', 'success');
+            
+            // Reindirizza alla pagina richiesta in precedenza o alla dashboard
+            setTimeout(() => {
+              const params = new URLSearchParams(window.location.search);
+              const redirectTarget = params.get('redirect') || sessionStorage.getItem('hermae_redirect') || 'dashboard.html';
+              sessionStorage.removeItem('hermae_redirect');
+              window.location.href = redirectTarget;
+            }, 800);
+          } catch (err) {
+            const msg = err.response?.data?.error?.message || err.message || 'Credenziali non valide o errore di connessione.';
+            addToast('Errore di Accesso', msg, 'danger');
+          } finally {
+            loading.value = false;
+          }
+        };
+
+        return {
+          form,
+          errors,
+          showPassword,
+          loading,
+          toasts,
+          addToast,
+          removeToast,
+          handleLogin
+        };
+      }
+    });
+
+    // Registra i componenti globali e monta l'applicazione
+    window.HermaeComponents.registerGlobalComponents(app);
+    app.mount('#app');
+  </script>
+</body>
+</html>

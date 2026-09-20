@@ -23,7 +23,8 @@
 | **Fase 10** | Creazione database | 2 h | 1 h | [`SVILUPPO-PROGRAMMA/fase-10.md`](file:///Users/nunziogiglio/Documents/Github/Repositories/Hermae_Nunzio_Giglio_0312200894/SVILUPPO-PROGRAMMA/fase-10.md) & [`INFO-DATABASE/schema.sql`](file:///Users/nunziogiglio/Documents/Github/Repositories/Hermae_Nunzio_Giglio_0312200894/INFO-DATABASE/schema.sql) | **Completata** |
 | **Fase 11** | Definizione nel database dell’entità “utenti”, del suo schema e delle sue operazioni CRUD | 2 h | 1 h | [`SVILUPPO-PROGRAMMA/fase-11.md`](file:///Users/nunziogiglio/Documents/Github/Repositories/Hermae_Nunzio_Giglio_0312200894/SVILUPPO-PROGRAMMA/fase-11.md) | **Completata** |
 | **Fase 12** | Implementazione sistema di Account ed autenticazione | 2 h | 1 h | [`SVILUPPO-PROGRAMMA/fase-12.md`](file:///Users/nunziogiglio/Documents/Github/Repositories/Hermae_Nunzio_Giglio_0312200894/SVILUPPO-PROGRAMMA/fase-12.md) | **Completata** |
-| **TOTALE** | **Avanzamento Fasi di Progettazione e Sviluppo Backend** | **21 h 30 min** | **10 h 40 min** | **13 Deliverable Consolidati** | **Fasi 1–12 Completate** |
+| **Fase 13** | Generazione dei componenti HTML e testing delle funzioni di autenticazione | 2 h | 1 h | [`SVILUPPO-PROGRAMMA/fase-13.md`](file:///Users/nunziogiglio/Documents/Github/Repositories/Hermae_Nunzio_Giglio_0312200894/SVILUPPO-PROGRAMMA/fase-13.md) & [`hermae-frontend/`](file:///Users/nunziogiglio/Documents/Github/Repositories/Hermae_Nunzio_Giglio_0312200894/hermae-frontend) | **Completata** |
+| **TOTALE** | **Avanzamento Fasi di Progettazione, Backend e Front-end Base** | **23 h 30 min** | **11 h 40 min** | **14 Deliverable Consolidati** | **Fasi 1–13 Completate** |
 
 ---
 
@@ -144,3 +145,11 @@
 - **Descrizione:** È stato sviluppato il sistema completo di registrazione, login e gestione della sessione utente, integrando algoritmi sicuri di hashing delle password, generazione e verifica di token di autorizzazione e protezione degli endpoint riservati.  
   Documento di riferimento: [`SVILUPPO-PROGRAMMA/fase-12.md`](file:///Users/nunziogiglio/Documents/Github/Repositories/Hermae_Nunzio_Giglio_0312200894/SVILUPPO-PROGRAMMA/fase-12.md).
 - **Difficoltà riscontrate:** La corretta gestione del ciclo di vita dei token di sessione e dei meccanismi di rinnovo ha richiesto particolare attenzione.
+
+---
+
+### Fase 13 – Generazione dei componenti HTML e testing delle funzioni di autenticazione
+- **Tempo stimato:** 2 ore | **Tempo effettivo:** 1 ora
+- **Descrizione:** È stata realizzata l'infrastruttura front-end multi-pagina e la suite di componenti globali riutilizzabili (`navbar-guest`, `navbar-logged`, `app-footer`, `toast-notification`, `loading-spinner`), corredata dalle viste di autenticazione (`login.html`, `registrazione.html`, `logout.html`) e dalla cabina di regia riservata (`dashboard.html`). L'interfaccia rispetta rigorosamente i requisiti di accessibilità WCAG 2.1 Livello AA (contrasti $\ge 4.5:1$, touch targets $\ge 44\text{px}$, navigazione da tastiera e skip-link), integra i moduli client-side `api.js` (con Axios interceptor e refresh token automatico) e `auth.js` (con session management e gatekeeping).  
+  Documenti di riferimento: [`SVILUPPO-PROGRAMMA/fase-13.md`](file:///Users/nunziogiglio/Documents/Github/Repositories/Hermae_Nunzio_Giglio_0312200894/SVILUPPO-PROGRAMMA/fase-13.md) e la cartella [`hermae-frontend/`](file:///Users/nunziogiglio/Documents/Github/Repositories/Hermae_Nunzio_Giglio_0312200894/hermae-frontend).
+- **Difficoltà riscontrate:** Non sono state riscontrate difficoltà bloccanti nell'integrazione reattiva di Vue 3 con il backend REST e nella gestione asincrona del ciclo di vita dei token di sessione.

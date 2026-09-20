@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Disconnessione — Hermae Sharing Culturale</title>
+  <meta name="description" content="Chiusura sicura della sessione di lavoro e rimozione delle credenziali su Hermae." />
+
+  <!-- CSS Framework Bootstrap 5.3 & Bootstrap Icons -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
+
+  <!-- Tipografia Inter da Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+
+  <!-- Stile personalizzato e Design System Hermae (WCAG 2.1 AA) -->
+  <link rel="stylesheet" href="assets/css/main.css" />
+</head>
+<body>
+  <div id="app" class="d-flex flex-column min-vh-100">
+    <!-- Comando di salto accessibile per tastiera e screen reader -->
+    <a href="#main-content" class="skip-link">Salta al contenuto principale</a>
+
+    <!-- Intestazione globale visitatori -->
+    <navbar-guest></navbar-guest>
+
+    <!-- Contenuto principale della vista di logout -->
+    <main id="main-content" class="container py-5 flex-grow-1 d-flex align-items-center">
+      <div class="auth-card-container text-center">
+        <div class="card-hermae p-4 p-md-5">
+          <div class="d-inline-flex p-3 rounded-circle bg-success bg-opacity-10 text-success mb-3">
+            <i class="bi bi-shield-check fs-2" aria-hidden="true"></i>
+          </div>
+          
+          <h1 class="h3 fw-bold text-dark mb-2">Disconnessione Completata</h1>
+          <p class="text-muted mb-4">
+            La tua sessione di lavoro è stata chiusa in modo sicuro. I token di autorizzazione e le credenziali temporanee sono stati rimossi dalla memoria del dispositivo.
+          </p>
+
+          <div class="p-3 bg-light rounded-3 mb-4 border">
+            <div class="small text-muted mb-1">Reindirizzamento automatico alla pagina di accesso tra:</div>
+            <div class="display-6 fw-bold text-primary">{{ countdown }}</div>
+            <div class="small text-muted mt-1">secondi</div>
+          </div>
+
+          <a href="login.html" class="btn btn-primary w-100 py-2">
+            <i class="bi bi-box-arrow-in-right me-2" aria-hidden="true"></i>Torna Subito al Login
+          </a>
+        </div>
+      </div>
+    </main>
+
+    <!-- Piè di pagina globale dell'applicazione -->
+    <app-footer></app-footer>
+  </div>
+
+  <!-- Dipendenze Esterne: Bootstrap JS, Axios, Vue 3 CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/axios@1.6.8/dist/axios.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/vue@3.4.21/dist/vue.global.prod.js"></script>
+
+  <!-- Script Applicativi Interni -->
+  <script src="assets/js/api.js"></script>
+  <script src="assets/js/auth.js"></script>
+  <script src="assets/js/components/global-components.js"></script>
+
+  <!-- Logica Reattiva della Vista Logout -->
+  <script>
+    const { createApp, ref, onMounted } = Vue;
+
+    // Crea l'applicazione Vue per la vista di disconnessione
+    const app = createApp({
+      setup() {
+        const countdown = ref(3);
+
+        // All'avvio pulisce irreversibilmente la memoria client e avvia il timer
+        onMounted(() => {
+          // Pulizia storage locale del browser
+          if (window.auth) {
+            window.auth.clearSession();
+          }
+
+          // Timer decrementale per reindirizzare al login
+          const timer = setInterval(() => {
+            countdown.value -= 1;
+            if (countdown.value <= 0) {
+              clearInterval(timer);
+              window.location.href = 'login.html?logged_out=1';
+            }
+          }, 1000);
+        });
+
+        return {
+          countdown
+        };
+      }
+    });
+
+    // Registra i componenti globali e monta la vista
+    window.HermaeComponents.registerGlobalComponents(app);
+    app.mount('#app');
+  </script>
+</body>
+</html>

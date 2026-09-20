@@ -21,6 +21,14 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 // Espone la cartella uploads come directory statica per erogare le copertine WebP salvate
 app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
+// Espone i file statici del front-end per consentire l'accesso diretto via browser all'applicazione
+app.use(express.static(path.join(__dirname, '../../hermae-frontend')));
+
+// Reindirizza la rotta radice alla pagina di accesso iniziale dell'applicazione
+app.get('/', (req, res) => {
+  res.redirect('/login.html');
+});
+
 // Monta il router principale su prefisso centralizzato configurato (/api)
 app.use(config.apiPrefix, apiRouter);
 

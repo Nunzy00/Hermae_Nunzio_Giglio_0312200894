@@ -1,0 +1,292 @@
+/* ==========================================================================
+   HERMAE — Foglio di Stile Principale e Design System Accessibile
+   Conforme a WCAG 2.1 Livello AA e Filosofia Mobile-to-First
+   ========================================================================== */
+
+/* Definisce i token grafici, le variabili di colore e i vincoli di accessibilità */
+:root {
+  /* Palette cromatica ad alto contrasto (WCAG AA >= 4.5:1) */
+  --hermae-primary: #1e40af;
+  --hermae-primary-hover: #1d4ed8;
+  --hermae-primary-light: #eff6ff;
+  --hermae-secondary: #0284c7;
+  --hermae-accent: #d97706;
+  
+  /* Toni neutri e sfondi */
+  --hermae-bg: #f8fafc;
+  --hermae-surface: #ffffff;
+  --hermae-border: #cbd5e1;
+  --hermae-border-focus: #2563eb;
+  
+  /* Tipografia ad elevata leggibilità */
+  --hermae-text-main: #0f172a;
+  --hermae-text-muted: #475569;
+  --hermae-text-inverse: #ffffff;
+  
+  /* Stati di sistema (successo, errore, avviso) */
+  --hermae-success: #047857;
+  --hermae-danger: #b91c1c;
+  --hermae-warning: #b45309;
+  --hermae-info: #0369a1;
+
+  /* Ergonomia e accessibilità touch screen */
+  --touch-target-min: 44px;
+  --focus-outline-width: 3px;
+  --focus-outline-color: #2563eb;
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 16px;
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
+}
+
+/* Imposta il box-sizing border-box uniforme per tutti gli elementi */
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+/* Definisce i parametri tipografici base e lo sfondo di pagina */
+body {
+  font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  color: var(--hermae-text-main);
+  background-color: var(--hermae-bg);
+  line-height: 1.6;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 0;
+}
+
+/* Assicura che il contenitore principale occupi lo spazio verticale disponibile */
+main {
+  flex: 1 0 auto;
+}
+
+/* Garantisce un focus visibile netto e accessibile da tastiera conforme a WCAG 2.1 AA */
+:focus-visible {
+  outline: var(--focus-outline-width) solid var(--focus-outline-color) !important;
+  outline-offset: 2px !important;
+}
+
+/* Rimuove l'outline predefinito del browser quando l'elemento non è focalizzato da tastiera */
+:focus:not(:focus-visible) {
+  outline: none;
+}
+
+/* Implementa il comando di salto accessibile per bypassare rapidamente la navigazione */
+.skip-link {
+  position: absolute;
+  top: -100px;
+  left: 1rem;
+  background-color: var(--hermae-primary);
+  color: var(--hermae-text-inverse);
+  padding: 0.75rem 1.25rem;
+  border-radius: var(--radius-sm);
+  font-weight: 700;
+  text-decoration: none;
+  z-index: 9999;
+  transition: top 0.2s ease-in-out;
+}
+
+/* Rende visibile lo skip-link nel momento in cui riceve il focus da tastiera */
+.skip-link:focus {
+  top: 1rem;
+}
+
+/* Garantisce che ogni pulsante rispetti l'area minima di tocco di 44x44 pixel */
+button, 
+.btn, 
+.nav-link, 
+.form-check-input,
+.dropdown-item {
+  min-height: var(--touch-target-min);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Personalizza i pulsanti primari con colori conformi alle linee guida del brand */
+.btn-primary {
+  background-color: var(--hermae-primary);
+  border-color: var(--hermae-primary);
+  color: var(--hermae-text-inverse);
+  font-weight: 600;
+  padding: 0.625rem 1.25rem;
+  border-radius: var(--radius-sm);
+  transition: background-color 0.15s ease, border-color 0.15s ease, transform 0.1s ease;
+}
+
+/* Gestisce l'effetto hover e active del pulsante primario */
+.btn-primary:hover, .btn-primary:focus {
+  background-color: var(--hermae-primary-hover);
+  border-color: var(--hermae-primary-hover);
+  color: var(--hermae-text-inverse);
+}
+
+/* Personalizza le card applicative con elevazione e bordi smussati */
+.card-hermae {
+  background-color: var(--hermae-surface);
+  border: 1px solid var(--hermae-border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+  transition: box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+/* Eleva la card all'hover per indicare interattività */
+.card-hermae:hover {
+  box-shadow: var(--shadow-md);
+}
+
+/* Stile dedicato per il contenitore di autenticazione centrato */
+.auth-card-container {
+  max-width: 480px;
+  width: 100%;
+  margin: 2.5rem auto;
+  padding: 0 1rem;
+}
+
+/* Stile dedicato per i campi di input con contrasto netto dei bordi */
+.form-control, .form-select {
+  min-height: var(--touch-target-min);
+  border: 1.5px solid var(--hermae-border);
+  border-radius: var(--radius-sm);
+  color: var(--hermae-text-main);
+  padding: 0.5rem 0.75rem;
+  font-size: 1rem;
+}
+
+/* Evidenzia il campo di input attivo con colore coordinato */
+.form-control:focus, .form-select:focus {
+  border-color: var(--hermae-border-focus);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.2);
+}
+
+/* Stile per le etichette form con peso tipografico per facilitare la scansione visiva */
+.form-label {
+  font-weight: 600;
+  color: var(--hermae-text-main);
+  margin-bottom: 0.35rem;
+}
+
+/* Formatta i messaggi di aiuto e vincolo sotto i campi di input */
+.form-text {
+  color: var(--hermae-text-muted);
+  font-size: 0.875rem;
+}
+
+/* Personalizza la barra di navigazione superiore */
+.navbar-hermae {
+  background-color: var(--hermae-surface);
+  border-bottom: 1px solid var(--hermae-border);
+  box-shadow: var(--shadow-sm);
+  padding-top: 0.5rem;
+  padding-bottom: 0.5rem;
+}
+
+/* Personalizza i collegamenti della barra di navigazione con contrasto AA */
+.navbar-hermae .nav-link {
+  color: var(--hermae-text-muted);
+  font-weight: 500;
+  padding: 0.5rem 0.85rem;
+  border-radius: var(--radius-sm);
+  transition: color 0.15s ease, background-color 0.15s ease;
+}
+
+/* Evidenzia il link attivo o hovered nella barra di navigazione */
+.navbar-hermae .nav-link:hover,
+.navbar-hermae .nav-link.active {
+  color: var(--hermae-primary);
+  background-color: var(--hermae-primary-light);
+}
+
+/* Personalizza il piè di pagina globale */
+.footer-hermae {
+  background-color: #0f172a;
+  color: #e2e8f0;
+  border-top: 1px solid #1e293b;
+  padding: 1.1rem 0;
+  margin-top: auto;
+  font-size: 0.875rem;
+}
+
+/* Stile per i link nel footer con contrasto verificato */
+.footer-hermae a {
+  color: #93c5fd;
+  text-decoration: none;
+  transition: color 0.15s ease;
+}
+
+/* Sottolinea i link nel footer all'hover */
+.footer-hermae a:hover {
+  color: #ffffff;
+  text-decoration: underline;
+}
+
+/* Scheda elegante per il riferimento territoriale e geolocalizzazione */
+.territorial-card {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: var(--radius-md);
+  padding: 1.25rem 1.5rem;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.territorial-card:focus-within {
+  border-color: #93c5fd;
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.06);
+}
+
+/* Contenitore fisso per notifiche toast fluttuanti */
+.toast-container-hermae {
+  position: fixed;
+  bottom: 1.5rem;
+  right: 1.5rem;
+  z-index: 1080;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  max-width: 380px;
+  width: calc(100% - 3rem);
+}
+
+/* Overlay di caricamento accessibile con spinner centrale */
+.loading-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(15, 23, 42, 0.4);
+  backdrop-filter: blur(2px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+}
+
+/* Scatola interna dello spinner di caricamento */
+.loading-box {
+  background-color: var(--hermae-surface);
+  padding: 1.5rem 2rem;
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-lg);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+
+/* Classe di utilità per nascondere visivamente elementi mantenendoli accessibili per screen reader */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}

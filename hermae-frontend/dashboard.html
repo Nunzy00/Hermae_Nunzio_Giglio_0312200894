@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dashboard — Hermae Sharing Culturale</title>
+  <meta name="description" content="Pannello di controllo personale per la gestione della libreria, prestiti e geolocalizzazione culturale Hermae." />
+
+  <!-- CSS Framework Bootstrap 5.3 & Bootstrap Icons -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
+
+  <!-- Tipografia Inter da Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+
+  <!-- Stile personalizzato e Design System Hermae (WCAG 2.1 AA) -->
+  <link rel="stylesheet" href="assets/css/main.css" />
+</head>
+<body>
+  <div id="app" class="d-flex flex-column min-vh-100">
+    <!-- Comando di salto accessibile per tastiera e screen reader -->
+    <a href="#main-content" class="skip-link">Salta al contenuto principale</a>
+
+    <!-- Intestazione applicativa riservata per utenti autenticati -->
+    <navbar-logged active-page="dashboard"></navbar-logged>
+
+    <!-- Contenuto principale della Dashboard -->
+    <main id="main-content" class="container-fluid px-lg-5 py-4 flex-grow-1">
+      
+      <!-- Hero Banner di Benvenuto -->
+      <section class="card-hermae p-4 p-md-5 mb-4 bg-white border-0 shadow-sm" aria-labelledby="welcomeHeading">
+        <div class="row align-items-center g-4">
+          <div class="col-lg-8">
+            <div class="d-flex align-items-center gap-2 mb-2">
+              <span class="badge bg-success-subtle text-success border border-success-subtle px-2 py-1">
+                <i class="bi bi-shield-check me-1" aria-hidden="true"></i>Sessione Attiva &bull; Access Token Valido
+              </span>
+              <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-2 py-1">
+                <i class="bi bi-geo-alt me-1" aria-hidden="true"></i>{{ user ? user.citta : 'Città' }}
+              </span>
+            </div>
+            <h1 id="welcomeHeading" class="h2 fw-bold text-dark mb-2">
+              Bentornato, {{ user ? user.nome + ' ' + user.cognome : 'Lettore' }}!
+            </h1>
+            <p class="text-muted mb-0 lead fs-6">
+              Benvenuto nel tuo cruscotto personale di <strong>Hermae</strong>. Da qui puoi gestire i libri che hai messo a disposizione, monitorare i prestiti di prossimità ed esplorare il patrimonio culturale condiviso nella tua città.
+            </p>
+          </div>
+          <div class="col-lg-4 text-lg-end">
+            <div class="d-flex flex-wrap gap-2 justify-content-lg-end">
+              <a href="ricerca.html" class="btn btn-primary d-inline-flex align-items-center gap-2">
+                <i class="bi bi-compass" aria-hidden="true"></i>Esplora Mappa
+              </a>
+              <a href="libreria.html" class="btn btn-outline-secondary d-inline-flex align-items-center gap-2">
+                <i class="bi bi-plus-circle" aria-hidden="true"></i>Aggiungi Libro
+              </a>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Griglia delle Schede Metriche (Metric Cards) -->
+      <section class="mb-4" aria-label="Metriche personali e attività">
+        <div class="row g-3">
+          <!-- Card 1: Libri Condivisi -->
+          <div class="col-12 col-sm-6 col-xl-3">
+            <div class="card-hermae p-3 h-100">
+              <div class="d-flex justify-content-between align-items-start mb-2">
+                <div class="text-muted small fw-semibold text-uppercase">Libri in Libreria</div>
+                <div class="p-2 bg-primary bg-opacity-10 text-primary rounded-3">
+                  <i class="bi bi-bookshelf fs-5" aria-hidden="true"></i>
+                </div>
+              </div>
+              <div class="h3 fw-bold text-dark mb-1">0</div>
+              <div class="small text-muted">Volumi registrati nel tuo catalogo</div>
+              <div class="mt-3 pt-2 border-top">
+                <a href="libreria.html" class="small fw-semibold text-primary text-decoration-none d-inline-flex align-items-center">
+                  Gestisci catalogo <i class="bi bi-chevron-right ms-1" aria-hidden="true"></i>
+                </a>
+              </div>
+            </div>
+          </div>
+
+          <!-- Card 2: Prestiti Attivi -->
+          <div class="col-12 col-sm-6 col-xl-3">
+            <div class="card-hermae p-3 h-100">
+              <div class="d-flex justify-content-between align-items-start mb-2">
+                <div class="text-muted small fw-semibold text-uppercase">Prestiti in Corso</div>
+                <div class="p-2 bg-success bg-opacity-10 text-success rounded-3">
+                  <i class="bi bi-arrow-left-right fs-5" aria-hidden="true"></i>
+                </div>
+              </div>
+              <div class="h3 fw-bold text-dark mb-1">0</div>
+              <div class="small text-muted">Richieste confermate e scambi attivi</div>
+              <div class="mt-3 pt-2 border-top">
+                <a href="attivita.html" class="small fw-semibold text-success text-decoration-none d-inline-flex align-items-center">
+                  Vedi richieste <i class="bi bi-chevron-right ms-1" aria-hidden="true"></i>
+                </a>
+              </div>
+            </div>
+          </div>
+
+          <!-- Card 3: Consultazioni Ricevute -->
+          <div class="col-12 col-sm-6 col-xl-3">
+            <div class="card-hermae p-3 h-100">
+              <div class="d-flex justify-content-between align-items-start mb-2">
+                <div class="text-muted small fw-semibold text-uppercase">Impatti Culturali</div>
+                <div class="p-2 bg-warning bg-opacity-10 text-warning rounded-3">
+                  <i class="bi bi-eye fs-5" aria-hidden="true"></i>
+                </div>
+              </div>
+              <div class="h3 fw-bold text-dark mb-1">1</div>
+              <div class="small text-muted">Visualizzazioni delle tue schede libro</div>
+              <div class="mt-3 pt-2 border-top">
+                <span class="small text-muted">Aggiornato in tempo reale</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Card 4: Raggio Confidenziale PostGIS -->
+          <div class="col-12 col-sm-6 col-xl-3">
+            <div class="card-hermae p-3 h-100">
+              <div class="d-flex justify-content-between align-items-start mb-2">
+                <div class="text-muted small fw-semibold text-uppercase">Privacy Territoriale</div>
+                <div class="p-2 bg-info bg-opacity-10 text-info rounded-3">
+                  <i class="bi bi-shield-lock fs-5" aria-hidden="true"></i>
+                </div>
+              </div>
+              <div class="h3 fw-bold text-dark mb-1">300–500m</div>
+              <div class="small text-muted">Offuscamento spaziale PostGIS attivo</div>
+              <div class="mt-3 pt-2 border-top">
+                <a href="impostazioni.html" class="small fw-semibold text-info text-decoration-none d-inline-flex align-items-center">
+                  Dettagli consensi <i class="bi bi-chevron-right ms-1" aria-hidden="true"></i>
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Dettaglio Profilo e Informazioni di Sicurezza della Sessione -->
+      <div class="row g-4 mb-4">
+        <!-- Colonna Sinistra: Dati Profilo e Coordinate Offuscate -->
+        <div class="col-lg-6">
+          <div class="card-hermae p-4 h-100">
+            <div class="d-flex align-items-center justify-content-between mb-3 border-bottom pb-2">
+              <h2 class="h5 fw-bold mb-0 text-dark">
+                <i class="bi bi-person-badge text-primary me-2" aria-hidden="true"></i>Dati dell'Account
+              </h2>
+              <span class="badge bg-light text-dark border">Ruolo: Utente Registrato</span>
+            </div>
+
+            <dl class="row mb-0">
+              <dt class="col-sm-4 text-muted small">Nome Completo</dt>
+              <dd class="col-sm-8 fw-semibold">{{ user ? user.nome + ' ' + user.cognome : '-' }}</dd>
+
+              <dt class="col-sm-4 text-muted small">Indirizzo Email</dt>
+              <dd class="col-sm-8">{{ user ? user.email : '-' }}</dd>
+
+              <dt class="col-sm-4 text-muted small">Comune / Città</dt>
+              <dd class="col-sm-8">{{ user ? user.citta : '-' }}</dd>
+
+              <dt class="col-sm-4 text-muted small">Coordinate Pubbliche</dt>
+              <dd class="col-sm-8">
+                <div v-if="user && user.coordinate_offuscate" class="small">
+                  <code>Lat: {{ user.coordinate_offuscate.lat.toFixed(4) }}, Lng: {{ user.coordinate_offuscate.lng.toFixed(4) }}</code>
+                  <div class="text-success small mt-1">
+                    <i class="bi bi-check-circle-fill me-1" aria-hidden="true"></i>Offuscate dal server PostGIS per tutelare il domicilio.
+                  </div>
+                </div>
+                <span v-else class="text-muted small">Non assegnate</span>
+              </dd>
+
+              <dt class="col-sm-4 text-muted small">Consensi GDPR</dt>
+              <dd class="col-sm-8">
+                <span class="badge bg-success-subtle text-success me-1">Privacy: Accettata</span>
+                <span class="badge bg-success-subtle text-success">Geo: Accettata</span>
+              </dd>
+
+              <dt class="col-sm-4 text-muted small">Data Iscrizione</dt>
+              <dd class="col-sm-8 text-muted small">{{ formatDate(user ? user.data_registrazione : null) }}</dd>
+            </dl>
+          </div>
+        </div>
+
+        <!-- Colonna Destra: Informazioni Tecniche di Sicurezza e Token Lifecycle -->
+        <div class="col-lg-6">
+          <div class="card-hermae p-4 h-100">
+            <div class="d-flex align-items-center justify-content-between mb-3 border-bottom pb-2">
+              <h2 class="h5 fw-bold mb-0 text-dark">
+                <i class="bi bi-key-fill text-primary me-2" aria-hidden="true"></i>Sicurezza e Ciclo di Vita Token
+              </h2>
+              <span class="badge bg-primary-subtle text-primary border">RFC 7519 JWT</span>
+            </div>
+
+            <p class="small text-muted mb-3">
+              L'architettura di <strong>Hermae</strong> implementa autenticazione stateless con token crittografici firmati dal backend Node.js senza dipendenze BaaS esterne.
+            </p>
+
+            <div class="p-3 bg-light rounded-3 mb-3 border">
+              <div class="d-flex justify-content-between align-items-center mb-1">
+                <span class="small fw-semibold text-dark">Access Token (Iniezione Bearer):</span>
+                <span class="badge bg-success">Valido (1h)</span>
+              </div>
+              <div class="small text-muted text-truncate font-monospace" style="max-width: 100%;">
+                {{ tokenSnippet }}
+              </div>
+            </div>
+
+            <div class="d-flex flex-wrap gap-2">
+              <button type="button" class="btn btn-outline-primary btn-sm d-inline-flex align-items-center gap-1" @click="testAuthMe" :disabled="testingMe">
+                <span v-if="testingMe" class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>
+                <i v-else class="bi bi-arrow-repeat me-1" aria-hidden="true"></i>Verifica Endpoint Protetto (/api/auth/me)
+              </button>
+              <button type="button" class="btn btn-outline-danger btn-sm d-inline-flex align-items-center gap-1" @click="triggerLogout">
+                <i class="bi bi-box-arrow-right me-1" aria-hidden="true"></i>Chiudi Sessione (Logout)
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <!-- Notifiche Toast Asincrone -->
+    <toast-notification :toasts="toasts" @remove-toast="removeToast"></toast-notification>
+
+    <!-- Indicatore di Caricamento Globale -->
+    <loading-spinner :active="loading" message="Aggiornamento dati dal server in corso..."></loading-spinner>
+
+    <!-- Piè di pagina globale dell'applicazione -->
+    <app-footer></app-footer>
+  </div>
+
+  <!-- Dipendenze Esterne: Bootstrap JS, Axios, Vue 3 CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/axios@1.6.8/dist/axios.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/vue@3.4.21/dist/vue.global.prod.js"></script>
+
+  <!-- Script Applicativi Interni -->
+  <script src="assets/js/api.js"></script>
+  <script src="assets/js/auth.js"></script>
+  <script src="assets/js/components/global-components.js"></script>
+
+  <!-- Logica Reattiva della Dashboard -->
+  <script>
+    const { createApp, ref, computed, onMounted } = Vue;
+
+    // Crea l'applicazione Vue per la Dashboard riservata
+    const app = createApp({
+      setup() {
+        const user = ref(null);
+        const loading = ref(false);
+        const testingMe = ref(false);
+        const toasts = ref([]);
+
+        // Aggiunge una notifica alla coda visiva
+        const addToast = (title, message, type = 'info') => {
+          const id = Date.now() + Math.random();
+          toasts.value.push({ id, title, message, type });
+          setTimeout(() => removeToast(id), 5000);
+        };
+
+        // Rimuove una notifica dalla lista
+        const removeToast = (id) => {
+          toasts.value = toasts.value.filter(t => t.id !== id);
+        };
+
+        // Formatta una data ISO in stringa leggibile italiana
+        const formatDate = (isoString) => {
+          if (!isoString) return '-';
+          try {
+            return new Date(isoString).toLocaleDateString('it-IT', {
+              day: '2-digit',
+              month: 'long',
+              year: 'numeric',
+              hour: '2-digit',
+              minute: '2-digit'
+            });
+          } catch (e) {
+            return isoString;
+          }
+        };
+
+        // Calcola uno snippet abbreviato dell'Access Token per visualizzazione sicura
+        const tokenSnippet = computed(() => {
+          const token = window.auth.getAccessToken();
+          if (!token) return 'Nessun token presente';
+          return token.substring(0, 24) + '...' + token.substring(token.length - 12);
+        });
+
+        // Esegue il controllo di gatekeeping all'avvio e sincronizza il profilo
+        onMounted(async () => {
+          // Gatekeeper: Se l'utente non è autenticato reindirizza immediatamente al login
+          if (!window.auth.requireAuth('login.html')) {
+            return;
+          }
+
+          user.value = window.auth.getUser();
+
+          const params = new URLSearchParams(window.location.search);
+          if (params.get('welcome')) {
+            addToast('Benvenuto!', 'Accesso completato con successo. La tua sessione è attiva.', 'success');
+          }
+
+          // Sincronizza i dati anagrafici più recenti chiamando /api/auth/me
+          try {
+            const updatedUser = await window.auth.fetchCurrentUser();
+            user.value = updatedUser;
+          } catch (err) {
+            // Se fallisce per sessione scaduta, l'interceptor di api.js interverrà automaticamente
+          }
+        });
+
+        // Testa la chiamata all'endpoint protetto /api/auth/me
+        const testAuthMe = async () => {
+          testingMe.value = true;
+          try {
+            const res = await window.auth.fetchCurrentUser();
+            user.value = res;
+            addToast('Verifica Riuscita', 'Risposta 200 OK dall\'endpoint protetto /api/auth/me.', 'success');
+          } catch (err) {
+            addToast('Errore Verifica', 'Impossibile convalidare la sessione protetta.', 'danger');
+          } finally {
+            testingMe.value = false;
+          }
+        };
+
+        // Avvia la procedura di disconnessione
+        const triggerLogout = async () => {
+          await window.auth.logout();
+        };
+
+        return {
+          user,
+          loading,
+          testingMe,
+          toasts,
+          tokenSnippet,
+          addToast,
+          removeToast,
+          formatDate,
+          testAuthMe,
+          triggerLogout
+        };
+      }
+    });
+
+    // Registra i componenti globali e monta la dashboard
+    window.HermaeComponents.registerGlobalComponents(app);
+    app.mount('#app');
+  </script>
+</body>
+</html>
