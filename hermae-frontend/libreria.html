@@ -1,0 +1,1597 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>La Mia Libreria — Catalogo Personale Hermae</title>
+  <meta name="description" content="Gestione della collezione personale dei libri fisici, catalogazione dello stato d'usura e disponibilità per lo scambio culturale su Hermae." />
+
+  <!-- CSS Framework Bootstrap 5.3 & Bootstrap Icons -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
+
+  <!-- Tipografia Inter da Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+
+  <!-- Stile personalizzato e Design System Hermae (WCAG 2.1 AA) -->
+  <link rel="stylesheet" href="assets/css/main.css" />
+
+  <style>
+    /* ==========================================================================
+       HERMAE LIBRERIA — Personalizzazioni Grafiche e Viste Multiple
+       ========================================================================== */
+
+    /* 4 Quadrati Statistiche su Singola Riga Continua — Layout Verticale Anti-Collisione */
+    .metric-card-square {
+      background-color: var(--hermae-surface);
+      border: 1px solid var(--hermae-border);
+      border-radius: var(--radius-md);
+      box-shadow: var(--shadow-sm);
+      padding: 0.75rem 0.5rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      transition: transform 0.15s ease, box-shadow 0.2s ease;
+      height: 100%;
+    }
+    .metric-card-square:hover {
+      box-shadow: var(--shadow-md);
+      transform: translateY(-2px);
+    }
+    .metric-card-square .metric-icon-bubble {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.05rem;
+      margin-bottom: 0.35rem;
+      flex-shrink: 0;
+    }
+    .metric-card-square .metric-val {
+      font-size: 1.45rem;
+      font-weight: 800;
+      line-height: 1.1;
+      margin-bottom: 0.15rem;
+    }
+    .metric-card-square .metric-title {
+      font-size: 0.68rem;
+      font-weight: 700;
+      letter-spacing: 0.03em;
+      text-transform: uppercase;
+      color: #475569;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 100%;
+      line-height: 1.2;
+    }
+    .metric-card-square .metric-desc {
+      font-size: 0.65rem;
+      color: #64748b;
+      line-height: 1.2;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 100%;
+    }
+
+    @media (max-width: 575.98px) {
+      .metric-card-square {
+        padding: 0.5rem 0.25rem;
+        border-radius: 10px;
+      }
+      .metric-card-square .metric-icon-bubble {
+        width: 24px;
+        height: 24px;
+        border-radius: 6px;
+        font-size: 0.8rem;
+        margin-bottom: 0.2rem;
+      }
+      .metric-card-square .metric-val {
+        font-size: 1.2rem;
+        margin-bottom: 0.1rem;
+      }
+      .metric-card-square .metric-title {
+        font-size: 0.58rem;
+        letter-spacing: 0;
+      }
+      .metric-card-square .metric-desc {
+        font-size: 0.52rem;
+      }
+    }
+
+    /* Icona Info e Popover Ereditato dal Titolo Libreria */
+    .info-tooltip-wrapper {
+      position: relative;
+    }
+    .info-tooltip-trigger {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      color: var(--hermae-primary) !important;
+      transition: background-color 0.2s ease, transform 0.15s ease;
+      cursor: pointer;
+    }
+    .info-tooltip-trigger:hover,
+    .info-tooltip-trigger:focus-visible {
+      background-color: rgba(30, 64, 175, 0.08);
+      transform: scale(1.1);
+      outline: none;
+    }
+    .info-popover-box {
+      position: absolute;
+      top: calc(100% + 8px);
+      right: -8px;
+      left: auto;
+      width: 320px;
+      max-width: min(320px, calc(100vw - 36px));
+      background-color: #ffffff;
+      border: 1px solid #cbd5e1;
+      border-radius: 12px;
+      padding: 0.85rem 1rem;
+      z-index: 1060;
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.18), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+      animation: infoFadeIn 0.2s ease-out;
+    }
+    .info-popover-arrow {
+      position: absolute;
+      top: -6px;
+      right: 18px;
+      left: auto;
+      width: 10px;
+      height: 10px;
+      background-color: #ffffff;
+      border-left: 1px solid #cbd5e1;
+      border-top: 1px solid #cbd5e1;
+      transform: rotate(45deg);
+    }
+    @keyframes infoFadeIn {
+      from { opacity: 0; transform: translateY(-4px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Badges Livello Conservazione */
+    .badge-conservazione-come-nuovo {
+      background-color: #d1fae5;
+      color: #065f46;
+      border: 1px solid #a7f3d0;
+    }
+    .badge-conservazione-ottimo {
+      background-color: #dbeafe;
+      color: #1e40af;
+      border: 1px solid #bfdbfe;
+    }
+    .badge-conservazione-buono {
+      background-color: #e0f2fe;
+      color: #0369a1;
+      border: 1px solid #bae6fd;
+    }
+    .badge-conservazione-usurato {
+      background-color: #fef3c7;
+      color: #92400e;
+      border: 1px solid #fde68a;
+    }
+
+    /* Copertina Miniatura per Tabella */
+    .book-cover-placeholder {
+      width: 44px;
+      height: 60px;
+      border-radius: 3px 6px 6px 3px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.25rem;
+      color: #ffffff;
+      flex-shrink: 0;
+      box-shadow: -2px 3px 6px rgba(0,0,0,0.2), inset 2px 0 3px rgba(255,255,255,0.25);
+      border-left: 3px solid rgba(0,0,0,0.3);
+    }
+    .table-hover tbody tr:hover {
+      background-color: rgba(30, 64, 175, 0.03);
+    }
+
+    /* VISTA 2: CARD */
+    .book-card-item {
+      border: 1px solid var(--hermae-border);
+      border-radius: var(--radius-md);
+      background-color: #ffffff;
+      transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+    }
+    .book-card-item:hover {
+      transform: translateY(-3px);
+      box-shadow: var(--shadow-md);
+      border-color: #93c5fd;
+    }
+    .book-card-cover-mini {
+      width: 62px;
+      height: 88px;
+      border-radius: 3px 6px 6px 3px;
+      box-shadow: -3px 4px 8px rgba(0,0,0,0.22), inset 3px 0 4px rgba(255,255,255,0.2);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 6px;
+      color: #ffffff;
+      position: relative;
+      flex-shrink: 0;
+      border-left: 4px solid rgba(0,0,0,0.3);
+    }
+
+    /* VISTA 3: BOOK-STILE (Scaffale Virtuale) */
+    .bookshelf-display {
+      background: linear-gradient(180deg, #faf7f2 0%, #f3ede2 100%);
+      border-radius: var(--radius-md);
+      padding: 1.5rem 1rem 0.5rem 1rem;
+      border: 1px solid #e7dfd1;
+    }
+    .bookshelf-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(185px, 1fr));
+      gap: 24px 16px;
+      padding-bottom: 8px;
+    }
+    @media (max-width: 575.98px) {
+      .bookshelf-grid {
+        grid-template-columns: repeat(auto-fill, minmax(145px, 1fr));
+        gap: 16px 12px;
+      }
+    }
+    .bookshelf-shelf-plank {
+      height: 14px;
+      background: linear-gradient(180deg, #92400e 0%, #451a03 100%);
+      border-radius: 4px;
+      box-shadow: 0 6px 12px rgba(0,0,0,0.2), inset 0 1px 2px rgba(255,255,255,0.25);
+      margin-top: 4px;
+      margin-bottom: 24px;
+    }
+    .physical-book {
+      position: relative;
+      height: 255px;
+      border-radius: 3px 8px 8px 3px;
+      padding: 12px 10px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      cursor: pointer;
+      transition: transform 0.25s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.25s ease;
+      box-shadow: -4px 6px 14px rgba(0, 0, 0, 0.25), inset 3px 0 5px rgba(255, 255, 255, 0.25);
+      border-left: 5px solid rgba(0, 0, 0, 0.35);
+      color: #ffffff;
+      overflow: hidden;
+    }
+    @media (max-width: 575.98px) {
+      .physical-book {
+        height: 225px;
+        padding: 10px 8px;
+      }
+    }
+    .physical-book:hover {
+      transform: translateY(-8px) scale(1.02);
+      box-shadow: -6px 14px 22px rgba(0, 0, 0, 0.35);
+      z-index: 5;
+    }
+    .physical-book .book-ribbon {
+      position: absolute;
+      top: 0;
+      right: 14px;
+      width: 12px;
+      height: 28px;
+      background: #dc2626;
+      clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 80%, 0 100%);
+      box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+      z-index: 2;
+    }
+    .physical-book .book-crease-line {
+      position: absolute;
+      left: 5px;
+      top: 0;
+      bottom: 0;
+      width: 2px;
+      background: rgba(0, 0, 0, 0.2);
+    }
+    .physical-book .book-title-foil {
+      font-family: Georgia, 'Times New Roman', serif;
+      font-weight: 700;
+      font-size: 0.92rem;
+      line-height: 1.25;
+      color: #fffbeb;
+      text-shadow: 0 1px 2px rgba(0,0,0,0.8);
+      display: -webkit-box;
+      -webkit-line-clamp: 4;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+    .physical-book .book-author-foil {
+      font-size: 0.72rem;
+      color: rgba(255, 255, 255, 0.85);
+      font-style: italic;
+      margin-top: 4px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .physical-book .book-plate-label {
+      background: rgba(255, 255, 255, 0.95);
+      color: #0f172a;
+      border-radius: 5px;
+      padding: 5px 6px;
+      font-size: 0.68rem;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.25);
+      border: 1px solid rgba(0,0,0,0.1);
+    }
+    .physical-book-overlay {
+      position: absolute;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.88);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s ease;
+      padding: 12px;
+      z-index: 6;
+    }
+    .physical-book:hover .physical-book-overlay,
+    .physical-book:focus-within .physical-book-overlay {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    /* Palette tematiche copertine libri */
+    .book-theme-narrativa { background: linear-gradient(145deg, #881337 0%, #4c0519 100%); }
+    .book-theme-tecnologia { background: linear-gradient(145deg, #1e3a8a 0%, #0f172a 100%); }
+    .book-theme-filosofia { background: linear-gradient(145deg, #4c1d95 0%, #2e1065 100%); }
+    .book-theme-scienze { background: linear-gradient(145deg, #065f46 0%, #022c22 100%); }
+    .book-theme-storia { background: linear-gradient(145deg, #78350f 0%, #451a03 100%); }
+    .book-theme-arte { background: linear-gradient(145deg, #9a3412 0%, #431407 100%); }
+    .book-theme-default { background: linear-gradient(145deg, #334155 0%, #0f172a 100%); }
+  </style>
+</head>
+<body>
+  <div id="app" class="d-flex flex-column min-vh-100">
+    <!-- Comando di salto accessibile per tastiera e screen reader -->
+    <a href="#main-content" class="skip-link">Salta al contenuto principale</a>
+
+    <!-- Intestazione applicativa per utenti autenticati -->
+    <navbar-logged active-page="libreria"></navbar-logged>
+
+    <!-- Contenuto principale -->
+    <main id="main-content" class="container-fluid px-lg-5 py-4 flex-grow-1">
+      
+      <!-- Percorso di navigazione Breadcrumb -->
+      <nav class="mb-3" aria-label="Percorso di navigazione">
+        <ol class="breadcrumb mb-0">
+          <li class="breadcrumb-item"><a href="dashboard.html" class="text-decoration-none">Dashboard</a></li>
+          <li class="breadcrumb-item active" aria-current="page">La Mia Libreria</li>
+        </ol>
+      </nav>
+
+      <!-- Hero Banner Introduttivo con Info Popover Integrato -->
+      <section class="card-hermae p-3 p-md-4 mb-4 bg-white border-0 shadow-sm" aria-labelledby="libreriaHeading">
+        <div class="row align-items-center g-3">
+          <div class="col-sm-8 col-12">
+            <div class="d-flex align-items-center flex-wrap gap-2 position-relative">
+              <h1 id="libreriaHeading" class="h2 fw-bold text-dark mb-0">
+                La Mia Libreria Personale
+              </h1>
+
+              <!-- Icona Info con Popover al Click / Hover -->
+              <div class="info-tooltip-wrapper position-relative d-inline-flex align-items-center">
+                <button 
+                  type="button" 
+                  class="btn btn-link p-0 text-primary text-decoration-none info-tooltip-trigger" 
+                  @click="toggleInfoTooltip"
+                  @mouseenter="showInfoTooltip = true"
+                  @mouseleave="handleInfoMouseLeave"
+                  aria-label="Informazioni sulle funzionalità della libreria"
+                  :aria-expanded="showInfoTooltip"
+                >
+                  <i class="bi bi-info-circle-fill fs-5" aria-hidden="true"></i>
+                </button>
+
+                <!-- Box Popover Informativo con il testo descrittivo -->
+                <div 
+                  v-if="showInfoTooltip" 
+                  class="info-popover-box shadow-lg"
+                  @mouseenter="showInfoTooltip = true"
+                  @mouseleave="showInfoTooltip = false"
+                  role="tooltip"
+                >
+                  <div class="d-flex align-items-center justify-content-between mb-2">
+                    <div class="d-flex align-items-center gap-2">
+                      <i class="bi bi-book-half text-primary fs-5 flex-shrink-0" aria-hidden="true"></i>
+                      <div class="fw-bold text-dark small">Guida alla Libreria Personale</div>
+                    </div>
+                    <button 
+                      type="button" 
+                      class="btn-close btn-close-sm flex-shrink-0 p-1" 
+                      style="font-size: 0.65rem;"
+                      @click.stop="showInfoTooltip = false" 
+                      aria-label="Chiudi guida"
+                    ></button>
+                  </div>
+                  <p class="mb-0 text-secondary" style="font-size: 0.83rem; line-height: 1.45;">
+                    Gestisci le copie fisiche dei tuoi libri disponibili per lo scambio culturale di prossimità. Puoi censire nuovi volumi, annotare lo stato d'usura, note bibliografiche e monitorare le disponibilità per i lettori vicini.
+                  </p>
+                  <div class="info-popover-arrow"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="col-sm-4 col-12 text-sm-end">
+            <button 
+              type="button" 
+              class="btn btn-primary btn-lg d-inline-flex align-items-center gap-2 shadow-sm w-100 w-sm-auto justify-content-center" 
+              @click="apriModalNuovo"
+              aria-label="Registra un nuovo libro nella tua libreria"
+            >
+              <i class="bi bi-plus-circle-fill fs-5" aria-hidden="true"></i>
+              <span>Aggiungi Libro</span>
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- Griglia Metriche / 4 Quadrati su UN'UNICA RIGA CONTINUA — Layout Verticale Anti-Collisione -->
+      <section class="mb-4" aria-label="Riepilogo statistico della libreria">
+        <div class="row g-2 g-md-3 row-cols-4">
+          <!-- Card 1: Totale Libri -->
+          <div class="col">
+            <div class="metric-card-square">
+              <div class="metric-icon-bubble bg-primary bg-opacity-10 text-primary">
+                <i class="bi bi-book" aria-hidden="true"></i>
+              </div>
+              <div class="metric-val text-dark">{{ stats.totale }}</div>
+              <div class="metric-title">Totale</div>
+              <div class="metric-desc">Volumi</div>
+            </div>
+          </div>
+
+          <!-- Card 2: Disponibili -->
+          <div class="col">
+            <div class="metric-card-square">
+              <div class="metric-icon-bubble bg-success bg-opacity-10 text-success">
+                <i class="bi bi-check-circle" aria-hidden="true"></i>
+              </div>
+              <div class="metric-val text-success">{{ stats.disponibili }}</div>
+              <div class="metric-title">Disponibili</div>
+              <div class="metric-desc">Al prestito</div>
+            </div>
+          </div>
+
+          <!-- Card 3: In Prestito -->
+          <div class="col">
+            <div class="metric-card-square">
+              <div class="metric-icon-bubble bg-warning bg-opacity-10 text-warning">
+                <i class="bi bi-arrow-left-right" aria-hidden="true"></i>
+              </div>
+              <div class="metric-val text-warning">{{ stats.inPrestito }}</div>
+              <div class="metric-title">In Prestito</div>
+              <div class="metric-desc">Attivi</div>
+            </div>
+          </div>
+
+          <!-- Card 4: Riservati -->
+          <div class="col">
+            <div class="metric-card-square">
+              <div class="metric-icon-bubble bg-secondary bg-opacity-10 text-secondary">
+                <i class="bi bi-lock" aria-hidden="true"></i>
+              </div>
+              <div class="metric-val text-secondary">{{ stats.nonDisponibili }}</div>
+              <div class="metric-title">Riservati</div>
+              <div class="metric-desc">Privati</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Barra dei Filtri & Ricerca (Ricerca su singola riga + Filtri compattati su singola riga) -->
+      <section class="card-hermae p-3 p-md-4 bg-white border-0 shadow-sm mb-4" aria-labelledby="filterHeading">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+          <h2 id="filterHeading" class="h6 fw-bold text-dark mb-0 d-flex align-items-center gap-2">
+            <i class="bi bi-funnel text-primary" aria-hidden="true"></i>Filtri & Ricerca
+          </h2>
+          <div class="d-flex align-items-center gap-2">
+            <span class="badge bg-light text-dark border px-2 py-1 small">
+              <strong>{{ filteredLibri.length }}</strong> di <strong>{{ libri.length }}</strong> volumi
+            </span>
+            <button 
+              v-if="hasActiveFilters" 
+              type="button" 
+              class="btn btn-outline-danger btn-sm py-0 px-2 d-inline-flex align-items-center gap-1"
+              @click="resetFiltri"
+              title="Azzera filtri"
+            >
+              <i class="bi bi-x-circle"></i>
+              <span class="d-none d-sm-inline">Azzera</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Riga 1: Barra di Ricerca Singola su tutta la larghezza -->
+        <div class="mb-2">
+          <div class="input-group">
+            <span class="input-group-text bg-light border-end-0 text-muted"><i class="bi bi-search"></i></span>
+            <input 
+              id="searchInput"
+              type="text" 
+              class="form-control border-start-0" 
+              placeholder="Cerca volume per titolo, autore, editore o codice ISBN..."
+              v-model="filtri.search"
+              aria-label="Cerca volume per titolo, autore, editore o codice ISBN"
+            />
+            <button 
+              v-if="filtri.search" 
+              class="btn btn-outline-secondary" 
+              type="button" 
+              @click="filtri.search = ''"
+              aria-label="Azzera testo ricerca"
+            >
+              <i class="bi bi-x-lg"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- Riga 2: Filtri Compattati su Un'Unica Riga (3 Colonne Paritetiche) -->
+        <div class="row g-2 align-items-center">
+          <!-- Categoria -->
+          <div class="col-4">
+            <select id="catSelect" class="form-select form-select-sm" v-model="filtri.categoria_id" aria-label="Filtro per categoria disciplinare">
+              <option value="">Tutte le categorie</option>
+              <option v-for="cat in categorie" :key="cat.id" :value="cat.id">
+                {{ cat.nome }}
+              </option>
+            </select>
+          </div>
+
+          <!-- Disponibilità -->
+          <div class="col-4">
+            <select id="dispSelect" class="form-select form-select-sm" v-model="filtri.stato_disponibilita" aria-label="Filtro per disponibilità">
+              <option value="">Tutti gli stati</option>
+              <option value="DISPONIBILE">Disponibile</option>
+              <option value="IN_PRESTITO">In Prestito</option>
+              <option value="NON_DISPONIBILE">Non Disponibile</option>
+            </select>
+          </div>
+
+          <!-- Usura / Conservazione -->
+          <div class="col-4">
+            <select id="consSelect" class="form-select form-select-sm" v-model="filtri.stato_conservazione" aria-label="Filtro per usura">
+              <option value="">Tutti i livelli</option>
+              <option value="Come nuovo">Come nuovo</option>
+              <option value="Ottimo">Ottimo</option>
+              <option value="Buono">Buono</option>
+              <option value="Usurato">Usurato</option>
+            </select>
+          </div>
+        </div>
+      </section>
+
+      <!-- Sezione Volumi in Libreria (Con Selettore Viste: Tabella, Card, Book-Stile) -->
+      <section class="card-hermae p-0 bg-white border-0 shadow-sm mb-4" aria-labelledby="tabellaHeading">
+        <div class="p-3 p-md-4 border-bottom d-flex flex-wrap justify-content-between align-items-center gap-2">
+          <h2 id="tabellaHeading" class="h5 fw-bold text-dark mb-0 d-flex align-items-center gap-2">
+            <i class="bi bi-bookshelf text-primary" aria-hidden="true"></i>Elenco Volumi in Libreria
+          </h2>
+          
+          <div class="d-flex align-items-center gap-2">
+            <!-- Selettore Viste: Tabella, Card, Book-Stile -->
+            <div class="btn-group btn-group-sm" role="group" aria-label="Modalità di visualizzazione">
+              <button 
+                type="button" 
+                class="btn" 
+                :class="viewMode === 'table' ? 'btn-primary' : 'btn-outline-secondary'"
+                @click="setViewMode('table')"
+                title="Vista Tabella"
+                aria-label="Vista Tabella"
+              >
+                <i class="bi bi-table me-1"></i><span class="d-none d-sm-inline">Tabella</span>
+              </button>
+              <button 
+                type="button" 
+                class="btn" 
+                :class="viewMode === 'card' ? 'btn-primary' : 'btn-outline-secondary'"
+                @click="setViewMode('card')"
+                title="Vista Schede / Card"
+                aria-label="Vista Card"
+              >
+                <i class="bi bi-grid-fill me-1"></i><span class="d-none d-sm-inline">Card</span>
+              </button>
+              <button 
+                type="button" 
+                class="btn" 
+                :class="viewMode === 'book' ? 'btn-primary' : 'btn-outline-secondary'"
+                @click="setViewMode('book')"
+                title="Vista Scaffale / Book-Stile"
+                aria-label="Vista Book-Stile"
+              >
+                <i class="bi bi-journal-bookmark-fill me-1"></i><span class="d-none d-sm-inline">Book-Stile</span>
+              </button>
+            </div>
+
+            <button 
+              type="button" 
+              class="btn btn-sm btn-outline-primary d-inline-flex align-items-center gap-1"
+              @click="caricaLibreria"
+              :disabled="loading"
+              aria-label="Aggiorna elenco libri"
+            >
+              <i class="bi bi-arrow-clockwise" :class="{ 'spin': loading }" aria-hidden="true"></i>
+              <span class="d-none d-md-inline">Aggiorna</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Indicatore di caricamento -->
+        <div v-if="loading" class="p-5 text-center">
+          <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Caricamento volumi in corso...</span>
+          </div>
+          <div class="text-muted mt-2">Caricamento del tuo patrimonio librario...</div>
+        </div>
+
+        <!-- Stato Vuoto (Empty State) -->
+        <div v-else-if="filteredLibri.length === 0" class="p-5 text-center">
+          <div class="display-6 text-muted mb-3">
+            <i class="bi bi-journal-x"></i>
+          </div>
+          <h3 class="h5 fw-bold text-dark mb-1">Nessun volume trovato</h3>
+          <p class="text-muted mb-3">
+            {{ libri.length === 0 ? 'La tua libreria è attualmente vuota. Inizia aggiungendo il primo libro fisico!' : 'Nessun volume corrisponde ai filtri selezionati.' }}
+          </p>
+          <button 
+            v-if="libri.length === 0" 
+            type="button" 
+            class="btn btn-primary" 
+            @click="apriModalNuovo"
+          >
+            <i class="bi bi-plus-circle me-1" aria-hidden="true"></i>Registra Primo Libro
+          </button>
+          <button 
+            v-else 
+            type="button" 
+            class="btn btn-outline-secondary" 
+            @click="resetFiltri"
+          >
+            <i class="bi bi-arrow-counterclockwise me-1" aria-hidden="true"></i>Ripristina Filtri
+          </button>
+        </div>
+
+        <!-- VISTA 1: TABELLA ACCESSIVA -->
+        <div v-else-if="viewMode === 'table'" class="table-responsive">
+          <table class="table table-hover align-middle mb-0" aria-label="Tabella degli esemplari posseduti">
+            <thead class="table-light">
+              <tr>
+                <th scope="col" style="min-width: 250px;">Libro & Autore</th>
+                <th scope="col" style="min-width: 140px;">Categoria</th>
+                <th scope="col" style="min-width: 120px;">Stato Usura</th>
+                <th scope="col" style="min-width: 130px;">Disponibilità</th>
+                <th scope="col" style="min-width: 160px;">Editore / Note</th>
+                <th scope="col" class="text-end" style="min-width: 110px;">Azioni</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="libro in filteredLibri" :key="libro.id">
+                <!-- Titolo, Autore & Copertina Mini -->
+                <td>
+                  <div class="d-flex align-items-center gap-3">
+                    <div class="book-cover-placeholder" :class="getCategoryThemeClass(libro.categoria_slug)">
+                      <i class="bi bi-book-half"></i>
+                    </div>
+                    <div>
+                      <div class="fw-bold text-dark">{{ libro.titolo }}</div>
+                      <div class="text-muted small">di {{ libro.autore }}</div>
+                      <div v-if="libro.isbn" class="small text-secondary">
+                        <span class="font-monospace">ISBN: {{ libro.isbn }}</span>
+                      </div>
+                    </div>
+                  </div>
+                </td>
+
+                <!-- Categoria -->
+                <td>
+                  <span class="badge bg-light text-dark border">
+                    {{ libro.categoria_nome || 'Non specificata' }}
+                  </span>
+                </td>
+
+                <!-- Stato Usura -->
+                <td>
+                  <span class="badge px-2 py-1" :class="getConservazioneBadgeClass(libro.stato_conservazione)">
+                    {{ libro.stato_conservazione }}
+                  </span>
+                </td>
+
+                <!-- Stato Disponibilità -->
+                <td>
+                  <span class="badge px-2 py-1" :class="getDisponibilitaBadgeClass(libro.stato_disponibilita)">
+                    <i class="bi" :class="getDisponibilitaIconClass(libro.stato_disponibilita)" aria-hidden="true"></i>
+                    {{ formatDisponibilitaLabel(libro.stato_disponibilita) }}
+                  </span>
+                </td>
+
+                <!-- Editore & Note -->
+                <td>
+                  <div class="small text-dark fw-medium">
+                    {{ libro.editore ? libro.editore : 'Editore n/d' }}
+                    <span v-if="libro.anno_pubblicazione">({{ libro.anno_pubblicazione }})</span>
+                  </div>
+                  <div v-if="libro.note" class="small text-muted text-truncate" style="max-width: 200px;" :title="libro.note">
+                    <i class="bi bi-sticky me-1"></i>{{ libro.note }}
+                  </div>
+                </td>
+
+                <!-- Azioni -->
+                <td class="text-end">
+                  <div class="btn-group btn-group-sm" role="group" aria-label="Azioni per l'esemplare">
+                    <button 
+                      type="button" 
+                      class="btn btn-outline-secondary" 
+                      @click="apriModalModifica(libro)"
+                      title="Modifica metadati libro"
+                      aria-label="Modifica libro"
+                    >
+                      <i class="bi bi-pencil" aria-hidden="true"></i>
+                    </button>
+                    <button 
+                      type="button" 
+                      class="btn btn-outline-danger" 
+                      @click="apriModalElimina(libro)"
+                      title="Elimina libro dal catalogo"
+                      aria-label="Elimina libro"
+                    >
+                      <i class="bi bi-trash3" aria-hidden="true"></i>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- VISTA 2: CARD (Griglia a Schede) -->
+        <div v-else-if="viewMode === 'card'" class="p-3 p-md-4">
+          <div class="row g-3 row-cols-1 row-cols-md-2 row-cols-xl-3">
+            <div class="col" v-for="libro in filteredLibri" :key="libro.id">
+              <div class="book-card-item p-3">
+                <!-- Intestazione Card: Categoria e Disponibilità -->
+                <div class="d-flex justify-content-between align-items-start gap-2 mb-2 pb-2 border-bottom">
+                  <span class="badge bg-light text-dark border small text-truncate" style="max-width: 160px;">
+                    <i class="bi bi-tag-fill text-primary me-1"></i>{{ libro.categoria_nome }}
+                  </span>
+                  <span class="badge small" :class="getDisponibilitaBadgeClass(libro.stato_disponibilita)">
+                    <i class="bi" :class="getDisponibilitaIconClass(libro.stato_disponibilita)" aria-hidden="true"></i>
+                    {{ formatDisponibilitaLabel(libro.stato_disponibilita) }}
+                  </span>
+                </div>
+
+                <!-- Corpo Card: Miniatura Copertina + Dati -->
+                <div class="d-flex gap-3 mb-2 flex-grow-1">
+                  <!-- Mini Copertina Libro -->
+                  <div class="book-card-cover-mini" :class="getCategoryThemeClass(libro.categoria_slug)">
+                    <div class="d-flex justify-content-between align-items-center">
+                      <span class="small" style="font-size: 0.6rem; opacity: 0.85;">HERMAE</span>
+                      <i class="bi bi-bookmark-fill text-danger" style="font-size: 0.75rem;"></i>
+                    </div>
+                    <div class="text-center my-auto">
+                      <i class="bi bi-book-half fs-4"></i>
+                    </div>
+                    <div class="text-truncate" style="font-size: 0.58rem; opacity: 0.85;">
+                      {{ libro.lingua || 'Italiano' }}
+                    </div>
+                  </div>
+
+                  <!-- Metadati -->
+                  <div class="flex-grow-1 min-w-0">
+                    <h3 class="h6 fw-bold text-dark mb-1 text-truncate" :title="libro.titolo">
+                      {{ libro.titolo }}
+                    </h3>
+                    <div class="text-muted small mb-1 text-truncate">
+                      di <strong>{{ libro.autore }}</strong>
+                    </div>
+                    <div class="small text-secondary mb-1">
+                      {{ libro.editore || 'Editore n/d' }}
+                      <span v-if="libro.anno_pubblicazione">({{ libro.anno_pubblicazione }})</span>
+                    </div>
+                    <div class="d-flex flex-wrap gap-1 align-items-center mt-2">
+                      <span class="badge small" :class="getConservazioneBadgeClass(libro.stato_conservazione)">
+                        {{ libro.stato_conservazione }}
+                      </span>
+                      <span v-if="libro.isbn" class="badge bg-light text-muted border font-monospace" style="font-size: 0.68rem;">
+                        {{ libro.isbn }}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Note d'Esemplare (se presenti) -->
+                <div v-if="libro.note" class="p-2 bg-light rounded-2 small text-muted fst-italic mb-3 text-truncate" :title="libro.note">
+                  <i class="bi bi-quote me-1"></i>{{ libro.note }}
+                </div>
+
+                <!-- Piè di Pagina Card: Azioni -->
+                <div class="d-flex justify-content-end gap-2 pt-2 border-top mt-auto">
+                  <button 
+                    type="button" 
+                    class="btn btn-outline-secondary btn-sm d-inline-flex align-items-center gap-1"
+                    @click="apriModalModifica(libro)"
+                    title="Modifica libro"
+                  >
+                    <i class="bi bi-pencil"></i>
+                    <span>Modifica</span>
+                  </button>
+                  <button 
+                    type="button" 
+                    class="btn btn-outline-danger btn-sm d-inline-flex align-items-center gap-1"
+                    @click="apriModalElimina(libro)"
+                    title="Elimina libro"
+                  >
+                    <i class="bi bi-trash3"></i>
+                    <span>Elimina</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- VISTA 3: BOOK-STILE (Scaffale Virtuale 3D) -->
+        <div v-else-if="viewMode === 'book'" class="p-3 p-md-4">
+          <div class="bookshelf-display">
+            <!-- Griglia Libri Fisici 3D -->
+            <div class="bookshelf-grid">
+              <div 
+                v-for="libro in filteredLibri" 
+                :key="libro.id"
+                class="physical-book"
+                :class="getCategoryThemeClass(libro.categoria_slug)"
+                tabindex="0"
+                :aria-label="libro.titolo + ' di ' + libro.autore"
+              >
+                <!-- Nastro Segnalibro di Stoffa -->
+                <div class="book-ribbon"></div>
+                <!-- Piegatura Costa/Dorso -->
+                <div class="book-crease-line"></div>
+
+                <!-- Testata Superiore Copertina -->
+                <div>
+                  <div class="d-flex justify-content-between align-items-center mb-2" style="font-size: 0.65rem; opacity: 0.9;">
+                    <span class="text-uppercase fw-bold letter-spacing-1">Collezione Hermae</span>
+                    <span class="badge bg-black bg-opacity-40 border border-white border-opacity-25" style="font-size: 0.6rem;">
+                      {{ libro.lingua || 'IT' }}
+                    </span>
+                  </div>
+                  <!-- Titolo Impresso in Lamina Dorata -->
+                  <div class="book-title-foil" :title="libro.titolo">
+                    {{ libro.titolo }}
+                  </div>
+                  <!-- Autore in Corsivo -->
+                  <div class="book-author-foil">
+                    {{ libro.autore }}
+                  </div>
+                </div>
+
+                <!-- Sezione Centrale: Sigillo / Icona Categoria -->
+                <div class="text-center my-2" style="opacity: 0.25;">
+                  <i class="bi bi-book-half display-6"></i>
+                </div>
+
+                <!-- Targhetta Inferiore Tipo Ex-Libris -->
+                <div class="book-plate-label">
+                  <div class="d-flex justify-content-between align-items-center gap-1 mb-1">
+                    <span class="fw-bold text-truncate" style="font-size: 0.65rem;">
+                      {{ libro.editore || 'Editore n/d' }}
+                    </span>
+                    <span v-if="libro.anno_pubblicazione" class="text-muted" style="font-size: 0.65rem;">
+                      {{ libro.anno_pubblicazione }}
+                    </span>
+                  </div>
+                  <div class="d-flex justify-content-between align-items-center gap-1">
+                    <span class="badge p-1" :class="getConservazioneBadgeClass(libro.stato_conservazione)" style="font-size: 0.6rem;">
+                      {{ libro.stato_conservazione }}
+                    </span>
+                    <span class="badge p-1" :class="getDisponibilitaBadgeClass(libro.stato_disponibilita)" style="font-size: 0.6rem;">
+                      {{ formatDisponibilitaLabel(libro.stato_disponibilita) }}
+                    </span>
+                  </div>
+                </div>
+
+                <!-- Overlay Azioni al passaggio del mouse / focus -->
+                <div class="physical-book-overlay">
+                  <div class="text-white text-center small fw-bold mb-2 text-truncate px-2 w-100">
+                    {{ libro.titolo }}
+                  </div>
+                  <button 
+                    type="button" 
+                    class="btn btn-light btn-sm w-75 d-inline-flex align-items-center justify-content-center gap-1 shadow-sm"
+                    @click="apriModalModifica(libro)"
+                  >
+                    <i class="bi bi-pencil"></i>
+                    <span>Modifica</span>
+                  </button>
+                  <button 
+                    type="button" 
+                    class="btn btn-danger btn-sm w-75 d-inline-flex align-items-center justify-content-center gap-1 shadow-sm"
+                    @click="apriModalElimina(libro)"
+                  >
+                    <i class="bi bi-trash3"></i>
+                    <span>Elimina</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Asse/Mensola in Legno Massiccio dello Scaffale -->
+            <div class="bookshelf-shelf-plank"></div>
+          </div>
+        </div>
+      </section>
+
+    </main>
+
+    <!-- Modal Aggiungi / Modifica Esemplare -->
+    <div 
+      class="modal fade" 
+      id="modalEsemplare" 
+      tabindex="-1" 
+      aria-labelledby="modalEsemplareTitle" 
+      aria-hidden="true"
+    >
+      <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+          <div class="modal-header bg-light">
+            <h2 class="modal-title h5 fw-bold text-dark mb-0" id="modalEsemplareTitle">
+              <i class="bi" :class="isEditMode ? 'bi-pencil-square text-primary' : 'bi-plus-circle text-success'" aria-hidden="true"></i>
+              <span class="ms-2">{{ isEditMode ? 'Modifica Scheda Esemplare' : 'Registra Nuovo Esemplare' }}</span>
+            </h2>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Chiudi finestra modale"></button>
+          </div>
+          
+          <form @submit.prevent="salvaEsemplare">
+            <div class="modal-body p-4">
+              <!-- Alert di validazione o errore -->
+              <div v-if="modalError" class="alert alert-danger d-flex align-items-center gap-2 mb-3" role="alert">
+                <i class="bi bi-exclamation-triangle-fill fs-5" aria-hidden="true"></i>
+                <div>{{ modalError }}</div>
+              </div>
+
+              <div class="row g-3">
+                <!-- Titolo Opera (obbligatorio) -->
+                <div class="col-md-8">
+                  <label for="formTitolo" class="form-label fw-semibold">Titolo dell'Opera <span class="text-danger">*</span></label>
+                  <input 
+                    id="formTitolo" 
+                    type="text" 
+                    class="form-control" 
+                    required 
+                    placeholder="Es. Il nome della rosa"
+                    v-model="form.titolo"
+                  />
+                </div>
+
+                <!-- Anno Pubblicazione -->
+                <div class="col-md-4">
+                  <label for="formAnno" class="form-label fw-semibold">Anno di Pubblicazione</label>
+                  <input 
+                    id="formAnno" 
+                    type="number" 
+                    class="form-control" 
+                    min="1450" 
+                    max="2030" 
+                    placeholder="Es. 1980"
+                    v-model.number="form.anno_pubblicazione"
+                  />
+                </div>
+
+                <!-- Autore (obbligatorio) -->
+                <div class="col-md-6">
+                  <label for="formAutore" class="form-label fw-semibold">Autore / Autori <span class="text-danger">*</span></label>
+                  <input 
+                    id="formAutore" 
+                    type="text" 
+                    class="form-control" 
+                    required 
+                    placeholder="Es. Umberto Eco"
+                    v-model="form.autore"
+                  />
+                </div>
+
+                <!-- Categoria (obbligatoria) -->
+                <div class="col-md-6">
+                  <label for="formCategoria" class="form-label fw-semibold">Categoria Disciplinare <span class="text-danger">*</span></label>
+                  <select id="formCategoria" class="form-select" required v-model="form.categoria_id">
+                    <option value="" disabled>Seleziona la categoria...</option>
+                    <option v-for="cat in categorie" :key="cat.id" :value="cat.id">
+                      {{ cat.nome }}
+                    </option>
+                  </select>
+                </div>
+
+                <!-- Editore -->
+                <div class="col-md-5">
+                  <label for="formEditore" class="form-label fw-semibold">Casa Editrice</label>
+                  <input 
+                    id="formEditore" 
+                    type="text" 
+                    class="form-control" 
+                    placeholder="Es. Bompiani, Adelphi, Mondadori..."
+                    v-model="form.editore"
+                  />
+                </div>
+
+                <!-- Codice ISBN -->
+                <div class="col-md-4">
+                  <label for="formIsbn" class="form-label fw-semibold">Codice ISBN (10 o 13 cifre)</label>
+                  <input 
+                    id="formIsbn" 
+                    type="text" 
+                    class="form-control font-monospace" 
+                    placeholder="978-88-..."
+                    v-model="form.isbn"
+                  />
+                </div>
+
+                <!-- Lingua -->
+                <div class="col-md-3">
+                  <label for="formLingua" class="form-label fw-semibold">Lingua</label>
+                  <input 
+                    id="formLingua" 
+                    type="text" 
+                    class="form-control" 
+                    placeholder="Italiano"
+                    v-model="form.lingua"
+                  />
+                </div>
+
+                <!-- Stato di Conservazione (Usura) -->
+                <div class="col-md-6">
+                  <label for="formStatoCons" class="form-label fw-semibold">Stato di Conservazione / Usura</label>
+                  <select id="formStatoCons" class="form-select" v-model="form.stato_conservazione">
+                    <option value="Come nuovo">Come nuovo (pari al nuovo, intonso)</option>
+                    <option value="Ottimo">Ottimo (lievissimi segni di lettura)</option>
+                    <option value="Buono">Buono (piccole pieghe, segni d'uso normali)</option>
+                    <option value="Usurato">Usurato (dorso vissuto, note a margine, pagine ingiallite)</option>
+                  </select>
+                </div>
+
+                <!-- Stato Disponibilità Scambio -->
+                <div class="col-md-6">
+                  <label for="formStatoDisp" class="form-label fw-semibold">Disponibilità per il Prestito</label>
+                  <select id="formStatoDisp" class="form-select" v-model="form.stato_disponibilita">
+                    <option value="DISPONIBILE">Disponibile (aperto a richieste di scambio)</option>
+                    <option value="IN_PRESTITO">In Prestito (attualmente affidato a un lettore)</option>
+                    <option value="NON_DISPONIBILE">Non Disponibile (temporaneamente ritirato)</option>
+                  </select>
+                </div>
+
+                <!-- Note d'Esemplare -->
+                <div class="col-12">
+                  <label for="formNote" class="form-label fw-semibold">Note sull'Esemplare Fisico</label>
+                  <textarea 
+                    id="formNote" 
+                    class="form-control" 
+                    rows="2" 
+                    placeholder="Es. Prima edizione, sovraccoperta originale inclusa, presenza di sottolineature a matita sul capitolo 3..."
+                    v-model="form.note"
+                  ></textarea>
+                  <div class="form-text">Annota particolarità materiali utili per il lettore prima di concordare lo scambio.</div>
+                </div>
+
+                <!-- Descrizione o Sinossi -->
+                <div class="col-12">
+                  <label for="formDesc" class="form-label fw-semibold">Sinossi o Descrizione dell'Opera</label>
+                  <textarea 
+                    id="formDesc" 
+                    class="form-control" 
+                    rows="2" 
+                    placeholder="Breve trama o tema dell'opera letteraria o scientifica..."
+                    v-model="form.descrizione"
+                  ></textarea>
+                </div>
+              </div>
+            </div>
+
+            <div class="modal-footer bg-light">
+              <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Annulla</button>
+              <button 
+                type="submit" 
+                class="btn btn-primary d-inline-flex align-items-center gap-2" 
+                :disabled="isSaving"
+              >
+                <span v-if="isSaving" class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                <span>{{ isEditMode ? 'Salva Modifiche' : 'Censisci Esemplare' }}</span>
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal Conferma Eliminazione -->
+    <div 
+      class="modal fade" 
+      id="modalElimina" 
+      tabindex="-1" 
+      aria-labelledby="modalEliminaTitle" 
+      aria-hidden="true"
+    >
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+          <div class="modal-header bg-danger-subtle">
+            <h2 class="modal-title h5 fw-bold text-danger mb-0" id="modalEliminaTitle">
+              <i class="bi bi-exclamation-octagon-fill me-2" aria-hidden="true"></i>Conferma Eliminazione
+            </h2>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Chiudi"></button>
+          </div>
+          <div class="modal-body p-4">
+            <p class="mb-2">Sei sicuro di voler rimuovere definitivamente dal tuo catalogo l'esemplare:</p>
+            <div class="p-3 bg-light rounded-3 border mb-3">
+              <div class="fw-bold text-dark">{{ libroDaEliminare?.titolo }}</div>
+              <div class="text-muted small">di {{ libroDaEliminare?.autore }}</div>
+            </div>
+            <p class="small text-danger mb-0">
+              <i class="bi bi-info-circle me-1"></i>Questa operazione è irreversibile e cancellerà la copia fisica dal sistema.
+            </p>
+          </div>
+          <div class="modal-footer bg-light">
+            <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Annulla</button>
+            <button 
+              type="button" 
+              class="btn btn-danger d-inline-flex align-items-center gap-2" 
+              @click="eseguiEliminazione"
+              :disabled="isDeleting"
+            >
+              <span v-if="isDeleting" class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+              <span>Elimina Esemplare</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Contenitore Notifiche Toast Accessibili -->
+    <div class="toast-container position-fixed bottom-0 end-0 p-3" style="z-index: 1090;">
+      <div 
+        v-for="toast in toasts" 
+        :key="toast.id" 
+        class="toast show align-items-center border-0 mb-2 shadow-sm text-white" 
+        :class="toast.bgClass"
+        role="alert" 
+        aria-live="assertive" 
+        aria-atomic="true"
+      >
+        <div class="d-flex">
+          <div class="toast-body">
+            <strong>{{ toast.title }}:</strong> {{ toast.message }}
+          </div>
+          <button 
+            type="button" 
+            class="btn-close btn-close-white me-2 m-auto" 
+            @click="removeToast(toast.id)" 
+            aria-label="Chiudi notifica"
+          ></button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Piè di pagina globale accessibile -->
+    <app-footer></app-footer>
+  </div>
+
+  <!-- Script Framework e Librerie Esterne -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/axios@1.7.9/dist/axios.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/vue@3.5.13/dist/vue.global.prod.js"></script>
+
+  <!-- Moduli Applicativi Hermae -->
+  <script src="assets/js/api.js"></script>
+  <script src="assets/js/auth.js"></script>
+  <script src="assets/js/components/global-components.js"></script>
+
+  <!-- Logica Reattiva Vista Libreria (Vue 3 Composition API) -->
+  <script>
+    const { createApp, ref, computed, onMounted } = Vue;
+
+    const app = createApp({
+      setup() {
+        const user = ref(null);
+        const libri = ref([]);
+        const categorie = ref([]);
+        const loading = ref(false);
+        const isSaving = ref(false);
+        const isDeleting = ref(false);
+        const modalError = ref('');
+        const isEditMode = ref(false);
+        const libroDaEliminare = ref(null);
+        const toasts = ref([]);
+        const showInfoTooltip = ref(false);
+        let infoTimeout = null;
+
+        const toggleInfoTooltip = () => {
+          showInfoTooltip.value = !showInfoTooltip.value;
+        };
+
+        const handleInfoMouseLeave = () => {
+          infoTimeout = setTimeout(() => {
+            showInfoTooltip.value = false;
+          }, 250);
+        };
+
+        // Modalità di visualizzazione: 'table', 'card', 'book'
+        const viewMode = ref(localStorage.getItem('hermae_libreria_view_mode') || 'table');
+        const setViewMode = (mode) => {
+          viewMode.value = mode;
+          try {
+            localStorage.setItem('hermae_libreria_view_mode', mode);
+          } catch (e) {}
+        };
+
+        let modalEsemplareInstance = null;
+        let modalEliminaInstance = null;
+
+        // Modello del modulo di inserimento/modifica
+        const form = ref({
+          id: null,
+          titolo: '',
+          autore: '',
+          categoria_id: '',
+          editore: '',
+          anno_pubblicazione: null,
+          isbn: '',
+          lingua: 'Italiano',
+          stato_conservazione: 'Ottimo',
+          stato_disponibilita: 'DISPONIBILE',
+          note: '',
+          descrizione: ''
+        });
+
+        // Filtri di ricerca
+        const filtri = ref({
+          search: '',
+          categoria_id: '',
+          stato_disponibilita: '',
+          stato_conservazione: ''
+        });
+
+        // Verifica filtri attivi
+        const hasActiveFilters = computed(() => {
+          return Boolean(
+            (filtri.value.search && filtri.value.search.trim()) ||
+            filtri.value.categoria_id ||
+            filtri.value.stato_disponibilita ||
+            filtri.value.stato_conservazione
+          );
+        });
+
+        // Gestione notifiche toast
+        const addToast = (title, message, type = 'success') => {
+          const id = Date.now() + Math.random();
+          const bgMap = {
+            success: 'bg-success',
+            danger: 'bg-danger',
+            warning: 'bg-warning text-dark',
+            info: 'bg-primary'
+          };
+          toasts.value.push({ id, title, message, bgClass: bgMap[type] || 'bg-success' });
+          setTimeout(() => removeToast(id), 5000);
+        };
+
+        const removeToast = (id) => {
+          toasts.value = toasts.value.filter(t => t.id !== id);
+        };
+
+        // Statistiche reattive calcolate
+        const stats = computed(() => {
+          const list = libri.value;
+          return {
+            totale: list.length,
+            disponibili: list.filter(b => b.stato_disponibilita === 'DISPONIBILE').length,
+            inPrestito: list.filter(b => b.stato_disponibilita === 'IN_PRESTITO').length,
+            nonDisponibili: list.filter(b => b.stato_disponibilita === 'NON_DISPONIBILE').length
+          };
+        });
+
+        // Libri filtrati
+        const filteredLibri = computed(() => {
+          return libri.value.filter(book => {
+            // Filtro Categoria
+            if (filtri.value.categoria_id && book.categoria_id !== filtri.value.categoria_id) {
+              return false;
+            }
+            // Filtro Disponibilità
+            if (filtri.value.stato_disponibilita && book.stato_disponibilita !== filtri.value.stato_disponibilita) {
+              return false;
+            }
+            // Filtro Conservazione
+            if (filtri.value.stato_conservazione && book.stato_conservazione !== filtri.value.stato_conservazione) {
+              return false;
+            }
+            // Filtro Testuale
+            if (filtri.value.search && filtri.value.search.trim()) {
+              const q = filtri.value.search.trim().toLowerCase();
+              const titMatch = (book.titolo || '').toLowerCase().includes(q);
+              const autMatch = (book.autore || '').toLowerCase().includes(q);
+              const isbnMatch = (book.isbn || '').toLowerCase().includes(q);
+              const edMatch = (book.editore || '').toLowerCase().includes(q);
+              if (!titMatch && !autMatch && !isbnMatch && !edMatch) {
+                return false;
+              }
+            }
+            return true;
+          });
+        });
+
+        const resetFiltri = () => {
+          filtri.value = {
+            search: '',
+            categoria_id: '',
+            stato_disponibilita: '',
+            stato_conservazione: ''
+          };
+        };
+
+        // Caricamento dati da backend
+        const caricaCategorie = async () => {
+          try {
+            const res = await window.apiClient.get('/categorie');
+            if (res.data && res.data.data) {
+              categorie.value = res.data.data;
+            }
+          } catch (err) {
+            console.error('Errore nel caricamento categorie:', err);
+          }
+        };
+
+        const caricaLibreria = async () => {
+          loading.value = true;
+          try {
+            const res = await window.apiClient.get('/esemplari/mie');
+            if (res.data && res.data.data) {
+              libri.value = res.data.data;
+            }
+          } catch (err) {
+            const msg = err.response?.data?.error?.message || 'Impossibile caricare i libri della libreria.';
+            addToast('Errore Catalogo', msg, 'danger');
+          } finally {
+            loading.value = false;
+          }
+        };
+
+        // Apertura modali
+        const apriModalNuovo = () => {
+          isEditMode.value = false;
+          modalError.value = '';
+          form.value = {
+            id: null,
+            titolo: '',
+            autore: '',
+            categoria_id: categorie.value.length > 0 ? categorie.value[0].id : '',
+            editore: '',
+            anno_pubblicazione: null,
+            isbn: '',
+            lingua: 'Italiano',
+            stato_conservazione: 'Ottimo',
+            stato_disponibilita: 'DISPONIBILE',
+            note: '',
+            descrizione: ''
+          };
+          if (modalEsemplareInstance) {
+            modalEsemplareInstance.show();
+          }
+        };
+
+        const apriModalModifica = (libro) => {
+          isEditMode.value = true;
+          modalError.value = '';
+          form.value = {
+            id: libro.id,
+            titolo: libro.titolo,
+            autore: libro.autore,
+            categoria_id: libro.categoria_id,
+            editore: libro.editore || '',
+            anno_pubblicazione: libro.anno_pubblicazione || null,
+            isbn: libro.isbn || '',
+            lingua: libro.lingua || 'Italiano',
+            stato_conservazione: libro.stato_conservazione || 'Buono',
+            stato_disponibilita: libro.stato_disponibilita || 'DISPONIBILE',
+            note: libro.note || '',
+            descrizione: libro.descrizione || ''
+          };
+          if (modalEsemplareInstance) {
+            modalEsemplareInstance.show();
+          }
+        };
+
+        const apriModalElimina = (libro) => {
+          libroDaEliminare.value = libro;
+          if (modalEliminaInstance) {
+            modalEliminaInstance.show();
+          }
+        };
+
+        // Invio form di salvataggio
+        const salvaEsemplare = async () => {
+          modalError.value = '';
+          isSaving.value = true;
+
+          try {
+            if (isEditMode.value) {
+              const res = await window.apiClient.put(`/esemplari/${form.value.id}`, form.value);
+              addToast('Libro Aggiornato', `"${form.value.titolo}" è stato aggiornato con successo.`, 'success');
+            } else {
+              const res = await window.apiClient.post('/esemplari', form.value);
+              addToast('Nuovo Libro Censito', `"${form.value.titolo}" è stato aggiunto alla tua libreria.`, 'success');
+            }
+            if (modalEsemplareInstance) {
+              modalEsemplareInstance.hide();
+            }
+            await caricaLibreria();
+          } catch (err) {
+            modalError.value = err.response?.data?.error?.message || 'Si è verificato un errore durante il salvataggio.';
+          } finally {
+            isSaving.value = false;
+          }
+        };
+
+        // Esecuzione eliminazione
+        const eseguiEliminazione = async () => {
+          if (!libroDaEliminare.value) return;
+          isDeleting.value = true;
+
+          try {
+            await window.apiClient.delete(`/esemplari/${libroDaEliminare.value.id}`);
+            addToast('Libro Rimosso', `"${libroDaEliminare.value.titolo}" è stato rimosso dal tuo catalogo.`, 'info');
+            if (modalEliminaInstance) {
+              modalEliminaInstance.hide();
+            }
+            await caricaLibreria();
+          } catch (err) {
+            const msg = err.response?.data?.error?.message || 'Impossibile eliminare l\'esemplare.';
+            addToast('Errore Eliminazione', msg, 'danger');
+          } finally {
+            isDeleting.value = false;
+            libroDaEliminare.value = null;
+          }
+        };
+
+        // Helper grafici e badge
+        const getConservazioneBadgeClass = (stato) => {
+          switch (stato) {
+            case 'Come nuovo': return 'badge-conservazione-come-nuovo';
+            case 'Ottimo': return 'badge-conservazione-ottimo';
+            case 'Buono': return 'badge-conservazione-buono';
+            case 'Usurato': return 'badge-conservazione-usurato';
+            default: return 'bg-secondary text-white';
+          }
+        };
+
+        const getDisponibilitaBadgeClass = (disp) => {
+          switch (disp) {
+            case 'DISPONIBILE': return 'bg-success-subtle text-success border border-success-subtle';
+            case 'IN_PRESTITO': return 'bg-warning-subtle text-warning border border-warning-subtle';
+            case 'NON_DISPONIBILE': return 'bg-secondary-subtle text-secondary border border-secondary-subtle';
+            default: return 'bg-light text-dark';
+          }
+        };
+
+        const getDisponibilitaIconClass = (disp) => {
+          switch (disp) {
+            case 'DISPONIBILE': return 'bi-check-circle-fill me-1';
+            case 'IN_PRESTITO': return 'bi-arrow-left-right me-1';
+            case 'NON_DISPONIBILE': return 'bi-lock-fill me-1';
+            default: return 'bi-circle me-1';
+          }
+        };
+
+        const formatDisponibilitaLabel = (disp) => {
+          switch (disp) {
+            case 'DISPONIBILE': return 'Disponibile';
+            case 'IN_PRESTITO': return 'In Prestito';
+            case 'NON_DISPONIBILE': return 'Non Disponibile';
+            default: return disp;
+          }
+        };
+
+        const getCategoryThemeClass = (slug) => {
+          if (!slug) return 'book-theme-default';
+          const s = slug.toLowerCase();
+          if (s.includes('narrativa')) return 'book-theme-narrativa';
+          if (s.includes('tecnologia') || s.includes('informatica')) return 'book-theme-tecnologia';
+          if (s.includes('filosofia') || s.includes('saggistica')) return 'book-theme-filosofia';
+          if (s.includes('scienze') || s.includes('matematica')) return 'book-theme-scienze';
+          if (s.includes('storia') || s.includes('biografie')) return 'book-theme-storia';
+          if (s.includes('arte') || s.includes('architettura')) return 'book-theme-arte';
+          return 'book-theme-default';
+        };
+
+        // Inizializzazione pagina
+        onMounted(async () => {
+          if (!window.auth.requireAuth('login.html')) {
+            return;
+          }
+
+          user.value = window.auth.getUser();
+
+          // Inizializza le modali Bootstrap
+          const modalElem = document.getElementById('modalEsemplare');
+          if (modalElem) {
+            modalEsemplareInstance = new bootstrap.Modal(modalElem);
+          }
+          const modalDelElem = document.getElementById('modalElimina');
+          if (modalDelElem) {
+            modalEliminaInstance = new bootstrap.Modal(modalDelElem);
+          }
+
+          await Promise.all([
+            caricaCategorie(),
+            caricaLibreria()
+          ]);
+
+          // Chiusura automatica del popover informativo cliccando all'esterno
+          document.addEventListener('click', (e) => {
+            const wrapper = document.querySelector('.info-tooltip-wrapper');
+            if (wrapper && !wrapper.contains(e.target)) {
+              showInfoTooltip.value = false;
+            }
+          });
+        });
+
+        return {
+          user,
+          libri,
+          categorie,
+          loading,
+          isSaving,
+          isDeleting,
+          modalError,
+          isEditMode,
+          libroDaEliminare,
+          toasts,
+          form,
+          filtri,
+          stats,
+          filteredLibri,
+          viewMode,
+          hasActiveFilters,
+          setViewMode,
+          addToast,
+          removeToast,
+          resetFiltri,
+          caricaLibreria,
+          apriModalNuovo,
+          apriModalModifica,
+          apriModalElimina,
+          salvaEsemplare,
+          eseguiEliminazione,
+          getConservazioneBadgeClass,
+          getDisponibilitaBadgeClass,
+          getDisponibilitaIconClass,
+          formatDisponibilitaLabel,
+          getCategoryThemeClass,
+          showInfoTooltip,
+          toggleInfoTooltip,
+          handleInfoMouseLeave
+        };
+      }
+    });
+
+    window.HermaeComponents.registerGlobalComponents(app);
+    app.mount('#app');
+  </script>
+</body>
+</html>

@@ -76,14 +76,17 @@ CREATE TABLE IF NOT EXISTS esemplari (
     categoria_id UUID NOT NULL REFERENCES categorie(id) ON DELETE RESTRICT,
     titolo VARCHAR(255) NOT NULL,
     autore VARCHAR(255) NOT NULL,
+    editore VARCHAR(150),
     anno_pubblicazione SMALLINT,
     isbn VARCHAR(20),
+    lingua VARCHAR(50) DEFAULT 'Italiano',
     descrizione TEXT,
+    note TEXT,
     stato_conservazione VARCHAR(50) DEFAULT 'Buono',
     stato_disponibilita VARCHAR(30) NOT NULL DEFAULT 'DISPONIBILE',
     immagine_copertina VARCHAR(255),
     immagine_miniatura VARCHAR(255),
-    coordinate_esemplare POINT NOT NULL,
+    coordinate_esemplare POINT,
     data_creazione TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 

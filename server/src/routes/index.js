@@ -4,6 +4,8 @@ const userRoutes = require('./userRoutes');
 const authRoutes = require('./authRoutes');
 const posizioneRoutes = require('./posizioneUtentiRoutes');
 const privacyRoutes = require('./preferenzePrivacyRoutes');
+const esemplariRoutes = require('./esemplariRoutes');
+const categorieRoutes = require('./categorieRoutes');
 
 // Istanzia il router principale di Express per aggregare tutti gli endpoint applicativi
 const router = express.Router();
@@ -63,6 +65,12 @@ router.use('/posizioni', posizioneRoutes);
 
 // Monta il router delle preferenze di riservatezza e permessi profilo sul percorso /privacy
 router.use('/privacy', privacyRoutes);
+
+// Monta il router delle operazioni CRUD dell'entità esemplari (libri fisici) sul percorso /esemplari
+router.use('/esemplari', esemplariRoutes);
+
+// Monta il router di consultazione delle categorie disciplinari sul percorso /categorie
+router.use('/categorie', categorieRoutes);
 
 // Esporta il router principale per essere montato sull'applicazione Express con il prefisso /api
 module.exports = router;

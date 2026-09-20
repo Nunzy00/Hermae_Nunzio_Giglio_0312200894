@@ -73,7 +73,7 @@
                   <i class="bi bi-bookshelf"></i>
                 </div>
               </div>
-              <div class="metric-val fw-bold text-dark">0</div>
+              <div class="metric-val fw-bold text-dark">{{ libriCount }}</div>
               <div class="metric-desc text-muted">
                 <span class="d-none d-sm-inline">Volumi in catalogo</span>
                 <span class="d-inline d-sm-none">In libreria</span>
@@ -180,6 +180,7 @@
         const user = ref(null);
         const loading = ref(false);
         const testingMe = ref(false);
+        const libriCount = ref(0);
         const toasts = ref([]);
 
         // Aggiunge una notifica alla coda visiva
@@ -231,10 +232,16 @@
             addToast('Benvenuto!', 'Accesso completato con successo. La tua sessione è attiva.', 'success');
           }
 
-          // Sincronizza i dati anagrafici più recenti chiamando /api/auth/me
+          // Sincronizza i dati anagrafici e il conteggio libri della libreria
           try {
-            const updatedUser = await window.auth.fetchCurrentUser();
+            const [updatedUser, booksRes] = await Promise.all([
+              window.auth.fetchCurrentUser(),
+              window.apiClient.get('/esemplari/mie')
+            ]);
             user.value = updatedUser;
+            if (booksRes.data && typeof booksRes.data.count === 'number') {
+              libriCount.value = booksRes.data.count;
+            }
           } catch (err) {
             // Se fallisce per sessione scaduta, l'interceptor di api.js interverrà automaticamente
           }
@@ -263,6 +270,7 @@
           user,
           loading,
           testingMe,
+          libriCount,
           toasts,
           tokenSnippet,
           addToast,

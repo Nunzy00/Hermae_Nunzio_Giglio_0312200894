@@ -7,7 +7,7 @@
 
 ---
 
-## 1. Tabella Riepilogativa delle Fasi Eseguite (Fasi 1 – 17)
+## 1. Tabella Riepilogativa delle Fasi Eseguite (Fasi 1 – 18)
 
 | Fase | Titolo e Obiettivo | Tempo Stimato | Tempo Effettivo | Documento / Deliverable Prodotto | Stato |
 | :---: | :--- | :---: | :---: | :--- | :---: |
@@ -28,7 +28,8 @@
 | **Fase 15** | Implementazione delle funzioni di geolocalizzazione dell'utente | 2 h | 1 h | [`SVILUPPO-PROGRAMMA/fase-15.md`](file:///Users/nunziogiglio/Documents/Github/Repositories/Hermae_Nunzio_Giglio_0312200894/SVILUPPO-PROGRAMMA/fase-15.md) & [`hermae-frontend/ricerca.html`](file:///Users/nunziogiglio/Documents/Github/Repositories/Hermae_Nunzio_Giglio_0312200894/hermae-frontend/ricerca.html) | **Completata** |
 | **Fase 16** | Definizione nel database dell’entità “preferenze_privacy_utenti”, del suo schema e delle sue operazioni CRUD | 2 h | 1 h | [`SVILUPPO-PROGRAMMA/fase-16.md`](file:///Users/nunziogiglio/Documents/Github/Repositories/Hermae_Nunzio_Giglio_0312200894/SVILUPPO-PROGRAMMA/fase-16.md) & [`INFO-DATABASE/schema.sql`](file:///Users/nunziogiglio/Documents/Github/Repositories/Hermae_Nunzio_Giglio_0312200894/INFO-DATABASE/schema.sql) | **Completata** |
 | **Fase 17** | Implementazione delle funzioni di occultamento della geolocalizzazione dell’utente per richiesta esplicita di tutela privacy | 2 h | 1 h | [`SVILUPPO-PROGRAMMA/fase-17.md`](file:///Users/nunziogiglio/Documents/Github/Repositories/Hermae_Nunzio_Giglio_0312200894/SVILUPPO-PROGRAMMA/fase-17.md) & [`hermae-frontend/impostazioni.html`](file:///Users/nunziogiglio/Documents/Github/Repositories/Hermae_Nunzio_Giglio_0312200894/hermae-frontend/impostazioni.html) | **Completata** |
-| **TOTALE** | **Avanzamento Fasi di Progettazione, Database, Backend e Front-end** | **31 h 30 min** | **15 h 40 min** | **18 Deliverable Consolidati** | **Fasi 1–17 Completate** |
+| **Fase 18** | Definizione nel database dell’entità “esemplare” (l’entità per la gestione di un libro inserito dall’utente), del suo schema e delle sue operazioni CRUD | 2 h | 1 h | [`SVILUPPO-PROGRAMMA/fase-18.md`](file:///Users/nunziogiglio/Documents/Github/Repositories/Hermae_Nunzio_Giglio_0312200894/SVILUPPO-PROGRAMMA/fase-18.md) & [`hermae-frontend/libreria.html`](file:///Users/nunziogiglio/Documents/Github/Repositories/Hermae_Nunzio_Giglio_0312200894/hermae-frontend/libreria.html) | **Completata** |
+| **TOTALE** | **Avanzamento Fasi di Progettazione, Database, Backend e Front-end** | **33 h 30 min** | **16 h 40 min** | **20 Deliverable Consolidati** | **Fasi 1–18 Completate** |
 
 ---
 
@@ -189,5 +190,14 @@
 - **Descrizione:** È stata scritta la logica che consente di offuscare la posizione precisa dell’utente (tramite approssimazione ad area/CAP o totale oscuramento) qualora egli attivi le opzioni di tutela della privacy, impedendo il tracciamento diretto da parte di terzi. L'architettura prevede tre modalità operative (`QUARTIERE` con micro-perturbazione $300\text{–}500\text{ m}$, `AREA_CAP` con offuscamento macro-area $1.5\text{–}3\text{ km}$, e `TOTALE` con azzeramento delle coordinate e reperibilità aggregata per sola città). Sul frontend, `impostazioni.html` integra il selettore visivo a tre livelli con sincronizzazione istantanea su PostgreSQL, mentre `ricerca.html` evidenzia le posizioni approssimate ad Area/CAP e gestisce la vista tabellare accessibile.  
   Documenti di riferimento: [`SVILUPPO-PROGRAMMA/fase-17.md`](file:///Users/nunziogiglio/Documents/Github/Repositories/Hermae_Nunzio_Giglio_0312200894/SVILUPPO-PROGRAMMA/fase-17.md), [`server/src/services/posizioneUtentiService.js`](file:///Users/nunziogiglio/Documents/Github/Repositories/Hermae_Nunzio_Giglio_0312200894/server/src/services/posizioneUtentiService.js) e [`hermae-frontend/impostazioni.html`](file:///Users/nunziogiglio/Documents/Github/Repositories/Hermae_Nunzio_Giglio_0312200894/hermae-frontend/impostazioni.html).
 - **Difficoltà riscontrate:** Definire un algoritmo di offuscamento delle coordinate che tutelasse l'anonimato senza azzerare la fruibilità delle ricerche di prossimità.
+
+---
+
+### Fase 18 – Definizione nel database dell’entità “esemplare” (l’entità per la gestione di un libro inserito dall’utente), del suo schema e delle sue operazioni CRUD
+- **Tempo stimato:** 2 ore | **Tempo effettivo:** 1 ora
+- **Descrizione:** È stata strutturata l'entità "esemplare" per mappare ogni singola copia fisica di un libro caricata da un utente (stato d'usura, note, disponibilità, collegamenti bibliografici), unitamente alle funzioni CRUD dedicate. La modellazione dati (aderente allo standard internazionale IFLA LRM / FRBR) gestisce la relazione $1:N$ con la tabella `utenti` e $N:1$ con la tabella `categorie`, arricchendo lo schema relazionale DDL con i campi `editore`, `lingua`, `note`, enum standardizzati per conservazione e disponibilità, ed ereditarietà automatica delle coordinate geospaziali. Il backend espone gli endpoint RESTful `/api/esemplari` e `/api/categorie` con rigidi controlli di sicurezza (blocco IDOR e `403 Forbidden` per tentativi di modifica/eliminazione da utenti non proprietari). Sul frontend è stata realizzata la vista completa **Page 6 della Sitemap** (`libreria.html`) accessibile (WCAG 2.1 AA) con statistiche reattive, filtri avanzati multi-parametro, modali per censimento e cancellazione sicura, integrando altresì il contatore dinamico dei volumi sulla `dashboard.html`.  
+  Documenti di riferimento: [`SVILUPPO-PROGRAMMA/fase-18.md`](file:///Users/nunziogiglio/Documents/Github/Repositories/Hermae_Nunzio_Giglio_0312200894/SVILUPPO-PROGRAMMA/fase-18.md), [`INFO-DATABASE/schema.sql`](file:///Users/nunziogiglio/Documents/Github/Repositories/Hermae_Nunzio_Giglio_0312200894/INFO-DATABASE/schema.sql), [`DATI-MOCK/esemplari_mock.md`](file:///Users/nunziogiglio/Documents/Github/Repositories/Hermae_Nunzio_Giglio_0312200894/DATI-MOCK/esemplari_mock.md) e [`hermae-frontend/libreria.html`](file:///Users/nunziogiglio/Documents/Github/Repositories/Hermae_Nunzio_Giglio_0312200894/hermae-frontend/libreria.html).
+- **Difficoltà riscontrate:** Non sono state rilevate complessità; la relazione uno-a-molti con la tabella degli utenti è risultata lineare.
+
 
 
