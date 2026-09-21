@@ -10,6 +10,7 @@ const richiesteRoutes = require('./richiesteRoutes');
 const notificheRoutes = require('./notificheRoutes');
 const prestitiRoutes = require('./prestitiRoutes');
 const analyticsRoutes = require('./analyticsRoutes');
+const cmpRoutes = require('./cmpRoutes');
 
 // Istanzia il router principale di Express per aggregare tutti gli endpoint applicativi
 const router = express.Router();
@@ -91,6 +92,10 @@ router.use('/attivita', prestitiRoutes);
 // Monta il router per le statistiche aggregate e analytics della dashboard utente (Fase 24)
 router.use('/analytics', analyticsRoutes);
 router.use('/statistiche', analyticsRoutes);
+
+// Monta il router per la Consent Management Platform (CMP) e consensi GDPR (Fase 25)
+router.use('/cmp', cmpRoutes);
+router.use('/consensi', cmpRoutes);
 
 // Esporta il router principale per essere montato sull'applicazione Express con il prefisso /api
 module.exports = router;

@@ -309,6 +309,129 @@
         </form>
       </section>
 
+      <!-- Sezione Consent Management Platform (CMP - Fase 25) -->
+      <section class="card-hermae p-3 p-md-4 bg-white border-0 shadow-sm mb-4" aria-labelledby="cmpSettingsHeading">
+        <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3 pb-2 border-bottom">
+          <div>
+            <h2 id="cmpSettingsHeading" class="h5 fw-bold text-dark mb-1 d-flex align-items-center gap-2">
+              <i class="bi bi-shield-check text-success" aria-hidden="true"></i>Gestione Consensi Trattamento Dati &amp; Cookie (CMP)
+            </h2>
+            <p class="text-muted small mb-0">
+              Controlla in modo granulare i consensi informati rilasciati per dati raccolti e servizi terzi (GDPR &amp; Direttiva ePrivacy).
+            </p>
+          </div>
+          <div class="d-flex align-items-center gap-2">
+            <button
+              type="button"
+              class="btn btn-outline-danger btn-sm d-inline-flex align-items-center gap-1"
+              @click="revocaConsensiCmp"
+              title="Revoca tutti i consensi opzionali mantenendo solo i cookie tecnici necessari"
+            >
+              <i class="bi bi-x-circle" aria-hidden="true"></i>
+              <span>Revoca Consensi</span>
+            </button>
+            <button
+              type="button"
+              class="btn btn-outline-primary btn-sm d-inline-flex align-items-center gap-1"
+              @click="apriModaleCmp"
+              title="Personalizza le scelte nel pannello CMP"
+            >
+              <i class="bi bi-sliders" aria-hidden="true"></i>
+              <span>Personalizza CMP</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Stato Attuale dei Consensi CMP -->
+        <div class="row g-3">
+          <!-- 1. Dati Tecnici & Cookie Essenziali -->
+          <div class="col-md-6 col-lg-3">
+            <div class="p-3 border rounded-3 bg-light h-100 d-flex flex-column justify-content-between">
+              <div>
+                <div class="d-flex align-items-center justify-content-between mb-1">
+                  <span class="fw-bold text-dark small">1. Necessari</span>
+                  <span class="badge bg-success-subtle text-success border border-success-subtle py-0.5 px-2" style="font-size: 0.68rem;">Attivo</span>
+                </div>
+                <div class="text-muted" style="font-size: 0.74rem;">
+                  Autenticazione JWT, sicurezza sessione e protezione CSRF.
+                </div>
+              </div>
+              <div class="text-secondary mt-2" style="font-size: 0.68rem;">
+                Sempre attivo (Art. 6(1)(f) GDPR)
+              </div>
+            </div>
+          </div>
+
+          <!-- 2. Funzionali & Preferenze -->
+          <div class="col-md-6 col-lg-3">
+            <div class="p-3 border rounded-3 bg-light h-100 d-flex flex-column justify-content-between">
+              <div>
+                <div class="d-flex align-items-center justify-content-between mb-1">
+                  <span class="fw-bold text-dark small">2. Funzionali</span>
+                  <span class="badge" :class="cmpState.categorie.funzionali ? 'bg-primary-subtle text-primary border border-primary-subtle' : 'bg-secondary-subtle text-secondary'" style="font-size: 0.68rem;">
+                    {{ cmpState.categorie.funzionali ? 'Abilitato' : 'Disattivato' }}
+                  </span>
+                </div>
+                <div class="text-muted" style="font-size: 0.74rem;">
+                  Preferenze interfaccia, visualizzazione scaffale 3D e filtri avanzati.
+                </div>
+              </div>
+              <div class="text-secondary mt-2" style="font-size: 0.68rem;">
+                Consenso informato
+              </div>
+            </div>
+          </div>
+
+          <!-- 3. Statistiche & Impatto Culturale -->
+          <div class="col-md-6 col-lg-3">
+            <div class="p-3 border rounded-3 bg-light h-100 d-flex flex-column justify-content-between">
+              <div>
+                <div class="d-flex align-items-center justify-content-between mb-1">
+                  <span class="fw-bold text-dark small">3. Analitici</span>
+                  <span class="badge" :class="cmpState.categorie.analitici ? 'bg-primary-subtle text-primary border border-primary-subtle' : 'bg-secondary-subtle text-secondary'" style="font-size: 0.68rem;">
+                    {{ cmpState.categorie.analitici ? 'Abilitato' : 'Disattivato' }}
+                  </span>
+                </div>
+                <div class="text-muted" style="font-size: 0.74rem;">
+                  Statistiche interne aggregate e Indice Impatto Culturale Hermae.
+                </div>
+              </div>
+              <div class="text-secondary mt-2" style="font-size: 0.68rem;">
+                First-party anonimo
+              </div>
+            </div>
+          </div>
+
+          <!-- 4. Servizi Terzi & CDN -->
+          <div class="col-md-6 col-lg-3">
+            <div class="p-3 border rounded-3 bg-light h-100 d-flex flex-column justify-content-between">
+              <div>
+                <div class="d-flex align-items-center justify-content-between mb-1">
+                  <span class="fw-bold text-dark small">4. Servizi Terzi</span>
+                  <span class="badge" :class="cmpState.categorie.servizi_terzi ? 'bg-primary-subtle text-primary border border-primary-subtle' : 'bg-secondary-subtle text-secondary'" style="font-size: 0.68rem;">
+                    {{ cmpState.categorie.servizi_terzi ? 'Abilitato' : 'Disattivato' }}
+                  </span>
+                </div>
+                <div class="text-muted" style="font-size: 0.74rem;">
+                  Mappe esterne (OSM/CARTO) e web font/icone CDN.
+                </div>
+              </div>
+              <div class="text-secondary mt-2" style="font-size: 0.68rem;">
+                Fornitori infrastrutturali
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="mt-3 pt-2 border-top d-flex flex-wrap justify-content-between align-items-center gap-2 text-muted" style="font-size: 0.74rem;">
+          <span>
+            <i class="bi bi-clock-history me-1"></i>Ultimo aggiornamento consenso: 
+            <strong>{{ cmpState.timestamp ? new Date(cmpState.timestamp).toLocaleString('it-IT') : 'Predefinito (Privacy by Default)' }}</strong>
+          </span>
+          <span>ID Consenso: <code>{{ cmpState.consenso_id ? cmpState.consenso_id.substring(0, 16) + '...' : 'N/A' }}</code></span>
+        </div>
+      </section>
+
       <!-- Sezione Riferimento Territoriale e Coordinate -->
       <section class="card-hermae p-4 bg-white border-0 shadow-sm mb-4" aria-labelledby="riferimentoTerritorialeHeading">
         <div class="mb-3 pb-2 border-bottom">
@@ -510,6 +633,7 @@
   <script src="assets/js/api.js"></script>
   <script src="assets/js/auth.js"></script>
   <script src="assets/js/geolocation.js"></script>
+  <script src="assets/js/cmp.js"></script>
   <script src="assets/js/components/global-components.js"></script>
 
   <!-- Logica Reattiva delle Impostazioni e Gestione Posizione -->
@@ -528,6 +652,33 @@
         const gpsAccuracy = ref(null);
         const toasts = ref([]);
         const posizioneEsistente = ref(null);
+
+        // Modello dati Consent Management Platform (CMP - Fase 25)
+        const cmpState = ref(window.HermaeCMP ? window.HermaeCMP.getConsents() : {
+          consenso_id: '',
+          espresso: false,
+          versione_policy: '1.0',
+          timestamp: null,
+          categorie: { necessari: true, funzionali: false, analitici: false, servizi_terzi: false }
+        });
+
+        // Ascolta aggiornamenti del consenso CMP
+        window.addEventListener('hermae:consent-updated', (e) => {
+          if (e.detail) {
+            cmpState.value = e.detail;
+          }
+        });
+
+        const apriModaleCmp = () => {
+          if (window.HermaeCMP) window.HermaeCMP.openModal();
+        };
+
+        const revocaConsensiCmp = async () => {
+          if (window.HermaeCMP) {
+            window.HermaeCMP.saveConsents({ funzionali: false, analitici: false, servizi_terzi: false });
+            addToast('Consensi Revocati', 'Tutti i consensi opzionali sono stati revocati. Rimangono attivi solo i dati tecnici essenziali.', 'info');
+          }
+        };
 
         // Modello dati delle preferenze di riservatezza (Fase 16-17 - preferenze_privacy_utenti)
         const privacyForm = ref({
@@ -804,7 +955,10 @@
           confermaEliminaPosizione,
           getModalitaBadge,
           getModalitaLabel,
-          onModalitaOccultamentoChange
+          onModalitaOccultamentoChange,
+          cmpState,
+          apriModaleCmp,
+          revocaConsensiCmp
         };
       }
     });

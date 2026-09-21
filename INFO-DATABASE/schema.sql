@@ -148,6 +148,23 @@ CREATE TABLE IF NOT EXISTS metriche_visite (
     data_evento TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+-- 8.1 Creazione Tabella CONSENSI_CMP_UTENTI (Fase 25 - Consent Management Platform)
+-- Registro audit del consenso informato (GDPR Art. 5(2), 6, 7 e Direttiva ePrivacy)
+CREATE TABLE IF NOT EXISTS consensi_cmp_utenti (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    utente_id UUID REFERENCES utenti(id) ON DELETE CASCADE,
+    consenso_id VARCHAR(64) NOT NULL,
+    versione_policy VARCHAR(20) NOT NULL DEFAULT '1.0',
+    necessari BOOLEAN NOT NULL DEFAULT TRUE,
+    funzionali BOOLEAN NOT NULL DEFAULT FALSE,
+    analitici BOOLEAN NOT NULL DEFAULT FALSE,
+    servizi_terzi BOOLEAN NOT NULL DEFAULT FALSE,
+    indirizzo_ip_anonimizzato VARCHAR(64),
+    user_agent TEXT,
+    data_espressione TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    data_aggiornamento TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
 -- 8. Indici Spaziali GiST (Generalized Search Tree)
 -- Ottimizzano le query geospaziali di prossimità metrica a raggio urbano/quartiere
 CREATE INDEX IF NOT EXISTS idx_esemplari_coordinate ON esemplari USING GIST (coordinate_esemplare);
@@ -155,6 +172,8 @@ CREATE INDEX IF NOT EXISTS idx_utenti_coordinate_offuscate ON utenti USING GIST 
 CREATE INDEX IF NOT EXISTS idx_posizione_utenti_coords ON posizione_utenti USING GIST (coordinate_offuscate);
 
 -- 9. Indici B-Tree su Chiavi Esterne (UUID) e Parametri di Ricerca
+CREATE INDEX IF NOT EXISTS idx_consensi_cmp_utente ON consensi_cmp_utenti (utente_id);
+CREATE INDEX IF NOT EXISTS idx_consensi_cmp_id ON consensi_cmp_utenti (consenso_id);
 CREATE INDEX IF NOT EXISTS idx_posizione_utenti_utente ON posizione_utenti (utente_id);
 CREATE INDEX IF NOT EXISTS idx_posizione_utenti_citta ON posizione_utenti (citta);
 CREATE INDEX IF NOT EXISTS idx_preferenze_privacy_utente ON preferenze_privacy_utenti (utente_id);

@@ -175,8 +175,13 @@ const AppFooter = {
   template: `
     <footer class="footer-hermae" role="contentinfo">
       <div class="container text-center">
-        <p class="mb-0 text-white-50 small">
+        <p class="mb-1 text-white-50 small">
           &copy; {{ currentYear }} <strong>Hermae</strong>. Realizzato da <strong>Nunzio Giglio</strong>.
+        </p>
+        <p class="mb-0 small">
+          <a href="javascript:void(0)" onclick="window.HermaeCMP && window.HermaeCMP.openModal()" class="text-white-50 text-decoration-none hover-underline d-inline-flex align-items-center gap-1" style="font-size: 0.76rem;">
+            <i class="bi bi-shield-lock" aria-hidden="true"></i>Preferenze Privacy &amp; Cookie (CMP)
+          </a>
         </p>
       </div>
     </footer>
