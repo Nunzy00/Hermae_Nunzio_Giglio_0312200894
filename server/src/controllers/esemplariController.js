@@ -135,16 +135,36 @@ const removeCover = async (req, res, next) => {
 
 /**
  * Esegue una ricerca pubblica/filtrata degli esemplari disponibili
+ * Combina criteri testuali (titolo, autore, categoria) e parametri geospaziali (lat, lng, raggio_km)
  */
 const searchBooks = async (req, res, next) => {
   try {
-    const { search, categoria_id, sottogenere, stato_disponibilita, limit } = req.query;
+    const { 
+      search, 
+      categoria_id, 
+      sottogenere, 
+      stato_disponibilita, 
+      lat, 
+      lng, 
+      raggio_km, 
+      ordina_per, 
+      limit,
+      offset,
+      escludi_utente_id 
+    } = req.query;
+
     const books = await esemplariService.searchEsemplari({
       search,
       categoria_id,
       sottogenere,
       stato_disponibilita,
-      limit
+      lat,
+      lng,
+      raggio_km,
+      ordina_per,
+      limit,
+      offset,
+      escludi_utente_id
     });
 
     res.status(200).json({

@@ -7,7 +7,7 @@
 
 ---
 
-## 1. Tabella Riepilogativa delle Fasi Eseguite (Fasi 1 – 19)
+## 1. Tabella Riepilogativa delle Fasi Eseguite (Fasi 1 – 21)
 
 | Fase | Titolo e Obiettivo | Tempo Stimato | Tempo Effettivo | Documento / Deliverable Prodotto | Stato |
 | :---: | :--- | :---: | :---: | :--- | :---: |
@@ -31,7 +31,8 @@
 | **Fase 18** | Definizione nel database dell’entità “esemplare” (l’entità per la gestione di un libro inserito dall’utente), del suo schema e delle sue operazioni CRUD | 2 h | 1 h | [`SVILUPPO-PROGRAMMA/fase-18.md`](file:///Users/nunziogiglio/Documents/Github/Repositories/Hermae_Nunzio_Giglio_0312200894/SVILUPPO-PROGRAMMA/fase-18.md) & [`hermae-frontend/libreria.html`](file:///Users/nunziogiglio/Documents/Github/Repositories/Hermae_Nunzio_Giglio_0312200894/hermae-frontend/libreria.html) | **Completata** |
 | **Fase 19** | Implementazione delle funzioni CRUD libri & Upload copertina | 2 h | 1 h 15 min | [`SVILUPPO-PROGRAMMA/fase-19.md`](file:///Users/nunziogiglio/Documents/Github/Repositories/Hermae_Nunzio_Giglio_0312200894/SVILUPPO-PROGRAMMA/fase-19.md) & [`hermae-frontend/libreria.html`](file:///Users/nunziogiglio/Documents/Github/Repositories/Hermae_Nunzio_Giglio_0312200894/hermae-frontend/libreria.html) | **Completata** |
 | **Fase 20** | Implementazione delle funzioni di occultamento della “libreria” e/o dei libri inseriti da un’utente ad altri utenti, per richiesta esplicita di tutela privacy | 2 h | 1 h | [`SVILUPPO-PROGRAMMA/fase-20.md`](file:///Users/nunziogiglio/Documents/Github/Repositories/Hermae_Nunzio_Giglio_0312200894/SVILUPPO-PROGRAMMA/fase-20.md) & [`hermae-frontend/libreria.html`](file:///Users/nunziogiglio/Documents/Github/Repositories/Hermae_Nunzio_Giglio_0312200894/hermae-frontend/libreria.html) | **Completata** |
-| **TOTALE** | **Avanzamento Fasi di Progettazione, Database, Backend e Front-end** | **37 h 30 min** | **18 h 55 min** | **23 Deliverable Consolidati** | **Fasi 1–20 Completate** |
+| **Fase 21** | Implementazione delle funzioni di ricerca di libri | 2 h | 1 h 15 min | [`SVILUPPO-PROGRAMMA/fase-21.md`](file:///Users/nunziogiglio/Documents/Github/Repositories/Hermae_Nunzio_Giglio_0312200894/SVILUPPO-PROGRAMMA/fase-21.md) & [`hermae-frontend/ricerca.html`](file:///Users/nunziogiglio/Documents/Github/Repositories/Hermae_Nunzio_Giglio_0312200894/hermae-frontend/ricerca.html) | **Completata** |
+| **TOTALE** | **Avanzamento Fasi di Progettazione, Database, Backend e Front-end** | **39 h 30 min** | **20 h 10 min** | **24 Deliverable Consolidati** | **Fasi 1–21 Completate** |
 
 ---
 
@@ -217,6 +218,10 @@
   Documenti di riferimento: [`SVILUPPO-PROGRAMMA/fase-20.md`](file:///Users/nunziogiglio/Documents/Github/Repositories/Hermae_Nunzio_Giglio_0312200894/SVILUPPO-PROGRAMMA/fase-20.md), [`server/test_fase20.js`](file:///Users/nunziogiglio/Documents/Github/Repositories/Hermae_Nunzio_Giglio_0312200894/server/test_fase20.js), [`INFO-DATABASE/schema.sql`](file:///Users/nunziogiglio/Documents/Github/Repositories/Hermae_Nunzio_Giglio_0312200894/INFO-DATABASE/schema.sql) e [`hermae-frontend/libreria.html`](file:///Users/nunziogiglio/Documents/Github/Repositories/Hermae_Nunzio_Giglio_0312200894/hermae-frontend/libreria.html).
 - **Difficoltà riscontrate:** Mantenere separata la vista ad uso personale da quella accessibile alla community senza duplicare la logica delle query.
 
+---
 
-
-
+### Fase 21 – Implementazione delle funzioni di ricerca di libri
+- **Tempo stimato:** 2 ore | **Tempo effettivo:** 1 ora e 15 minuti (1 h 15 min)
+- **Descrizione:** È stato realizzato il motore di ricerca integrato, capace di filtrare le opere per parole chiave (titolo, autore, genere), combinando i criteri di pertinenza testuale con filtri opzionali sulla prossimità geografica. Aggiungendo la possibilità inoltre di aprire il profilo di un utente dall’interno della mappa e di vedere i libri cercati direttamente sulla mappa. A livello di backend, il service layer (`esemplariService.js` e `esemplariController.js`) è stato potenziato combinando le query testuali su `titolo`, `autore`, `isbn` e tassonomia con il calcolo geodetico PostGIS (`earth_distance`, `ll_to_earth` ed `earth_box`), determinando la distanza chilometrica e la fascia territoriale nel rispetto della privacy e schermando rigorosamente volumi privati o librerie occultate (`mostra_libreria = false`). È stato inoltre implementato l'endpoint dedicato `GET /api/utenti/:id/profilo` per consultare in sicurezza il profilo pubblico di un lettore e il suo catalogo disponibile. Sul front-end, la pagina `ricerca.html` è stata trasformata in una stazione di ricerca avanzata: include una search bar debounced con selettori di categoria e sottogenere, switch di prossimità con slider da 1 a 50 km, visualizzazione dei pin libro sulla mappa Leaflet tematizzati per colore di categoria, popup ricchi con copertina WebP e pulsante diretto "Visualizza Profilo Lettore", griglia risultati e vista tabellare accessibile (WCAG 2.1 AA) e modale interattiva del profilo lettore con scaffale pubblico o avviso di tutela riservatezza.  
+  Documenti di riferimento: [`SVILUPPO-PROGRAMMA/fase-21.md`](file:///Users/nunziogiglio/Documents/Github/Repositories/Hermae_Nunzio_Giglio_0312200894/SVILUPPO-PROGRAMMA/fase-21.md), [`server/test_fase21.js`](file:///Users/nunziogiglio/Documents/Github/Repositories/Hermae_Nunzio_Giglio_0312200894/server/test_fase21.js) e [`hermae-frontend/ricerca.html`](file:///Users/nunziogiglio/Documents/Github/Repositories/Hermae_Nunzio_Giglio_0312200894/hermae-frontend/ricerca.html).
+- **Difficoltà riscontrate:** Non sono state riscontrate criticità bloccanti nell'integrazione combinata di filtri testuali e operatori spaziali PostGIS con Leaflet.

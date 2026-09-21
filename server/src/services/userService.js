@@ -284,10 +284,109 @@ const deleteUser = async (id) => {
   return res.rows[0];
 };
 
+// Recupera il profilo pubblico di un utente salvaguardando la riservatezza GDPR
+const getPublicUserProfile = async (id) => {
+  const userSql = `
+    SELECT 
+      u.id, 
+      u.nome, 
+      u.cognome, 
+      u.citta, 
+      u.data_registrazione,
+      p.indirizzo_approssimato,
+      p.coordinate_offuscate,
+      COALESCE(priv.mostra_libreria, TRUE) as mostra_libreria,
+      COALESCE(priv.mostra_posizione, TRUE) as mostra_posizione,
+      COALESCE(priv.modalita_occultamento, 'QUARTIERE') as modalita_occultamento
+    FROM utenti u
+    LEFT JOIN posizione_utenti p ON u.id = p.utente_id
+    LEFT JOIN preferenze_privacy_utenti priv ON u.id = priv.utente_id
+    WHERE u.id = $1;
+  `;
+  const userRes = await query(userSql, [id]);
+  if (userRes.rows.length === 0) {
+    const error = new Error(`Nessun lettore trovato con identificativo: ${id}`);
+    error.statusCode = 404;
+    error.code = 'USER_NOT_FOUND';
+    throw error;
+  }
+
+  const row = userRes.rows[0];
+
+  // Se la libreria è visibile, estrae i libri pubblici e disponibili dell'utente
+  let libriDisponibili = [];
+  let totaleLibri = 0;
+
+  if (row.mostra_libreria) {
+    const booksSql = `
+      SELECT 
+        e.id,
+        e.titolo,
+        e.autore,
+        e.editore,
+        e.anno_pubblicazione,
+        e.isbn,
+        e.sottogenere,
+        e.stato_conservazione,
+        e.stato_disponibilita,
+        e.immagine_copertina,
+        e.immagine_miniatura,
+        c.id as categoria_id,
+        c.nome as categoria_nome,
+        c.slug as categoria_slug,
+        c.icona as categoria_icona,
+        c.colore_hex as categoria_colore
+      FROM esemplari e
+      JOIN categorie c ON e.categoria_id = c.id
+      WHERE e.utente_id = $1
+        AND e.visibile_pubblico = TRUE
+        AND e.stato_disponibilita = 'DISPONIBILE'
+      ORDER BY e.data_creazione DESC;
+    `;
+    const booksRes = await query(booksSql, [id]);
+    libriDisponibili = booksRes.rows.map(b => ({
+      id: b.id,
+      titolo: b.titolo,
+      autore: b.autore,
+      editore: b.editore,
+      anno_pubblicazione: b.anno_pubblicazione ? parseInt(b.anno_pubblicazione, 10) : null,
+      isbn: b.isbn,
+      sottogenere: b.sottogenere,
+      stato_conservazione: b.stato_conservazione,
+      stato_disponibilita: b.stato_disponibilita,
+      immagine_copertina: b.immagine_copertina,
+      immagine_miniatura: b.immagine_miniatura,
+      categoria: {
+        id: b.categoria_id,
+        nome: b.categoria_nome,
+        slug: b.categoria_slug,
+        icona: b.categoria_icona || 'bi-book',
+        colore_hex: b.categoria_colore || '#1e40af'
+      }
+    }));
+    totaleLibri = libriDisponibili.length;
+  }
+
+  return {
+    id: row.id,
+    nome: row.nome,
+    cognome_iniziale: row.cognome ? `${row.cognome.charAt(0)}.` : '',
+    nome_completo: `${row.nome} ${row.cognome ? row.cognome.charAt(0) + '.' : ''}`,
+    citta: row.citta,
+    indirizzo_approssimato: row.mostra_posizione && row.modalita_occultamento !== 'TOTALE' ? row.indirizzo_approssimato : null,
+    data_registrazione: row.data_registrazione,
+    mostra_libreria: Boolean(row.mostra_libreria),
+    privacy_libreria_attiva: !row.mostra_libreria,
+    totale_libri: totaleLibri,
+    libri: libriDisponibili
+  };
+};
+
 // Esporta le funzioni del layer di servizio per la gestione dell'entità utenti
 module.exports = {
   createUser,
   getUserById,
+  getPublicUserProfile,
   getUserByEmail,
   getAllUsers,
   updateUser,

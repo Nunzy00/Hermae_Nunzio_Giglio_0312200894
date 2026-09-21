@@ -57,7 +57,8 @@ router.get('/db-status', async (req, res, next) => {
 // Monta il router delle operazioni di autenticazione e gestione sessione sul percorso /auth
 router.use('/auth', authRoutes);
 
-// Monta il router delle operazioni CRUD dell'entità utenti sul percorso /users
+// Monta il router delle operazioni CRUD dell'entità utenti sui percorsi /utenti e /users
+router.use('/utenti', userRoutes);
 router.use('/users', userRoutes);
 
 // Monta il router delle operazioni geospaziali e gestione posizione sul percorso /posizioni

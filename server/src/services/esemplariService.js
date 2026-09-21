@@ -39,6 +39,41 @@ const BASE_ESEMPLARI_SELECT = `
 // Formatta e tipizza un record restituito dal database relazionale
 const formatEsemplareRow = (row) => {
   if (!row) return null;
+
+  // Determinazione coordinate per mappa: predilige la coordinata offuscata del proprietario per tutela privacy
+  let coord = null;
+  if (row.proprietario_coord_offuscate && typeof row.proprietario_coord_offuscate.x !== 'undefined') {
+    coord = {
+      lng: row.proprietario_coord_offuscate.x,
+      lat: row.proprietario_coord_offuscate.y
+    };
+  } else if (row.coordinate_esemplare && typeof row.coordinate_esemplare.x !== 'undefined') {
+    coord = {
+      lng: row.coordinate_esemplare.x,
+      lat: row.coordinate_esemplare.y
+    };
+  }
+
+  // Calcolo distanza metrica e fascia di prossimità territoriale
+  let distMetri = null;
+  let distKm = null;
+  let fascia = null;
+  if (row.distanza_metri !== null && typeof row.distanza_metri !== 'undefined') {
+    distMetri = parseFloat(row.distanza_metri);
+    distKm = parseFloat((distMetri / 1000).toFixed(2));
+    if (row.proprietario_modalita_occultamento === 'AREA_CAP') {
+      fascia = 'Area/CAP (~2 km)';
+    } else if (distKm > 25) {
+      fascia = 'Area Provinciale';
+    } else if (distKm > 10) {
+      fascia = 'Area Metropolitana';
+    } else if (distKm > 2) {
+      fascia = 'Stessa Città';
+    } else {
+      fascia = 'Stesso Quartiere';
+    }
+  }
+
   return {
     id: row.id,
     utente_id: row.utente_id,
@@ -62,16 +97,18 @@ const formatEsemplareRow = (row) => {
     immagine_copertina: row.immagine_copertina || null,
     immagine_miniatura: row.immagine_miniatura || null,
     visibile_pubblico: row.visibile_pubblico !== false,
-    coordinate: row.coordinate_esemplare ? {
-      lng: typeof row.coordinate_esemplare.x !== 'undefined' ? row.coordinate_esemplare.x : null,
-      lat: typeof row.coordinate_esemplare.y !== 'undefined' ? row.coordinate_esemplare.y : null
-    } : null,
+    coordinate: coord,
+    distanza_metri: distMetri,
+    distanza_km: distKm,
+    fascia_prossimita: fascia,
     data_creazione: row.data_creazione,
     proprietario: row.proprietario_nome ? {
       id: row.utente_id,
       nome: row.proprietario_nome,
       cognome: row.proprietario_cognome,
-      citta: row.proprietario_citta || null
+      cognome_iniziale: row.proprietario_cognome ? row.proprietario_cognome.charAt(0) + '.' : '',
+      citta: row.proprietario_citta || null,
+      indirizzo_approssimato: row.proprietario_indirizzo_approssimato || null
     } : undefined
   };
 };
@@ -685,15 +722,56 @@ const removeBookCover = async (id, utenteId) => {
 
 /**
  * Ricerca catalogo esemplari disponibili nella piattaforma per la community
- * (Filtro difensivo di privacy: esclude automaticamente libri privati e intere librerie occultate)
+ * Combina criteri di pertinenza testuale con filtri opzionali sulla prossimità geografica (PostGIS / earthdistance)
+ * (Filtro difensivo di privacy: esclude rigorosamente libri privati e intere librerie occultate)
  */
 const searchEsemplari = async (filters = {}) => {
+  const params = [];
+  let paramIdx = 1;
+
+  // Verifica presenza di coordinate valide per la ricerca geospaziale di prossimità
+  const hasLat = typeof filters.lat !== 'undefined' && filters.lat !== null && !isNaN(parseFloat(filters.lat));
+  const hasLng = typeof filters.lng !== 'undefined' && filters.lng !== null && !isNaN(parseFloat(filters.lng));
+  const hasCoords = hasLat && hasLng;
+
+  let latParamIndex = null;
+  let lngParamIndex = null;
+
+  let distanceSelect = 'NULL::numeric as distanza_metri';
+
+  if (hasCoords) {
+    const latVal = parseFloat(filters.lat);
+    const lngVal = parseFloat(filters.lng);
+    params.push(latVal);
+    latParamIndex = paramIdx++;
+    params.push(lngVal);
+    lngParamIndex = paramIdx++;
+
+    distanceSelect = `
+      CASE 
+        WHEN (COALESCE(p.coordinate_offuscate, e.coordinate_esemplare)) IS NOT NULL THEN
+          round((earth_distance(
+            ll_to_earth($${latParamIndex}, $${lngParamIndex}), 
+            ll_to_earth(
+              (COALESCE(p.coordinate_offuscate, e.coordinate_esemplare))[1], 
+              (COALESCE(p.coordinate_offuscate, e.coordinate_esemplare))[0]
+            )
+          ))::numeric, 1)
+        ELSE NULL
+      END as distanza_metri
+    `;
+  }
+
   let query = `
     SELECT 
       ${BASE_ESEMPLARI_SELECT},
       u.nome as proprietario_nome,
       u.cognome as proprietario_cognome,
-      p.citta as proprietario_citta
+      p.citta as proprietario_citta,
+      p.indirizzo_approssimato as proprietario_indirizzo_approssimato,
+      p.coordinate_offuscate as proprietario_coord_offuscate,
+      COALESCE(priv.modalita_occultamento, 'QUARTIERE') as proprietario_modalita_occultamento,
+      ${distanceSelect}
     FROM esemplari e
     JOIN categorie c ON e.categoria_id = c.id
     JOIN utenti u ON e.utente_id = u.id
@@ -702,13 +780,13 @@ const searchEsemplari = async (filters = {}) => {
     WHERE (priv.mostra_libreria IS NULL OR priv.mostra_libreria = TRUE)
       AND e.visibile_pubblico = TRUE
   `;
-  const params = [];
-  let paramIdx = 1;
 
   if (filters.stato_disponibilita) {
-    query += ` AND e.stato_disponibilita = $${paramIdx}`;
-    params.push(filters.stato_disponibilita);
-    paramIdx++;
+    if (filters.stato_disponibilita !== 'TUTTI') {
+      query += ` AND e.stato_disponibilita = $${paramIdx}`;
+      params.push(filters.stato_disponibilita);
+      paramIdx++;
+    }
   } else {
     // Di default mostra solo quelli disponibili allo scambio
     query += ` AND e.stato_disponibilita = 'DISPONIBILE'`;
@@ -721,10 +799,17 @@ const searchEsemplari = async (filters = {}) => {
     paramIdx++;
   }
 
+  // Filtro categoria: accetta sia UUID che slug
   if (filters.categoria_id) {
-    query += ` AND e.categoria_id = $${paramIdx}`;
-    params.push(filters.categoria_id);
-    paramIdx++;
+    if (isValidUUID(filters.categoria_id)) {
+      query += ` AND e.categoria_id = $${paramIdx}`;
+      params.push(filters.categoria_id);
+      paramIdx++;
+    } else {
+      query += ` AND (c.slug = $${paramIdx} OR LOWER(c.nome) = LOWER($${paramIdx}))`;
+      params.push(filters.categoria_id.trim());
+      paramIdx++;
+    }
   }
 
   if (filters.sottogenere && filters.sottogenere.trim()) {
@@ -733,19 +818,58 @@ const searchEsemplari = async (filters = {}) => {
     paramIdx++;
   }
 
+  // Filtro di ricerca testuale combinata (titolo, autore, sottogenere, isbn, editore)
   if (filters.search && filters.search.trim()) {
     query += ` AND (
       LOWER(e.titolo) LIKE LOWER($${paramIdx}) OR 
       LOWER(e.autore) LIKE LOWER($${paramIdx}) OR 
       LOWER(COALESCE(e.sottogenere, '')) LIKE LOWER($${paramIdx}) OR
-      LOWER(COALESCE(e.isbn, '')) LIKE LOWER($${paramIdx})
+      LOWER(COALESCE(e.isbn, '')) LIKE LOWER($${paramIdx}) OR
+      LOWER(COALESCE(e.editore, '')) LIKE LOWER($${paramIdx})
     )`;
     params.push(`%${filters.search.trim()}%`);
     paramIdx++;
   }
 
+  // Filtro spaziale per raggio chilometrico (se fornite coordinate e raggio)
+  if (hasCoords && filters.raggio_km && !isNaN(parseFloat(filters.raggio_km))) {
+    const raggioKm = parseFloat(filters.raggio_km);
+    const radiusMeters = raggioKm * 1000;
+    params.push(radiusMeters);
+    const radiusParamIdx = paramIdx++;
+
+    query += `
+      AND (COALESCE(p.coordinate_offuscate, e.coordinate_esemplare)) IS NOT NULL
+      AND earth_box(ll_to_earth($${latParamIndex}, $${lngParamIndex}), $${radiusParamIdx}) @> 
+          ll_to_earth(
+            (COALESCE(p.coordinate_offuscate, e.coordinate_esemplare))[1], 
+            (COALESCE(p.coordinate_offuscate, e.coordinate_esemplare))[0]
+          )
+      AND earth_distance(
+            ll_to_earth($${latParamIndex}, $${lngParamIndex}), 
+            ll_to_earth(
+              (COALESCE(p.coordinate_offuscate, e.coordinate_esemplare))[1], 
+              (COALESCE(p.coordinate_offuscate, e.coordinate_esemplare))[0]
+            )
+          ) <= $${radiusParamIdx}
+    `;
+  }
+
+  // Ordinamento dei risultati
+  const ordinaPer = (filters.ordina_per || (hasCoords ? 'distanza' : 'data')).toLowerCase();
+  if (ordinaPer === 'distanza' && hasCoords) {
+    query += ` ORDER BY distanza_metri ASC NULLS LAST, e.data_creazione DESC`;
+  } else if (ordinaPer === 'titolo') {
+    query += ` ORDER BY e.titolo ASC, e.data_creazione DESC`;
+  } else if (ordinaPer === 'autore') {
+    query += ` ORDER BY e.autore ASC, e.data_creazione DESC`;
+  } else {
+    // Default: più recenti
+    query += ` ORDER BY e.data_creazione DESC`;
+  }
+
   const limit = filters.limit ? parseInt(filters.limit, 10) : 50;
-  query += ` ORDER BY e.data_creazione DESC LIMIT ${limit};`;
+  query += ` LIMIT ${limit};`;
 
   const result = await db.query(query, params);
   return result.rows.map(formatEsemplareRow);

@@ -14,6 +14,9 @@ router.get('/', userController.getAllUsers);
 // Rotta per il recupero del singolo profilo utente tramite UUID (Read One)
 router.get('/:id', userController.getUserById);
 
+// Rotta per la consultazione del profilo pubblico di un lettore con i suoi libri disponibili (Read Public Profile)
+router.get('/:id/profilo', userController.getPublicProfile);
+
 // Rotta per l'aggiornamento parziale o totale dei dati utente tramite UUID (Update)
 router.put('/:id', userController.updateUser);
 

@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Mappa & Ricerca Geospaziale — Hermae</title>
-  <meta name="description" content="Mappa geospaziale interattiva per la ricerca di volumi e lettori di prossimità con rispetto della privacy e conformità WCAG 2.1 AA." />
+  <title>Mappa & Ricerca Geospaziale Libri — Hermae</title>
+  <meta name="description" content="Motore di ricerca integrato e mappa geospaziale interattiva per scoprire libri e lettori di prossimità con rispetto della privacy e conformità WCAG 2.1 AA." />
 
   <!-- CSS Framework Bootstrap 5.3 & Bootstrap Icons -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" />
@@ -12,6 +12,9 @@
 
   <!-- Leaflet 1.9.4 CSS per la resa cartografica interattiva OSM -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+  <!-- Leaflet.markercluster 1.5.3 CSS per raggruppamento dinamico cluster pin con conteggio -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" />
 
   <!-- Tipografia Inter da Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -22,12 +25,78 @@
   <link rel="stylesheet" href="assets/css/main.css" />
 
   <style>
-    /* Altezza fissa e stile di contenimento per la mappa cartografica Leaflet */
+    /* Altezza fissa e contenimento per la mappa Leaflet */
     #map {
-      height: 540px;
+      height: 520px;
       width: 100%;
       border-radius: var(--radius-md);
       z-index: 1;
+    }
+
+    /* Contenitori icone Leaflet trasparenti senza bordi default */
+    .hermae-cluster-icon-wrapper,
+    .custom-book-pin-container,
+    .user-center-icon {
+      background: transparent !important;
+      border: none !important;
+    }
+
+    /* Pin dinamico a grappolo (Cluster) con conteggio dei volumi all'interno */
+    .hermae-cluster-pin {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      color: #ffffff;
+      font-weight: 800;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      border: 2.5px solid #ffffff;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35);
+      cursor: pointer;
+      user-select: none;
+      transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s ease;
+      position: relative;
+    }
+    .hermae-cluster-pin:hover {
+      transform: scale(1.18);
+      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.45);
+      z-index: 1000 !important;
+    }
+    .hermae-cluster-pin .cluster-count {
+      line-height: 1;
+      letter-spacing: -0.5px;
+    }
+    .hermae-cluster-pin.cluster-sm {
+      width: 36px;
+      height: 36px;
+      background: linear-gradient(135deg, #1e40af, #3b82f6);
+    }
+    .hermae-cluster-pin.cluster-sm .cluster-count {
+      font-size: 14px;
+    }
+    .hermae-cluster-pin.cluster-md {
+      width: 42px;
+      height: 42px;
+      background: linear-gradient(135deg, #d97706, #f59e0b);
+    }
+    .hermae-cluster-pin.cluster-md .cluster-count {
+      font-size: 15px;
+    }
+    .hermae-cluster-pin.cluster-lg {
+      width: 48px;
+      height: 48px;
+      background: linear-gradient(135deg, #b91c1c, #ef4444);
+    }
+    .hermae-cluster-pin.cluster-lg .cluster-count {
+      font-size: 17px;
+    }
+
+    /* Gambe a raggiera (Spiderfy) personalizzate nel colore del brand Hermae */
+    .leaflet-cluster-spider-leg {
+      stroke: #1e40af !important;
+      stroke-width: 2 !important;
+      stroke-opacity: 0.8 !important;
     }
 
     /* Stile personalizzato per i popup informativi Leaflet */
@@ -35,6 +104,12 @@
       border-radius: var(--radius-md);
       box-shadow: var(--shadow-md);
       font-family: 'Inter', sans-serif;
+      padding: 0;
+      overflow: hidden;
+    }
+    .leaflet-popup-content {
+      margin: 0;
+      line-height: 1.4;
     }
 
     /* Badge indicatore di distanza nei popup */
@@ -42,6 +117,98 @@
       font-size: 0.75rem;
       padding: 0.2rem 0.5rem;
       border-radius: 999px;
+    }
+
+    /* Pin dinamico sulla mappa per i libri trovati */
+    .book-map-pin {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      color: #ffffff;
+      border: 2px solid #ffffff;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.35);
+      cursor: pointer;
+      transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    .book-map-pin:hover {
+      transform: scale(1.22);
+      z-index: 1000 !important;
+    }
+
+    /* Card risultato libro nella griglia */
+    .book-result-card {
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+      border-radius: var(--radius-md);
+      border: 1px solid rgba(0,0,0,0.08);
+      background-color: #ffffff;
+      height: 100%;
+    }
+    .book-result-card:hover {
+      transform: translateY(-3px);
+      box-shadow: var(--shadow-md) !important;
+    }
+
+    /* Copertina libro nella griglia */
+    .book-grid-cover {
+      width: 90px;
+      height: 130px;
+      object-fit: cover;
+      border-radius: 6px;
+      box-shadow: 0 3px 8px rgba(0,0,0,0.16);
+      flex-shrink: 0;
+    }
+    .book-grid-cover-fallback {
+      width: 90px;
+      height: 130px;
+      border-radius: 6px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      color: #ffffff;
+      box-shadow: 0 3px 8px rgba(0,0,0,0.16);
+      flex-shrink: 0;
+      text-align: center;
+      padding: 0.5rem;
+    }
+
+    /* Avatar del lettore nella modale profilo */
+    .profile-avatar-circle {
+      width: 70px;
+      height: 70px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #1e40af, #3b82f6);
+      color: #ffffff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.6rem;
+      font-weight: 700;
+      box-shadow: 0 4px 12px rgba(30, 64, 175, 0.35);
+      flex-shrink: 0;
+    }
+
+    /* Miniatura libro nella modale del profilo */
+    .profile-shelf-cover {
+      width: 70px;
+      height: 100px;
+      object-fit: cover;
+      border-radius: 4px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+      flex-shrink: 0;
+    }
+    .profile-shelf-cover-fallback {
+      width: 70px;
+      height: 100px;
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #ffffff;
+      font-size: 1.4rem;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+      flex-shrink: 0;
     }
   </style>
 </head>
@@ -61,16 +228,16 @@
         <nav aria-label="Percorso di navigazione">
           <ol class="breadcrumb mb-2">
             <li class="breadcrumb-item"><a href="dashboard.html" class="text-decoration-none">Dashboard</a></li>
-            <li class="breadcrumb-item active" aria-current="page">Mappa & Ricerca</li>
+            <li class="breadcrumb-item active" aria-current="page">Mappa & Ricerca Libri</li>
           </ol>
         </nav>
         <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
           <div>
             <h1 class="h3 fw-bold text-dark mb-1">
-              <i class="bi bi-compass text-primary me-2" aria-hidden="true"></i>Mappa Geospaziale di Prossimità
+              <i class="bi bi-compass text-primary me-2" aria-hidden="true"></i>Mappa & Ricerca Geospaziale Libri
             </h1>
             <p class="text-muted mb-0 small">
-              Individua lettori e volumi condivisi nelle tue vicinanze. La privacy domiciliare è tutelata da un raggio di confidenzialità di 300–500m.
+              Esplora i volumi disponibili e i lettori di prossimità. Puoi filtrare per parole chiave, categorie tematiche o distanza, e aprire i profili dei lettori direttamente dalla mappa.
             </p>
           </div>
           <!-- Toggle tra Vista Mappa e Vista Tabellare Accessibile -->
@@ -82,7 +249,7 @@
               @click="viewMode = 'map'"
               :aria-pressed="viewMode === 'map'"
             >
-              <i class="bi bi-map me-1" aria-hidden="true"></i>Vista Mappa
+              <i class="bi bi-map me-1" aria-hidden="true"></i>Vista Mappa & Risultati
             </button>
             <button
               type="button"
@@ -97,15 +264,13 @@
         </div>
       </div>
 
-      <!-- Barra dei Controlli Territoriali e Filtro Raggio (Layout Compatto) -->
-      <section class="card-hermae p-3 bg-white border-0 shadow-sm mb-4" aria-label="Controlli di geolocalizzazione e raggio">
-        
-        <!-- RIGA 1: Bottoni tutti in una riga orizzontale con riferimenti geografici -->
-        <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 pb-3 mb-3 border-bottom">
-          <!-- Tutti i bottoni di controllo allineati -->
+      <!-- CARD 1: Barra dei Controlli Territoriali e Punto di Riferimento -->
+      <section class="card-hermae p-3 bg-white border-0 shadow-sm mb-3" aria-label="Controlli di geolocalizzazione">
+        <div class="d-flex flex-wrap align-items-center justify-content-between gap-2">
+          <!-- Bottoni di controllo allineati -->
           <div class="d-flex align-items-center gap-2 flex-wrap">
             <span class="fw-semibold small text-muted text-uppercase me-1 d-none d-sm-inline">
-              <i class="bi bi-geo-alt-fill text-primary me-1" aria-hidden="true"></i>Punto di Riferimento:
+              <i class="bi bi-geo-alt-fill text-primary me-1" aria-hidden="true"></i>Tua Posizione:
             </span>
             <button
               type="button"
@@ -143,139 +308,601 @@
             <geo-accuracy-badge :accuracy="gpsAccuracy"></geo-accuracy-badge>
           </div>
 
-          <!-- Coordinate del centro e indicazione per lo spostamento -->
+          <!-- Coordinate del centro e indicazione interattiva -->
           <div class="d-flex align-items-center gap-2 small text-muted">
-            <span><strong>Centro:</strong> <span class="text-dark fw-semibold">{{ currentCity }}</span> ({{ formattedCenter }})</span>
+            <span><strong>Centro Ricerca:</strong> <span class="text-dark fw-semibold">{{ currentCity }}</span> ({{ formattedCenter }})</span>
             <span v-if="isPosizioneModificata" class="badge bg-warning text-dark">Modificata</span>
             <span class="text-secondary d-none d-xl-inline ms-1" style="font-size: 0.75rem;">
-              &bull; <i class="bi bi-cursor-fill text-primary me-1"></i>Trascina il pin o clicca sulla mappa per spostare
+              &bull; <i class="bi bi-cursor-fill text-primary me-1"></i>Trascina il pin o clicca sulla mappa per spostare il centro
             </span>
           </div>
         </div>
+      </section>
 
-        <!-- RIGA 2: Slider Raggio di ricerca a sinistra con accanto il dato 'Lettori nel Raggio' a destra -->
-        <div class="row g-3 align-items-center">
-          <!-- Slider Interattivo del Raggio di Ricerca (1 - 50 km) -->
-          <div class="col-md-8 col-lg-9">
-            <div class="d-flex justify-content-between align-items-center mb-1">
-              <label for="raggioSlider" class="form-label fw-semibold small text-muted text-uppercase mb-0">
-                <i class="bi bi-radar text-primary me-1" aria-hidden="true"></i>Raggio di Ricerca di Prossimità:
-              </label>
-              <span class="badge bg-primary fs-6 px-2 py-1">{{ raggioKm }} km</span>
-            </div>
-            <input
-              type="range"
-              class="form-range"
-              id="raggioSlider"
-              min="1"
-              max="50"
-              step="1"
-              v-model.number="raggioKm"
-              @input="onRaggioChange"
-            />
-            <div class="d-flex justify-content-between text-muted" style="font-size: 0.75rem;">
-              <span>1 km (Quartiere)</span>
-              <span>25 km (Area Metropolitana)</span>
-              <span>50 km (Provincia)</span>
+      <!-- CARD 2: Motore di Ricerca Integrato & Filtri Avanzati Libri -->
+      <section class="card-hermae p-3 bg-white border-0 shadow-sm mb-4" aria-label="Motore di ricerca libri e filtri">
+        <!-- RIGA 1: Search Bar Full-Text + Categoria + Sottogenere -->
+        <div class="row g-2 align-items-center mb-3">
+          <!-- Campo Testuale Combinato (Titolo, Autore, Genere, ISBN) -->
+          <div class="col-12 col-md-5 col-lg-5">
+            <label for="searchBarInput" class="visually-hidden">Cerca per titolo, autore, genere o ISBN</label>
+            <div class="input-group">
+              <span class="input-group-text bg-light border-end-0 text-muted">
+                <i class="bi bi-search" aria-hidden="true"></i>
+              </span>
+              <input
+                id="searchBarInput"
+                type="text"
+                class="form-control border-start-0 ps-0"
+                placeholder="Cerca per titolo, autore, genere, ISBN..."
+                v-model="searchQuery"
+                @input="onSearchChange"
+              />
+              <button
+                v-if="searchQuery"
+                class="btn btn-outline-secondary border-start-0"
+                type="button"
+                @click="searchQuery = ''; onSearchChange()"
+                aria-label="Cancella testo di ricerca"
+              >
+                <i class="bi bi-x-lg"></i>
+              </button>
             </div>
           </div>
 
-          <!-- Dato 'Lettori nel Raggio' compatto posizionato esattamente accanto allo slider -->
+          <!-- Selettore Macro-Categoria Disciplinare -->
+          <div class="col-6 col-md-4 col-lg-3">
+            <label for="categorySelect" class="visually-hidden">Filtra per Categoria</label>
+            <select
+              id="categorySelect"
+              class="form-select"
+              v-model="selectedCategoria"
+              @change="onCategoriaChange"
+            >
+              <option value="">Tutte le Categorie (10)</option>
+              <option v-for="cat in categorieList" :key="cat.id" :value="cat.id">
+                {{ cat.nome }} ({{ cat.totale_esemplari }})
+              </option>
+            </select>
+          </div>
+
+          <!-- Selettore Sottogenere Tematico -->
+          <div class="col-6 col-md-3 col-lg-2">
+            <label for="subgenreSelect" class="visually-hidden">Filtra per Sottogenere</label>
+            <select
+              id="subgenreSelect"
+              class="form-select"
+              v-model="selectedSottogenere"
+              @change="onSearchChange"
+              :disabled="sottogeneriDisponibili.length === 0"
+            >
+              <option value="">Tutti i Sottogeneri</option>
+              <option v-for="sub in sottogeneriDisponibili" :key="sub" :value="sub">
+                {{ sub }}
+              </option>
+            </select>
+          </div>
+
+          <!-- Ordinamento Risultati -->
+          <div class="col-12 col-lg-2">
+            <label for="orderSelect" class="visually-hidden">Ordina risultati per</label>
+            <select
+              id="orderSelect"
+              class="form-select"
+              v-model="ordinaPer"
+              @change="onSearchChange"
+            >
+              <option value="distanza" :disabled="!filtraPerProssimita">📍 Più Vicini (Distanza)</option>
+              <option value="data">🕒 Più Recenti</option>
+              <option value="titolo">🔤 Titolo (A-Z)</option>
+              <option value="autore">✍️ Autore (A-Z)</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- RIGA 2: Slider Raggio Prossimità con Switch Attivazione e Contatore Risultati -->
+        <div class="row g-3 align-items-center pt-2 border-top">
+          <!-- Toggle Prossimità + Slider Raggio -->
+          <div class="col-md-8 col-lg-9">
+            <div class="d-flex flex-wrap justify-content-between align-items-center mb-1">
+              <div class="form-check form-switch mb-0">
+                <input
+                  class="form-check-input"
+                  type="checkbox"
+                  role="switch"
+                  id="switchProssimita"
+                  v-model="filtraPerProssimita"
+                  @change="onProssimitaToggle"
+                />
+                <label class="form-check-label fw-semibold small text-muted text-uppercase" for="switchProssimita">
+                  <i class="bi bi-radar text-primary me-1" aria-hidden="true"></i>Filtra per Prossimità Geografica
+                </label>
+              </div>
+              <span v-if="filtraPerProssimita" class="badge bg-primary fs-6 px-2 py-1">
+                entro {{ raggioKm }} km da te
+              </span>
+              <span v-else class="badge bg-secondary-subtle text-secondary border fs-6 px-2 py-1">
+                🌐 Raggio disattivato (Tutta Italia)
+              </span>
+            </div>
+
+            <div v-if="filtraPerProssimita">
+              <input
+                type="range"
+                class="form-range"
+                id="raggioSlider"
+                min="1"
+                max="50"
+                step="1"
+                v-model.number="raggioKm"
+                @input="onRaggioChange"
+              />
+              <div class="d-flex justify-content-between text-muted" style="font-size: 0.72rem;">
+                <span>1 km (Quartiere)</span>
+                <span>10 km (Città)</span>
+                <span>25 km (Area Metropolitana)</span>
+                <span>50 km (Provincia)</span>
+              </div>
+            </div>
+            <div v-else class="small text-muted py-1">
+              <i class="bi bi-globe me-1"></i>La ricerca mostra tutti i libri disponibili a livello nazionale senza limitazioni chilometriche.
+            </div>
+          </div>
+
+          <!-- Contatore Volumi Trovati Compatto -->
           <div class="col-md-4 col-lg-3">
             <div class="p-2 px-3 bg-light rounded-3 d-flex align-items-center justify-content-between border">
               <div>
-                <div class="small fw-semibold text-muted text-uppercase" style="font-size: 0.72rem;">Lettori nel Raggio:</div>
-                <div class="text-muted" style="font-size: 0.75rem;">entro <strong>{{ raggioKm }} km</strong> da te</div>
+                <div class="small fw-semibold text-muted text-uppercase" style="font-size: 0.72rem;">Libri Trovati:</div>
+                <div class="text-muted" style="font-size: 0.75rem;">
+                  <span v-if="filtraPerProssimita">nel raggio di <strong>{{ raggioKm }} km</strong></span>
+                  <span v-else>catalogo community</span>
+                </div>
               </div>
               <div class="fs-3 fw-bold text-primary lh-1">
-                {{ risultatiProssimita.length }}
+                {{ libriTrovati.length }}
               </div>
             </div>
           </div>
         </div>
-      </section>
 
-      <!-- VISTA 1: Mappa Interattiva Cartografica Leaflet (Default) -->
-      <section v-show="viewMode === 'map'" class="card-hermae p-3 bg-white border-0 shadow-sm mb-4" aria-label="Mappa geospaziale interattiva">
-        <div id="map" role="region" aria-label="Mappa cartografica Leaflet con lettori di prossimità"></div>
-        <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mt-3 px-2 small text-muted">
-          <div>
-            <i class="bi bi-info-circle text-primary me-1" aria-hidden="true"></i>
-            Il cerchio blu evidenzia l'area di copertura di <strong>{{ raggioKm }} km</strong>. I pin verdi rappresentano la posizione offuscata dei lettori disponibili.
-          </div>
-          <div>
-            <span class="badge bg-primary me-1">&bull; Tuo Centro</span>
-            <span class="badge bg-success me-1">&bull; Lettori Rilevati</span>
-          </div>
+        <!-- RIGA 3: Chips Filtri Attivi e Reset Rapido -->
+        <div v-if="haFiltriAttivi" class="d-flex align-items-center gap-2 flex-wrap mt-3 pt-2 border-top">
+          <span class="small fw-semibold text-muted text-uppercase me-1" style="font-size: 0.72rem;">Filtri attivi:</span>
+          
+          <span v-if="searchQuery" class="badge bg-light text-dark border d-inline-flex align-items-center gap-1">
+            <i class="bi bi-search text-primary"></i> "{{ searchQuery }}"
+            <i class="bi bi-x-circle text-danger ms-1" style="cursor: pointer;" @click="searchQuery = ''; onSearchChange()"></i>
+          </span>
+
+          <span v-if="selectedCategoriaNome" class="badge bg-primary-subtle text-primary border border-primary-subtle d-inline-flex align-items-center gap-1">
+            <i class="bi bi-tag-fill"></i> {{ selectedCategoriaNome }}
+            <i class="bi bi-x-circle text-danger ms-1" style="cursor: pointer;" @click="selectedCategoria = ''; onCategoriaChange()"></i>
+          </span>
+
+          <span v-if="selectedSottogenere" class="badge bg-secondary-subtle text-secondary border d-inline-flex align-items-center gap-1">
+            {{ selectedSottogenere }}
+            <i class="bi bi-x-circle text-danger ms-1" style="cursor: pointer;" @click="selectedSottogenere = ''; onSearchChange()"></i>
+          </span>
+
+          <button
+            type="button"
+            class="btn btn-link btn-sm text-danger text-decoration-none p-0 ms-auto"
+            @click="azzeraFiltri"
+          >
+            <i class="bi bi-arrow-counterclockwise me-1"></i>Azzera tutti i filtri
+          </button>
         </div>
       </section>
+
+      <!-- VISTA 1: Mappa Interattiva Cartografica Leaflet + Griglia Risultati -->
+      <div v-show="viewMode === 'map'">
+        <!-- MAPPA LEAFLET -->
+        <section class="card-hermae p-3 bg-white border-0 shadow-sm mb-4" aria-label="Mappa geospaziale interattiva dei libri">
+          <div class="d-flex justify-content-between align-items-center mb-2 px-1">
+            <div class="small fw-semibold text-muted text-uppercase">
+              <i class="bi bi-map-fill text-primary me-1"></i>Distribuzione Geografica Opere ({{ libriTrovati.length }} volumi su mappa)
+            </div>
+            <div class="small text-muted">
+              <i class="bi bi-info-circle me-1"></i>Clicca su un cluster per espandere i libri o su un pin per i dettagli
+            </div>
+          </div>
+
+          <div id="map" role="region" aria-label="Mappa cartografica Leaflet con volumi disponibili"></div>
+
+          <!-- Legenda Mappa -->
+          <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mt-3 px-2 small text-muted">
+            <div>
+              <i class="bi bi-shield-check text-success me-1" aria-hidden="true"></i>
+              La posizione dei libri è offuscata nel rispetto della privacy del lettore (300–500m).
+            </div>
+            <div class="d-flex align-items-center gap-2 flex-wrap">
+              <span class="badge bg-primary">&bull; Tuo Centro</span>
+              <span class="badge bg-success">&bull; Singolo Libro</span>
+              <span class="badge" style="background: linear-gradient(135deg, #1e40af, #3b82f6); color: #ffffff;">&bull; Più Libri (N)</span>
+              <span v-if="filtraPerProssimita" class="badge bg-info-subtle text-info border">&bull; Raggio {{ raggioKm }} km</span>
+            </div>
+          </div>
+        </section>
+
+        <!-- GRIGLIA RISULTATI LIBRI TROVATI -->
+        <section class="card-hermae p-4 bg-white border-0 shadow-sm mb-4" aria-label="Elenco delle opere trovate">
+          <div class="d-flex flex-wrap justify-content-between align-items-center mb-3 pb-2 border-bottom">
+            <div>
+              <h2 class="h5 fw-bold text-dark mb-0">
+                <i class="bi bi-bookshelf text-primary me-2" aria-hidden="true"></i>Opere Culturali Disponibili
+              </h2>
+              <span class="text-muted small">
+                {{ libriTrovati.length }} volumi trovati in base ai criteri correnti
+              </span>
+            </div>
+            <div class="small text-muted">
+              <span v-if="filtraPerProssimita">Ordinati per distanza crescente dal tuo centro</span>
+              <span v-else>Visualizzazione catalogo aperto</span>
+            </div>
+          </div>
+
+          <!-- Stato Vuoto (Nessun Libro Trovato) -->
+          <div v-if="libriTrovati.length === 0 && !loading" class="alert alert-info d-flex align-items-center py-4" role="status">
+            <i class="bi bi-info-circle-fill fs-2 me-3 text-info"></i>
+            <div>
+              <h3 class="h6 fw-bold mb-1">Nessun volume trovato per i criteri selezionati</h3>
+              <p class="mb-0 small">
+                Prova ad ampliare il raggio di prossimità tramite lo slider, a disattivare il filtro territoriale per cercare in tutta Italia, o a modificare i termini di ricerca.
+              </p>
+              <button class="btn btn-outline-primary btn-sm mt-2" @click="azzeraFiltri">
+                <i class="bi bi-arrow-counterclockwise me-1"></i>Reimposta filtri
+              </button>
+            </div>
+          </div>
+
+          <!-- Griglia Risultati Libri (Cards) -->
+          <div v-else class="row g-3">
+            <div v-for="libro in libriTrovati" :key="libro.id" class="col-12 col-md-6 col-xl-4">
+              <div class="book-result-card p-3 d-flex flex-column justify-content-between shadow-sm">
+                <div>
+                  <div class="d-flex gap-3">
+                    <!-- Copertina o Mockup Colorato -->
+                    <img
+                      v-if="libro.immagine_miniatura || libro.immagine_copertina"
+                      :src="libro.immagine_miniatura || libro.immagine_copertina"
+                      :alt="'Copertina di ' + libro.titolo"
+                      class="book-grid-cover"
+                      loading="lazy"
+                    />
+                    <div
+                      v-else
+                      class="book-grid-cover-fallback"
+                      :style="{ backgroundColor: libro.categoria_colore || '#1e40af' }"
+                    >
+                      <i :class="'bi ' + (libro.categoria_icona || 'bi-book') + ' fs-2 mb-1'" aria-hidden="true"></i>
+                      <div class="fw-bold text-uppercase" style="font-size: 0.65rem; line-height: 1.1;">
+                        {{ libro.categoria_nome ? libro.categoria_nome.substring(0, 15) : 'HERMAE' }}
+                      </div>
+                    </div>
+
+                    <!-- Dettagli Bibliografici -->
+                    <div class="flex-grow-1" style="min-width: 0;">
+                      <div class="d-flex align-items-center gap-1 mb-1">
+                        <span
+                          class="badge text-truncate"
+                          :style="{ backgroundColor: (libro.categoria_colore || '#1e40af') + '20', color: libro.categoria_colore || '#1e40af' }"
+                          style="font-size: 0.72rem; max-width: 140px;"
+                        >
+                          <i :class="'bi ' + (libro.categoria_icona || 'bi-bookmark-fill') + ' me-1'"></i>
+                          {{ libro.categoria_nome }}
+                        </span>
+                        <span class="badge bg-light text-dark border ms-auto" style="font-size: 0.68rem;">
+                          {{ libro.stato_conservazione }}
+                        </span>
+                      </div>
+
+                      <h3 class="h6 fw-bold text-dark mb-1 text-truncate" :title="libro.titolo">
+                        {{ libro.titolo }}
+                      </h3>
+                      <div class="text-muted small mb-2 text-truncate" :title="libro.autore">
+                        <i class="bi bi-pen me-1"></i>{{ libro.autore }}
+                      </div>
+
+                      <!-- Distanza e Prossimità -->
+                      <div class="d-flex align-items-center gap-1 small mb-2">
+                        <template v-if="libro.distanza_km !== null && libro.distanza_km !== undefined">
+                          <span class="badge bg-primary distance-pill">
+                            <i class="bi bi-geo-alt-fill me-1"></i>{{ libro.distanza_km }} km
+                          </span>
+                          <span class="text-muted" style="font-size: 0.72rem;">{{ libro.fascia_prossimita }}</span>
+                        </template>
+                        <template v-else>
+                          <span class="badge bg-secondary-subtle text-secondary border">
+                            <i class="bi bi-geo-alt me-1"></i>{{ libro.proprietario ? libro.proprietario.citta : 'Disponibile' }}
+                          </span>
+                        </template>
+                      </div>
+
+                      <!-- Proprietario -->
+                      <div v-if="libro.proprietario" class="small text-muted">
+                        <i class="bi bi-person-fill text-secondary me-1"></i>Offerto da:
+                        <strong class="text-dark">{{ libro.proprietario.nome }} {{ libro.proprietario.cognome_iniziale }}</strong>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Azioni della Card: Centra su Mappa e Visualizza Profilo -->
+                <div class="d-flex gap-2 mt-3 pt-2 border-top">
+                  <button
+                    type="button"
+                    class="btn btn-outline-primary btn-sm flex-grow-1 d-inline-flex align-items-center justify-content-center gap-1"
+                    @click="centraLibroSuMappa(libro)"
+                    title="Evidenzia la posizione di questo volume sulla mappa interattiva"
+                  >
+                    <i class="bi bi-pin-map-fill" aria-hidden="true"></i>
+                    <span>Mostra su Mappa</span>
+                  </button>
+
+                  <button
+                    v-if="libro.proprietario"
+                    type="button"
+                    class="btn btn-outline-secondary btn-sm flex-grow-1 d-inline-flex align-items-center justify-content-center gap-1"
+                    @click="apriProfiloLettore(libro.proprietario.id)"
+                    title="Consulta il profilo pubblico di questo lettore e tutti i suoi libri"
+                  >
+                    <i class="bi bi-person-circle text-primary" aria-hidden="true"></i>
+                    <span>Profilo Lettore</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
 
       <!-- VISTA 2: Elenco Tabellare Accessibile (WCAG 2.1 AA per screen reader) -->
       <section v-show="viewMode === 'list'" class="card-hermae p-4 bg-white border-0 shadow-sm mb-4" aria-labelledby="tableHeading">
         <h2 id="tableHeading" class="h5 fw-bold text-dark mb-3">
-          <i class="bi bi-card-list text-primary me-2" aria-hidden="true"></i>Elenco Lettori e Volumi per Distanza
+          <i class="bi bi-card-list text-primary me-2" aria-hidden="true"></i>Elenco Accessibile Volumi e Lettori per Distanza
         </h2>
 
-        <div v-if="risultatiProssimita.length === 0" class="alert alert-info" role="status">
-          <i class="bi bi-info-circle me-2" aria-hidden="true"></i>Nessun utente rilevato nel raggio di {{ raggioKm }} km. Prova ad aumentare il raggio tramite lo slider.
+        <div v-if="libriTrovati.length === 0 && !loading" class="alert alert-info" role="status">
+          <i class="bi bi-info-circle me-2" aria-hidden="true"></i>Nessun volume trovato nel raggio di ricerca. Prova ad aumentare il raggio tramite lo slider o ad azzerare i filtri.
         </div>
 
         <div v-else class="table-responsive">
-          <table class="table table-hover align-middle mb-0" aria-label="Elenco degli utenti vicini ordinati per prossimità geodetica">
-            <caption class="visually-hidden">Tabella degli utenti disponibili nel raggio di ricerca ordinati per distanza crescente</caption>
+          <table class="table table-hover align-middle mb-0" aria-label="Elenco delle opere disponibili ordinate per prossimità geodetica">
+            <caption class="visually-hidden">Tabella delle opere disponibili nel raggio di ricerca ordinate per distanza crescente</caption>
             <thead class="table-light">
               <tr>
-                <th scope="col">Lettore</th>
-                <th scope="col">Città e Quartiere</th>
+                <th scope="col" style="width: 50px;">Copertina</th>
+                <th scope="col">Opera e Autore</th>
+                <th scope="col">Categoria & Sottogenere</th>
+                <th scope="col">Lettore e Città</th>
                 <th scope="col">Distanza Stimata</th>
-                <th scope="col">Fascia Territoriale</th>
+                <th scope="col">Stato</th>
                 <th scope="col" class="text-end">Azione</th>
               </tr>
             </thead>
             <tbody>
-              <tr v-for="item in risultatiProssimita" :key="item.id">
+              <tr v-for="libro in libriTrovati" :key="libro.id">
                 <td>
-                  <div class="fw-semibold text-dark">
-                    <i class="bi bi-person-circle text-secondary me-2" aria-hidden="true"></i>{{ item.utente }}
+                  <img
+                    v-if="libro.immagine_miniatura || libro.immagine_copertina"
+                    :src="libro.immagine_miniatura || libro.immagine_copertina"
+                    :alt="'Miniatura ' + libro.titolo"
+                    style="width: 38px; height: 52px; object-fit: cover; border-radius: 4px;"
+                    loading="lazy"
+                  />
+                  <div
+                    v-else
+                    style="width: 38px; height: 52px; border-radius: 4px; display: flex; align-items: center; justify-content: center; color: white;"
+                    :style="{ backgroundColor: libro.categoria_colore || '#1e40af' }"
+                  >
+                    <i :class="'bi ' + (libro.categoria_icona || 'bi-book')"></i>
                   </div>
                 </td>
                 <td>
-                  <span>{{ item.citta }}</span>
-                  <span v-if="item.indirizzo_approssimato" class="text-muted small ms-1">({{ item.indirizzo_approssimato }})</span>
+                  <div class="fw-semibold text-dark">{{ libro.titolo }}</div>
+                  <div class="text-muted small">{{ libro.autore }}</div>
                 </td>
                 <td>
-                  <template v-if="item.distanza_km !== null && item.distanza_km !== undefined">
-                    <span class="fw-bold text-primary">{{ item.distanza_km }} km</span>
-                    <span class="text-muted small d-block">~{{ item.distanza_metri }} m</span>
+                  <span
+                    class="badge"
+                    :style="{ backgroundColor: (libro.categoria_colore || '#1e40af') + '20', color: libro.categoria_colore || '#1e40af' }"
+                  >
+                    {{ libro.categoria_nome }}
+                  </span>
+                  <div v-if="libro.sottogenere" class="text-muted small">{{ libro.sottogenere }}</div>
+                </td>
+                <td>
+                  <div v-if="libro.proprietario" class="fw-medium text-dark">
+                    <i class="bi bi-person-circle text-secondary me-1"></i>{{ libro.proprietario.nome }} {{ libro.proprietario.cognome_iniziale }}
+                  </div>
+                  <div class="text-muted small">
+                    {{ libro.proprietario ? libro.proprietario.citta : 'Non indicata' }}
+                  </div>
+                </td>
+                <td>
+                  <template v-if="libro.distanza_km !== null && libro.distanza_km !== undefined">
+                    <span class="fw-bold text-primary">{{ libro.distanza_km }} km</span>
+                    <span class="text-muted small d-block">{{ libro.fascia_prossimita }}</span>
                   </template>
                   <template v-else>
-                    <span class="badge bg-secondary-subtle text-secondary border">Solo Città</span>
-                    <span class="text-muted small d-block" style="font-size: 0.72rem;">Distanza non calcolata</span>
+                    <span class="badge bg-secondary-subtle text-secondary border">Tutta Italia</span>
                   </template>
                 </td>
                 <td>
-                  <span class="badge" :class="getFasciaBadge(item.fascia_prossimita)">
-                    {{ item.fascia_prossimita }}
-                  </span>
+                  <span class="badge bg-light text-dark border">{{ libro.stato_conservazione }}</span>
                 </td>
                 <td class="text-end">
-                  <a href="libreria.html" class="btn btn-outline-primary btn-sm d-inline-flex align-items-center gap-1">
-                    <i class="bi bi-bookshelf" aria-hidden="true"></i>
-                    <span>Consulta Volumi</span>
-                  </a>
+                  <div class="btn-group btn-group-sm">
+                    <button
+                      type="button"
+                      class="btn btn-outline-primary d-inline-flex align-items-center gap-1"
+                      @click="viewMode = 'map'; centraLibroSuMappa(libro)"
+                      title="Vedi su mappa"
+                    >
+                      <i class="bi bi-pin-map-fill" aria-hidden="true"></i>
+                      <span>Mappa</span>
+                    </button>
+                    <button
+                      v-if="libro.proprietario"
+                      type="button"
+                      class="btn btn-outline-secondary d-inline-flex align-items-center gap-1"
+                      @click="apriProfiloLettore(libro.proprietario.id)"
+                      title="Apri profilo lettore"
+                    >
+                      <i class="bi bi-person-circle" aria-hidden="true"></i>
+                      <span>Profilo</span>
+                    </button>
+                  </div>
                 </td>
               </tr>
             </tbody>
           </table>
         </div>
       </section>
+
+      <!-- MODALE INTERATTIVA: PROFILO PUBBLICO DEL LETTORE -->
+      <div
+        class="modal fade"
+        id="modalProfiloLettore"
+        tabindex="-1"
+        aria-labelledby="modalProfiloLettoreTitle"
+        aria-hidden="true"
+      >
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+          <div class="modal-content border-0 shadow">
+            
+            <!-- Header Modale Profilo -->
+            <div class="modal-header border-bottom bg-light">
+              <h3 class="modal-title h5 fw-bold text-dark d-flex align-items-center" id="modalProfiloLettoreTitle">
+                <i class="bi bi-person-vcard text-primary me-2" aria-hidden="true"></i>Profilo Pubblico del Lettore
+              </h3>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Chiudi"></button>
+            </div>
+
+            <!-- Corpo Modale Profilo -->
+            <div class="modal-body p-4">
+              <!-- Loading spinner durante il fetch dei dati del lettore -->
+              <div v-if="profiloModalLoading" class="text-center py-5">
+                <div class="spinner-border text-primary" role="status">
+                  <span class="visually-hidden">Caricamento profilo lettore in corso...</span>
+                </div>
+                <div class="text-muted small mt-2">Caricamento scheda lettore...</div>
+              </div>
+
+              <!-- Scheda Profilo Caricata -->
+              <div v-else-if="profiloSelezionato">
+                <!-- Informazioni Anagrafiche e Badge -->
+                <div class="d-flex flex-wrap align-items-center gap-3 pb-3 mb-4 border-bottom">
+                  <div class="profile-avatar-circle">
+                    {{ profiloSelezionato.nome ? profiloSelezionato.nome.charAt(0) : 'U' }}{{ profiloSelezionato.cognome_iniziale ? profiloSelezionato.cognome_iniziale.charAt(0) : '' }}
+                  </div>
+
+                  <div class="flex-grow-1">
+                    <h4 class="h4 fw-bold text-dark mb-1">
+                      {{ profiloSelezionato.nome }} {{ profiloSelezionato.cognome_iniziale }}
+                    </h4>
+                    <div class="d-flex flex-wrap align-items-center gap-2 text-muted small">
+                      <span><i class="bi bi-geo-alt-fill text-danger me-1"></i>{{ profiloSelezionato.citta }}</span>
+                      <span v-if="profiloSelezionato.indirizzo_approssimato">({{ profiloSelezionato.indirizzo_approssimato }})</span>
+                      <span>&bull;</span>
+                      <span><i class="bi bi-calendar-check me-1"></i>Iscritto da: {{ formatDataRegistrazione(profiloSelezionato.data_registrazione) }}</span>
+                    </div>
+                  </div>
+
+                  <!-- Badge Stato Libreria -->
+                  <div>
+                    <span v-if="profiloSelezionato.mostra_libreria" class="badge bg-success-subtle text-success border border-success-subtle px-3 py-2">
+                      <i class="bi bi-check-circle-fill me-1"></i>Libreria Aperta ({{ profiloSelezionato.totale_libri }} volumi)
+                    </span>
+                    <span v-else class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle px-3 py-2">
+                      <i class="bi bi-shield-lock-fill me-1"></i>Libreria Riservata
+                    </span>
+                  </div>
+                </div>
+
+                <!-- CASO A: LIBRERIA PUBBLICA APERTA -->
+                <div v-if="profiloSelezionato.mostra_libreria">
+                  <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="h6 fw-bold text-dark text-uppercase mb-0">
+                      <i class="bi bi-bookshelf text-primary me-2"></i>Volumi Disponibili per lo Scambio ({{ profiloSelezionato.libri.length }})
+                    </h5>
+                    <span class="text-muted small">Consultabili e richiedibili dalla community</span>
+                  </div>
+
+                  <div v-if="profiloSelezionato.libri.length === 0" class="alert alert-light border text-muted small text-center py-4">
+                    <i class="bi bi-journal-x fs-3 d-block mb-1"></i>
+                    Al momento questo lettore non ha altri volumi disponibili nella propria libreria.
+                  </div>
+
+                  <!-- Griglia Volumi del Lettore -->
+                  <div v-else class="row g-3" style="max-height: 380px; overflow-y: auto;">
+                    <div v-for="b in profiloSelezionato.libri" :key="b.id" class="col-12 col-md-6">
+                      <div class="p-2 border rounded-3 d-flex gap-2 bg-light align-items-center h-100">
+                        <img
+                          v-if="b.immagine_miniatura || b.immagine_copertina"
+                          :src="b.immagine_miniatura || b.immagine_copertina"
+                          :alt="'Copertina di ' + b.titolo"
+                          class="profile-shelf-cover"
+                          loading="lazy"
+                        />
+                        <div
+                          v-else
+                          class="profile-shelf-cover-fallback"
+                          :style="{ backgroundColor: b.categoria.colore_hex || '#1e40af' }"
+                        >
+                          <i :class="'bi ' + (b.categoria.icona || 'bi-book')"></i>
+                        </div>
+
+                        <div class="flex-grow-1" style="min-width: 0;">
+                          <span
+                            class="badge text-truncate mb-1"
+                            :style="{ backgroundColor: (b.categoria.colore_hex || '#1e40af') + '20', color: b.categoria.colore_hex || '#1e40af' }"
+                            style="font-size: 0.68rem;"
+                          >
+                            {{ b.categoria.nome }}
+                          </span>
+                          <div class="fw-bold text-dark text-truncate small" :title="b.titolo">{{ b.titolo }}</div>
+                          <div class="text-muted small text-truncate">{{ b.autore }}</div>
+                          <div class="small mt-1">
+                            <span class="badge bg-white text-dark border" style="font-size: 0.65rem;">{{ b.stato_conservazione }}</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- CASO B: LIBRERIA OCCULTATA PER TUTELA PRIVACY (Fase 20) -->
+                <div v-else class="alert alert-warning d-flex align-items-center p-3 mb-0" role="alert">
+                  <i class="bi bi-shield-lock-fill fs-2 text-warning me-3 flex-shrink-0" aria-hidden="true"></i>
+                  <div>
+                    <h5 class="h6 fw-bold mb-1">Libreria Personale Riservata</h5>
+                    <p class="mb-0 small">
+                      Questo lettore ha scelto di tutelare la propria privacy mantenendo riservato l'intero scaffale personale per consultazione esclusivamente privata. I suoi volumi non sono visibili agli altri utenti della community.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Footer Modale Profilo -->
+            <div class="modal-footer border-top bg-light">
+              <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">
+                Chiudi Scheda
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
     </main>
 
     <!-- Notifiche Toast Asincrone -->
     <toast-notification :toasts="toasts" @remove-toast="removeToast"></toast-notification>
 
     <!-- Indicatore di Caricamento Globale -->
-    <loading-spinner :active="loading" message="Aggiornamento mappa e prossimità in corso..."></loading-spinner>
+    <loading-spinner :active="loading" message="Aggiornamento mappa e ricerca in corso..."></loading-spinner>
 
     <!-- Piè di pagina globale dell'applicazione -->
     <app-footer></app-footer>
@@ -284,6 +911,7 @@
   <!-- Dipendenze Esterne: Bootstrap JS, Leaflet JS, Axios, Vue 3 CDN -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+  <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/axios@1.6.8/dist/axios.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/vue@3.4.21/dist/vue.global.prod.js"></script>
 
@@ -293,7 +921,7 @@
   <script src="assets/js/geolocation.js"></script>
   <script src="assets/js/components/global-components.js"></script>
 
-  <!-- Logica Reattiva della Mappa e Prossimità Geospaziale -->
+  <!-- Logica Reattiva della Mappa e Ricerca Geospaziale Libri -->
   <script>
     const { createApp, ref, computed, onMounted, nextTick } = Vue;
 
@@ -314,13 +942,30 @@
         const centerLng = ref(14.2681);
         const currentCity = ref('Napoli');
         const raggioKm = ref(10);
-        const risultatiProssimita = ref([]);
+        const filtraPerProssimita = ref(true);
+
+        // Parametri di Ricerca Integrata Libri
+        const searchQuery = ref('');
+        const selectedCategoria = ref('');
+        const selectedSottogenere = ref('');
+        const ordinaPer = ref('distanza');
+
+        // Dati Catalogo e Categorie
+        const libriTrovati = ref([]);
+        const categorieList = ref([]);
+
+        // Stato Modale Profilo Pubblico Lettore
+        const profiloModalLoading = ref(false);
+        const profiloSelezionato = ref(null);
+        let bsProfileModal = null;
 
         // Riferimenti alle istanze Leaflet cartografiche
         let leafletMap = null;
         let userMarker = null;
         let radiusCircle = null;
-        let markersGroup = null;
+        let booksMarkersGroup = null;
+        let booksMarkersMap = new Map();
+        let searchDebounceTimer = null;
         let raggioDebounceTimer = null;
 
         // Aggiunge una notifica alla coda visiva
@@ -343,17 +988,33 @@
           return `${centerLat.value.toFixed(4)}, ${centerLng.value.toFixed(4)}`;
         });
 
-        // Restituisce la classe badge Bootstrap appropriata per la fascia territoriale
-        const getFasciaBadge = (fascia) => {
-          switch (fascia) {
-            case 'Stesso Quartiere': return 'bg-success';
-            case 'Stessa Città': return 'bg-primary';
-            case 'Area/CAP (~2 km)': return 'bg-warning text-dark';
-            case 'Area Metropolitana': return 'bg-info text-dark';
-            case 'Area Provinciale': return 'bg-warning text-dark';
-            case 'Solo Città':
-            case 'Riferimento Città': return 'bg-secondary';
-            default: return 'bg-secondary';
+        // Nome della categoria attualmente selezionata
+        const selectedCategoriaNome = computed(() => {
+          if (!selectedCategoria.value) return '';
+          const found = categorieList.value.find(c => c.id === selectedCategoria.value);
+          return found ? found.nome : '';
+        });
+
+        // Sottogeneri disponibili reattivi in base alla macro-categoria selezionata
+        const sottogeneriDisponibili = computed(() => {
+          if (!selectedCategoria.value) return [];
+          const found = categorieList.value.find(c => c.id === selectedCategoria.value);
+          return (found && Array.isArray(found.sottogeneri_predefiniti)) ? found.sottogeneri_predefiniti : [];
+        });
+
+        // Determina se ci sono filtri attivi
+        const haFiltriAttivi = computed(() => {
+          return Boolean(searchQuery.value || selectedCategoria.value || selectedSottogenere.value || !filtraPerProssimita.value);
+        });
+
+        // Formatta la data di registrazione in formato leggibile italiano
+        const formatDataRegistrazione = (dateStr) => {
+          if (!dateStr) return 'Recente';
+          try {
+            const d = new Date(dateStr);
+            return d.toLocaleDateString('it-IT', { month: 'long', year: 'numeric' });
+          } catch (e) {
+            return 'Recente';
           }
         };
 
@@ -368,7 +1029,7 @@
             zoomControl: true
           });
 
-          // Layer OpenStreetMap gratuito conforme agli standard aperti
+          // Layer OpenStreetMap aperto e conforme
           L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             maxZoom: 19,
             attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
@@ -382,9 +1043,9 @@
               const button = L.DomUtil.create('a', '', container);
               button.innerHTML = '<i class="bi bi-geo-alt-fill" style="color: #dc2626; font-size: 15px; line-height: 30px;" aria-hidden="true"></i>';
               button.href = '#';
-              button.title = 'Riporta la visuale sul mio pin';
+              button.title = 'Riporta la visuale sul mio centro';
               button.setAttribute('role', 'button');
-              button.setAttribute('aria-label', 'Riporta la visuale sul mio pin');
+              button.setAttribute('aria-label', 'Riporta la visuale sul mio centro');
               button.style.width = '30px';
               button.style.height = '30px';
               button.style.textAlign = 'center';
@@ -401,10 +1062,39 @@
           });
           new CentraPinControl().addTo(leafletMap);
 
-          // Gruppo di layer dedicato ai marker degli utenti per pulizia atomica ad ogni filtro
-          markersGroup = L.layerGroup().addTo(leafletMap);
+          // Gruppo di marker clusterizzati per raggruppare i libri nella stessa area con conteggio numerico
+          if (typeof L.markerClusterGroup === 'function') {
+            booksMarkersGroup = L.markerClusterGroup({
+              maxClusterRadius: 40,
+              spiderfyOnMaxZoom: true,
+              showCoverageOnHover: false,
+              zoomToBoundsOnClick: true,
+              spiderfyDistanceMultiplier: 1.5,
+              iconCreateFunction: function (cluster) {
+                const count = cluster.getChildCount();
+                let clusterClass = 'cluster-sm';
+                let size = 36;
+                if (count >= 10) {
+                  clusterClass = 'cluster-lg';
+                  size = 48;
+                } else if (count >= 5) {
+                  clusterClass = 'cluster-md';
+                  size = 42;
+                }
+                return L.divIcon({
+                  html: `<div class="hermae-cluster-pin ${clusterClass}" title="${count} volumi in quest'area" role="button" aria-label="${count} libri in quest'area"><span class="cluster-count">${count}</span></div>`,
+                  className: 'hermae-cluster-icon-wrapper',
+                  iconSize: [size, size],
+                  iconAnchor: [size / 2, size / 2]
+                });
+              }
+            });
+          } else {
+            booksMarkersGroup = L.layerGroup();
+          }
+          leafletMap.addLayer(booksMarkersGroup);
 
-          // Permette all'utente di cliccare in qualsiasi punto della mappa per spostare il proprio pin di ricerca
+          // Cliccando sulla mappa si sposta il punto di riferimento
           leafletMap.on('click', (e) => {
             applicaNuovaPosizione(e.latlng.lat, e.latlng.lng);
           });
@@ -413,10 +1103,10 @@
           updateUserCenterOnMap();
         };
 
-        // Riporta e centra la mappa sul pin utente e sull'area del raggio di prossimità
+        // Riporta e centra la mappa sul pin utente
         const centraSulMioPin = () => {
           if (!leafletMap) return;
-          if (radiusCircle) {
+          if (filtraPerProssimita.value && radiusCircle) {
             leafletMap.flyToBounds(radiusCircle.getBounds(), { padding: [25, 25], maxZoom: 14, duration: 0.8 });
           } else {
             leafletMap.flyTo([centerLat.value, centerLng.value], 13, { duration: 0.8 });
@@ -426,14 +1116,14 @@
           }
         };
 
-        // Sposta il pin e il cerchio di raggio sulle nuove coordinate e aggiorna i dati di prossimità
+        // Sposta il pin e il raggio sulle nuove coordinate e aggiorna la ricerca
         const applicaNuovaPosizione = async (lat, lng) => {
           const newLat = parseFloat(Number(lat).toFixed(7));
           const newLng = parseFloat(Number(lng).toFixed(7));
           centerLat.value = newLat;
           centerLng.value = newLng;
           isPosizioneModificata.value = true;
-          gpsAccuracy.value = 15; // Precisione puntuale manuale
+          gpsAccuracy.value = 15;
 
           updateUserCenterOnMap();
 
@@ -441,22 +1131,18 @@
             userMarker.openPopup();
           }
 
-          // Geocodifica inversa OpenStreetMap per identificare il nuovo comune/quartiere
           if (window.HermaeGeo) {
             const geoInfo = await window.HermaeGeo.reverseGeocode(newLat, newLng);
             if (geoInfo && geoInfo.citta) {
               currentCity.value = geoInfo.citta;
               updateUserCenterOnMap();
-              if (userMarker) {
-                userMarker.openPopup();
-              }
             }
           }
 
-          await caricaDatiProssimita();
+          await eseguiRicerca();
         };
 
-        // Memorizza le coordinate correnti nel database dell'utente autenticato
+        // Memorizza le coordinate correnti nel profilo utente su PostgreSQL
         const salvaCoordinateProfilo = async () => {
           salvataggioInCorso.value = true;
           try {
@@ -480,7 +1166,7 @@
             isPosizioneModificata.value = false;
             addToast(
               'Coordinate Memorizzate',
-              `Posizione salvata con successo nel tuo profilo: ${currentCity.value} (${formattedCenter.value}).`,
+              `Posizione memorizzata con successo nel profilo: ${currentCity.value} (${formattedCenter.value}).`,
               'success'
             );
           } catch (err) {
@@ -490,13 +1176,13 @@
           }
         };
 
-        // Aggiorna il marker del centro e il cerchio di raggio sulla mappa Leaflet
+        // Aggiorna il marker del centro e il cerchio di raggio sulla mappa
         const updateUserCenterOnMap = () => {
           if (!leafletMap) return;
 
           const centerCoords = [centerLat.value, centerLng.value];
           const popupContent = `
-            <div style="min-width: 170px;">
+            <div class="p-2" style="min-width: 170px;">
               <div class="fw-bold text-primary mb-1"><i class="bi bi-geo-alt-fill text-danger me-1"></i>Tuo Centro di Ricerca</div>
               <div class="text-dark small">${currentCity.value}</div>
               <div class="text-muted small">${formattedCenter.value}</div>
@@ -507,12 +1193,10 @@
             </div>
           `;
 
-          // Se il marker utente esiste già, aggiorna la posizione e il popup; altrimenti crealo
           if (userMarker) {
             userMarker.setLatLng(centerCoords);
             userMarker.bindPopup(popupContent);
           } else {
-            // Icona personalizzata interattiva con indicatore di trascinamento
             const centerIcon = L.divIcon({
               className: 'user-center-icon',
               html: '<div style="background-color: #1e40af; width: 18px; height: 18px; border-radius: 50%; border: 3px solid #ffffff; box-shadow: 0 0 10px rgba(30,64,175,0.8); cursor: grab;"></div>',
@@ -523,104 +1207,264 @@
               .addTo(leafletMap)
               .bindPopup(popupContent);
 
-            // Permette il riposizionamento tramite drag-and-drop del marker
             userMarker.on('dragend', (e) => {
               const pos = e.target.getLatLng();
               applicaNuovaPosizione(pos.lat, pos.lng);
             });
           }
 
-          // Ridisegna o aggiorna il cerchio di copertura chilometrica
           const radiusMeters = raggioKm.value * 1000;
-          if (radiusCircle) {
-            radiusCircle.setLatLng(centerCoords);
-            radiusCircle.setRadius(radiusMeters);
-          } else {
-            radiusCircle = L.circle(centerCoords, {
-              radius: radiusMeters,
-              color: '#1e40af',
-              fillColor: '#3b82f6',
-              fillOpacity: 0.12,
-              weight: 2
-            }).addTo(leafletMap);
+          if (filtraPerProssimita.value) {
+            if (radiusCircle) {
+              radiusCircle.setLatLng(centerCoords);
+              radiusCircle.setRadius(radiusMeters);
+            } else {
+              radiusCircle = L.circle(centerCoords, {
+                radius: radiusMeters,
+                color: '#1e40af',
+                fillColor: '#3b82f6',
+                fillOpacity: 0.10,
+                weight: 2
+              }).addTo(leafletMap);
+            }
+          } else if (radiusCircle) {
+            leafletMap.removeLayer(radiusCircle);
+            radiusCircle = null;
           }
         };
 
-        // Rendering dei marker georeferenziati per ciascun utente rilevato dalla query di prossimità
-        const renderProximityMarkersOnMap = () => {
-          if (!leafletMap || !markersGroup) return;
+        // Rendering dei marker georeferenziati per ciascun libro trovato sulla mappa
+        const renderBookMarkersOnMap = () => {
+          if (!leafletMap || !booksMarkersGroup) return;
 
-          // Svuota i marker precedentemente tracciati
-          markersGroup.clearLayers();
+          booksMarkersGroup.clearLayers();
+          booksMarkersMap.clear();
 
-          // Icona semantica verde per i lettori di prossimità
-          const readerIcon = L.divIcon({
-            className: 'reader-marker-icon',
-            html: '<div style="background-color: #047857; width: 14px; height: 14px; border-radius: 50%; border: 2px solid #ffffff; box-shadow: 0 0 6px rgba(4,120,87,0.7);"></div>',
-            iconSize: [14, 14],
-            iconAnchor: [7, 7]
-          });
+          const markersToBatch = [];
 
-          risultatiProssimita.value.forEach((item) => {
-            if (item.coordinate_offuscate && item.coordinate_offuscate.lat && item.coordinate_offuscate.lng) {
-              const marker = L.marker([item.coordinate_offuscate.lat, item.coordinate_offuscate.lng], { icon: readerIcon });
-              
+          libriTrovati.value.forEach((b) => {
+            if (b.coordinate && b.coordinate.lat && b.coordinate.lng) {
+              const catColor = b.categoria_colore || '#1e40af';
+              const catIcon = b.categoria_icona || 'bi-book-half';
+
+              const pinHtml = `
+                <div class="book-map-pin" style="background-color: ${catColor}; width: 28px; height: 28px;" title="${b.titolo}">
+                  <i class="bi ${catIcon}" style="font-size: 13px;"></i>
+                </div>
+              `;
+
+              const bookIcon = L.divIcon({
+                className: 'custom-book-pin-container',
+                html: pinHtml,
+                iconSize: [28, 28],
+                iconAnchor: [14, 14],
+                popupAnchor: [0, -14]
+              });
+
+              const marker = L.marker([b.coordinate.lat, b.coordinate.lng], { icon: bookIcon });
+
+              // Costruzione del popup Leaflet ricco con copertina e bottone profilo lettore
+              const coverImgHtml = (b.immagine_miniatura || b.immagine_copertina)
+                ? `<img src="${b.immagine_miniatura || b.immagine_copertina}" alt="Copertina" style="width: 54px; height: 76px; object-fit: cover; border-radius: 4px; box-shadow: 0 2px 5px rgba(0,0,0,0.2); flex-shrink: 0;">`
+                : `<div style="width: 54px; height: 76px; background-color: ${catColor}; border-radius: 4px; display: flex; align-items: center; justify-content: center; color: white; flex-shrink: 0;"><i class="bi ${catIcon} fs-4"></i></div>`;
+
+              const ownerName = b.proprietario ? `${b.proprietario.nome} ${b.proprietario.cognome_iniziale}` : 'Lettore Hermae';
+              const ownerCity = b.proprietario ? b.proprietario.citta : '';
+              const ownerId = b.proprietario ? b.proprietario.id : '';
+
+              const distHtml = (b.distanza_km !== null && b.distanza_km !== undefined)
+                ? `<span class="badge bg-primary distance-pill"><i class="bi bi-geo-alt-fill me-1"></i>${b.distanza_km} km</span>`
+                : `<span class="badge bg-secondary-subtle text-secondary border">Tutta Italia</span>`;
+
               const popupHtml = `
-                <div style="min-width: 180px;">
-                  <div class="fw-bold text-dark mb-1">${item.utente}</div>
-                  <div class="small text-muted mb-1">${item.citta} ${item.indirizzo_approssimato ? '— ' + item.indirizzo_approssimato : ''}</div>
-                  <div class="d-flex justify-content-between align-items-center mt-2">
-                    <span class="badge bg-primary distance-pill">${item.distanza_km} km</span>
-                    <span class="small fw-semibold text-muted">${item.fascia_prossimita}</span>
+                <div class="p-2" style="min-width: 230px; max-width: 270px;">
+                  <div class="d-flex gap-2 mb-2">
+                    ${coverImgHtml}
+                    <div style="min-width: 0; flex-grow: 1;">
+                      <span class="badge" style="background-color: ${catColor}20; color: ${catColor}; font-size: 0.65rem; max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: inline-block;">
+                        ${b.categoria_nome || 'Libro'}
+                      </span>
+                      <div class="fw-bold text-dark text-truncate small mt-1" title="${b.titolo}">${b.titolo}</div>
+                      <div class="text-muted small text-truncate">${b.autore}</div>
+                      <div class="mt-1">${distHtml}</div>
+                    </div>
                   </div>
-                  <hr class="my-2">
-                  <div style="font-size: 0.7rem; color: ${item.modalita_occultamento === 'AREA_CAP' ? '#d97706' : '#059669'};">
-                    <i class="bi ${item.modalita_occultamento === 'AREA_CAP' ? 'bi-shield-shaded' : 'bi-shield-check'} me-1"></i>
-                    ${item.modalita_occultamento === 'AREA_CAP' ? 'Area/CAP approssimata (~1.5–3 km)' : 'Coordinate offuscate (300–500m)'}
+
+                  <div class="p-1 px-2 bg-light rounded-2 small text-muted mb-2" style="font-size: 0.72rem;">
+                    <i class="bi bi-person-fill text-secondary me-1"></i>Offerto da: <strong>${ownerName}</strong> ${ownerCity ? '(' + ownerCity + ')' : ''}
+                  </div>
+
+                  <div class="d-grid gap-1">
+                    ${ownerId ? `<button onclick="window.hermaeAppApriProfilo('${ownerId}')" class="btn btn-primary btn-sm d-flex align-items-center justify-content-center gap-1 py-1" style="font-size: 0.75rem;">
+                      <i class="bi bi-person-circle"></i>Visualizza Profilo Lettore
+                    </button>` : ''}
                   </div>
                 </div>
               `;
 
               marker.bindPopup(popupHtml);
-              markersGroup.addLayer(marker);
+              markersToBatch.push(marker);
+              booksMarkersMap.set(b.id, marker);
+            }
+          });
+
+          if (typeof booksMarkersGroup.addLayers === 'function') {
+            booksMarkersGroup.addLayers(markersToBatch);
+          } else {
+            markersToBatch.forEach((m) => booksMarkersGroup.addLayer(m));
+          }
+        };
+
+        // Centra la mappa su uno specifico libro dalla griglia dei risultati ed apre il popup
+        const centraLibroSuMappa = (libro) => {
+          if (!libro || !libro.coordinate || !leafletMap) return;
+
+          if (viewMode.value !== 'map') {
+            viewMode.value = 'map';
+          }
+
+          nextTick(() => {
+            const marker = booksMarkersMap.get(libro.id);
+            if (marker) {
+              if (booksMarkersGroup && typeof booksMarkersGroup.zoomToShowLayer === 'function') {
+                booksMarkersGroup.zoomToShowLayer(marker, () => {
+                  marker.openPopup();
+                });
+              } else {
+                leafletMap.flyTo([libro.coordinate.lat, libro.coordinate.lng], 15, { duration: 0.8 });
+                setTimeout(() => {
+                  marker.openPopup();
+                }, 850);
+              }
+            } else {
+              leafletMap.flyTo([libro.coordinate.lat, libro.coordinate.lng], 15, { duration: 0.8 });
+            }
+
+            const mapEl = document.getElementById('map');
+            if (mapEl) {
+              mapEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
             }
           });
         };
 
-        // Interroga l'API RESTful di backend per ottenere gli utenti vicini entro il raggio specificato
-        const caricaDatiProssimita = async () => {
+        // Esegue la ricerca integrata dei libri (filtri testuali + prossimità geografica opzionale)
+        const eseguiRicerca = async () => {
           loading.value = true;
           try {
-            const res = await window.apiClient.get('/posizioni/prossimita', {
-              params: {
-                lat: centerLat.value,
-                lng: centerLng.value,
-                raggio: raggioKm.value,
-                includi_solo_citta: true
-              }
-            });
+            const params = {
+              stato_disponibilita: 'DISPONIBILE',
+              limit: 60
+            };
 
-            if (res.data && res.data.data && Array.isArray(res.data.data.risultati)) {
-              risultatiProssimita.value = res.data.data.risultati;
-              renderProximityMarkersOnMap();
+            if (searchQuery.value && searchQuery.value.trim()) {
+              params.search = searchQuery.value.trim();
+            }
+
+            if (selectedCategoria.value) {
+              params.categoria_id = selectedCategoria.value;
+            }
+
+            if (selectedSottogenere.value) {
+              params.sottogenere = selectedSottogenere.value;
+            }
+
+            if (filtraPerProssimita.value) {
+              params.lat = centerLat.value;
+              params.lng = centerLng.value;
+              params.raggio_km = raggioKm.value;
+            }
+
+            params.ordina_per = ordinaPer.value;
+
+            const res = await window.apiClient.get('/esemplari', { params });
+            if (res.data && res.data.success && Array.isArray(res.data.data)) {
+              libriTrovati.value = res.data.data;
+              renderBookMarkersOnMap();
             }
           } catch (err) {
-            addToast('Errore Prossimità', 'Impossibile completare la scansione geospaziale degli utenti.', 'danger');
+            addToast('Errore Ricerca', 'Impossibile completare la ricerca dei volumi disponibili.', 'danger');
           } finally {
             loading.value = false;
           }
         };
 
-        // Gestisce la variazione dello slider applicando un debounce per non sovraccaricare la rete
+        // Gestisce la variazione della barra di ricerca con debounce
+        const onSearchChange = () => {
+          clearTimeout(searchDebounceTimer);
+          searchDebounceTimer = setTimeout(() => {
+            eseguiRicerca();
+          }, 350);
+        };
+
+        // Gestisce la selezione di una categoria disciplinare
+        const onCategoriaChange = () => {
+          selectedSottogenere.value = '';
+          eseguiRicerca();
+        };
+
+        // Gestisce l'attivazione/disattivazione del filtro prossimità
+        const onProssimitaToggle = () => {
+          updateUserCenterOnMap();
+          if (!filtraPerProssimita.value && ordinaPer.value === 'distanza') {
+            ordinaPer.value = 'data';
+          }
+          eseguiRicerca();
+        };
+
+        // Gestisce la variazione dello slider chilometrico con debounce
         const onRaggioChange = () => {
           updateUserCenterOnMap();
           clearTimeout(raggioDebounceTimer);
           raggioDebounceTimer = setTimeout(() => {
-            caricaDatiProssimita();
+            eseguiRicerca();
           }, 350);
         };
 
-        // Rileva la posizione fisica attuale tramite il modulo Geolocation con gestione precisione e fallback
+        // Azzera tutti i filtri di ricerca e reimposta lo stato predefinito
+        const azzeraFiltri = () => {
+          searchQuery.value = '';
+          selectedCategoria.value = '';
+          selectedSottogenere.value = '';
+          filtraPerProssimita.value = true;
+          ordinaPer.value = 'distanza';
+          updateUserCenterOnMap();
+          eseguiRicerca();
+        };
+
+        // Apre la modale del profilo pubblico di un lettore caricandone i dati e i libri disponibili
+        const apriProfiloLettore = async (utenteId) => {
+          if (!utenteId) return;
+
+          profiloModalLoading.value = true;
+          profiloSelezionato.value = null;
+
+          if (!bsProfileModal) {
+            const modalEl = document.getElementById('modalProfiloLettore');
+            if (modalEl) {
+              bsProfileModal = new bootstrap.Modal(modalEl);
+            }
+          }
+
+          if (bsProfileModal) {
+            bsProfileModal.show();
+          }
+
+          try {
+            const res = await window.apiClient.get(`/utenti/${utenteId}/profilo`);
+            if (res.data && res.data.success && res.data.data) {
+              profiloSelezionato.value = res.data.data;
+            }
+          } catch (err) {
+            addToast('Errore Profilo', 'Impossibile recuperare la scheda pubblica del lettore.', 'danger');
+            if (bsProfileModal) {
+              bsProfileModal.hide();
+            }
+          } finally {
+            profiloModalLoading.value = false;
+          }
+        };
+
+        // Rileva la posizione fisica attuale tramite sensore GPS o IP di rete
         const rilevaPosizioneGPS = async () => {
           if (!window.HermaeGeo) {
             addToast('Modulo Assente', 'Il modulo di geolocalizzazione non è inizializzato.', 'warning');
@@ -647,7 +1491,6 @@
               toastType
             );
 
-            // Se la posizione non ha già il comune o è da sensore, perfeziona tramite geocodifica inversa OSM
             if (!pos.citta) {
               const geoInfo = await window.HermaeGeo.reverseGeocode(pos.lat, pos.lng);
               if (geoInfo && geoInfo.citta) {
@@ -656,7 +1499,7 @@
             }
 
             updateUserCenterOnMap();
-            await caricaDatiProssimita();
+            await eseguiRicerca();
           } catch (err) {
             addToast('Avviso GPS', err.message, 'warning');
           } finally {
@@ -680,7 +1523,24 @@
           }
         };
 
-        // Esegue il gatekeeping e l'avvio della mappa all'aggancio del componente
+        // Carica l'elenco tassonomico delle macro-categorie
+        const caricaCategorie = async () => {
+          try {
+            const res = await window.apiClient.get('/categorie');
+            if (res.data && res.data.data) {
+              categorieList.value = res.data.data;
+            }
+          } catch (e) {
+            // Fallback silenzioso
+          }
+        };
+
+        // Registra le funzioni accessibili globalmente da popup Leaflet DOM
+        window.hermaeAppApriProfilo = (utenteId) => {
+          apriProfiloLettore(utenteId);
+        };
+
+        // Montaggio dell'applicazione
         onMounted(async () => {
           if (!window.auth.requireAuth('login.html')) {
             return;
@@ -688,10 +1548,11 @@
 
           user.value = window.auth.getUser();
           await caricaPosizioneUtenteProfilo();
+          await caricaCategorie();
 
           await nextTick();
           initLeafletMap();
-          await caricaDatiProssimita();
+          await eseguiRicerca();
         });
 
         return {
@@ -705,16 +1566,33 @@
           centerLng,
           currentCity,
           raggioKm,
-          risultatiProssimita,
+          filtraPerProssimita,
+          searchQuery,
+          selectedCategoria,
+          selectedSottogenere,
+          ordinaPer,
+          libriTrovati,
+          categorieList,
+          selectedCategoriaNome,
+          sottogeneriDisponibili,
+          haFiltriAttivi,
           formattedCenter,
-          getFasciaBadge,
+          isPosizioneModificata,
+          salvataggioInCorso,
+          profiloModalLoading,
+          profiloSelezionato,
+          onSearchChange,
+          onCategoriaChange,
+          onProssimitaToggle,
           onRaggioChange,
+          azzeraFiltri,
           rilevaPosizioneGPS,
           centraSulMioPin,
           salvaCoordinateProfilo,
           applicaNuovaPosizione,
-          isPosizioneModificata,
-          salvataggioInCorso,
+          centraLibroSuMappa,
+          apriProfiloLettore,
+          formatDataRegistrazione,
           removeToast
         };
       }

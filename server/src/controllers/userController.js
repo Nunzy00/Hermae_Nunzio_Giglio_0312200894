@@ -114,11 +114,27 @@ const deleteUser = async (req, res, next) => {
   }
 };
 
+// Gestisce il recupero del profilo pubblico di un utente salvaguardando la riservatezza
+const getPublicProfile = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const profile = await userService.getPublicUserProfile(id);
+
+    res.status(200).json({
+      success: true,
+      data: profile
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 // Esporta i metodi del controller utente per l'associazione alle rotte HTTP
 module.exports = {
   createUser,
   getAllUsers,
   getUserById,
+  getPublicProfile,
   updateUser,
   deleteUser
 };
