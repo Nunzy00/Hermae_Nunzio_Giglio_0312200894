@@ -80,17 +80,6 @@
       font-size: 1rem;
       flex-shrink: 0;
     }
-    .efficiency-meter-bar {
-      height: 6px;
-      border-radius: 3px;
-      background-color: #e2e8f0;
-      overflow: hidden;
-    }
-    .efficiency-meter-fill {
-      height: 100%;
-      border-radius: 3px;
-      transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
-    }
     /* Modalità accessibile a contrasto e focus per tastiera */
     .period-pill:focus-visible,
     .btn:focus-visible {
@@ -649,11 +638,11 @@
         </div>
       </div>
 
-      <!-- Terza Sezione: Top Volumi dell'Utente & Indicatori di Efficienza Condivisione -->
+      <!-- Terza Sezione: Top Volumi dell'Utente -->
       <div class="row g-2 g-md-3 mb-4">
-        <!-- Colonna Sinistra: Libri Più Consultati dell'Utente -->
-        <div class="col-lg-6">
-          <div class="card-hermae p-3 bg-white border-0 shadow-sm h-100 d-flex flex-column">
+        <!-- Volumi Più Consultati dell'Utente (Larghezza Piena) -->
+        <div class="col-12">
+          <div class="card-hermae p-3 bg-white border-0 shadow-sm d-flex flex-column">
             <div class="d-flex justify-content-between align-items-center mb-2">
               <div>
                 <h3 class="h6 fw-bold mb-0 text-dark d-flex align-items-center gap-2">
@@ -682,20 +671,34 @@
                   #{{ idx + 1 }}
                 </span>
 
-                <!-- Copertina o Placeholder -->
-                <img
-                  v-if="book.copertina"
-                  :src="book.copertina"
-                  :alt="book.titolo"
-                  class="top-book-thumb"
-                />
-                <div v-else class="top-book-placeholder">
-                  <i class="bi bi-book"></i>
-                </div>
+                <!-- Copertina o Placeholder (Cliccabile) -->
+                <a
+                  :href="'libro.html?id=' + book.id"
+                  class="flex-shrink-0 text-decoration-none"
+                  :title="'Visualizza scheda: ' + book.titolo"
+                >
+                  <img
+                    v-if="book.copertina"
+                    :src="book.copertina"
+                    :alt="book.titolo"
+                    class="top-book-thumb"
+                  />
+                  <div v-else class="top-book-placeholder">
+                    <i class="bi bi-book"></i>
+                  </div>
+                </a>
 
                 <!-- Dati del libro -->
                 <div class="flex-grow-1 min-w-0">
-                  <div class="fw-semibold text-dark text-truncate" style="font-size: 0.84rem; line-height: 1.25;" :title="book.titolo">{{ book.titolo }}</div>
+                  <div class="fw-semibold text-dark text-truncate" style="font-size: 0.84rem; line-height: 1.25;" :title="book.titolo">
+                    <a
+                      :href="'libro.html?id=' + book.id"
+                      class="text-dark text-decoration-none hover-underline"
+                      :title="'Visualizza scheda: ' + book.titolo"
+                    >
+                      {{ book.titolo }}
+                    </a>
+                  </div>
                   <div class="text-muted text-truncate" style="font-size: 0.73rem; line-height: 1.2;">{{ book.autore }}</div>
                   <div class="d-flex align-items-center gap-1 mt-0.5">
                     <span
@@ -720,86 +723,6 @@
                   <div class="text-muted" style="font-size: 0.68rem;">
                     {{ book.prestitiRicevuti }} prestiti
                   </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Colonna Destra: Indicatori Sintetici di Efficienza & Riservatezza -->
-        <div class="col-lg-6">
-          <div class="card-hermae p-3 bg-white border-0 shadow-sm h-100 d-flex flex-column">
-            <div class="d-flex justify-content-between align-items-center mb-2">
-              <div>
-                <h3 class="h6 fw-bold mb-0 text-dark d-flex align-items-center gap-2">
-                  <i class="bi bi-shield-check text-success"></i>
-                  Efficienza di Condivisione & Privacy
-                </h3>
-                <span class="text-muted" style="font-size: 0.76rem;">Metriche operative, tasso di restituzione e riservatezza</span>
-              </div>
-            </div>
-
-            <div v-if="analytics" class="d-flex flex-column gap-2 flex-grow-1 justify-content-between">
-              <!-- Metrica 1: Tasso di Successo Prestiti -->
-              <div class="p-2 px-3 bg-light rounded-2">
-                <div class="d-flex justify-content-between align-items-center mb-1">
-                  <span class="fw-semibold text-dark" style="font-size: 0.8rem;">Tasso di Successo Prestiti</span>
-                  <span class="fw-bold text-success" style="font-size: 0.82rem;">{{ analytics.kpi.prestiti.tassoSuccessoPercentuale }}%</span>
-                </div>
-                <div class="efficiency-meter-bar mb-1">
-                  <div
-                    class="efficiency-meter-fill bg-success"
-                    :style="{ width: analytics.kpi.prestiti.tassoSuccessoPercentuale + '%' }"
-                  ></div>
-                </div>
-                <div class="text-muted d-flex justify-content-between" style="font-size: 0.68rem;">
-                  <span>{{ analytics.kpi.prestiti.completati }} conclusi regolarmente</span>
-                  <span>{{ analytics.kpi.prestiti.rifiutati + analytics.kpi.prestiti.annullati }} non conclusi</span>
-                </div>
-              </div>
-
-              <!-- Metrica 2: Durata Media del Prestito -->
-              <div class="p-2 px-3 bg-light rounded-2 d-flex align-items-center justify-content-between">
-                <div>
-                  <div class="fw-semibold text-dark" style="font-size: 0.8rem;">Durata Media Prestito</div>
-                  <div class="text-muted" style="font-size: 0.7rem;">Permanenza concordata del volume</div>
-                </div>
-                <div class="text-end">
-                  <span class="fw-bold text-primary mb-0" style="font-size: 1.15rem;">{{ analytics.kpi.prestiti.durataMediaGiorni }}</span>
-                  <span class="text-muted ms-1" style="font-size: 0.75rem;">giorni</span>
-                </div>
-              </div>
-
-              <!-- Metrica 3: Bilanciamento Privacy & Visibilità (Fase 20) -->
-              <div class="p-2 px-3 bg-light rounded-2">
-                <div class="d-flex justify-content-between align-items-center mb-1">
-                  <span class="fw-semibold text-dark" style="font-size: 0.8rem;">Visibilità della Libreria (Fase 20)</span>
-                  <span class="text-muted" style="font-size: 0.72rem;">
-                    {{ analytics.kpi.volumi.pubblici }} Pubblici · {{ analytics.kpi.volumi.privati }} Privati
-                  </span>
-                </div>
-                <div class="efficiency-meter-bar mb-1">
-                  <div
-                    class="efficiency-meter-fill bg-primary"
-                    :style="{ width: (analytics.kpi.volumi.totale > 0 ? (analytics.kpi.volumi.pubblici / analytics.kpi.volumi.totale) * 100 : 100) + '%' }"
-                  ></div>
-                </div>
-                <div class="text-muted" style="font-size: 0.68rem;">
-                  <i class="bi bi-lock-fill text-secondary me-1"></i>
-                  I volumi privati sono consultabili unicamente da te nel tuo catalogo.
-                </div>
-              </div>
-
-              <!-- Metrica 4: Geolocalizzazione di Prossimità & Territorio -->
-              <div class="p-2 px-3 bg-light rounded-2 d-flex align-items-center justify-content-between">
-                <div>
-                  <div class="fw-semibold text-dark" style="font-size: 0.8rem;">Raggio Confidenziale PostGIS</div>
-                  <div class="text-muted" style="font-size: 0.7rem;">Coordinate offuscate su base spaziale urbana</div>
-                </div>
-                <div class="text-end">
-                  <span class="badge bg-info-subtle text-info border border-info-subtle px-2 py-0.5" style="font-size: 0.72rem;">
-                    <i class="bi bi-geo-alt me-1"></i>300m confidenziale
-                  </span>
                 </div>
               </div>
             </div>
