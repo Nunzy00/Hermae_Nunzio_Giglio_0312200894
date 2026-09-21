@@ -1,0 +1,82 @@
+================================================================================
+LICENZA D'USO E COPYRIGHT - TUTTI I DIRITTI RISERVATI (ALL RIGHTS RESERVED)
+================================================================================
+
+Progetto: Hermae - Piattaforma di Geolocalizzazione Culturale
+Motto: "Il sapere, un libro alla volta"
+Titolare dei Diritti d'Autore: Nunzio Giglio
+Codice Fiscale: GGLNNZ00H29B202F
+Contatto E-mail: contatti@nunziogiglio.it
+
+Copyright (C) 2026 Nunzio Giglio. Tutti i diritti riservati.
+Copyright (C) 2026 Nunzio Giglio. All rights reserved.
+
+--------------------------------------------------------------------------------
+1. TITOLARITÀ E AMBITO DI APPLICAZIONE
+--------------------------------------------------------------------------------
+Il presente software, ivi inclusi il codice sorgente (front-end e back-end),
+la documentazione tecnica, le architetture dati, gli script di database, le
+grafiche, il marchio, il payoff ("Il sapere, un libro alla volta") e ogni altro
+elemento costitutivo del progetto "Hermae", è opera intellettuale originale
+dell'autore Nunzio Giglio, protetta dalla legge italiana sul diritto d'autore
+(Legge 22 aprile 1941, n. 633 e successive modifiche) e dalle convenzioni
+internazionali sul copyright.
+
+--------------------------------------------------------------------------------
+2. DESTINAZIONE D'USO ACCADEMICO
+--------------------------------------------------------------------------------
+Il codice e i materiali correlati sono stati realizzati e depositati quale
+Elaborato Finale / Project Work per il conseguimento del Titolo di Laurea in
+Informatica per le Aziende Digitali (Classe L-31) presso l'Università Telematica
+Pegaso (Matricola: 0312200894).
+La consultazione, l'ispezione e il collaudo del codice sono espressamente
+consentiti esclusivamente alla Commissione di Laurea, al Relatore e agli organi
+accademici preposti per i soli fini di valutazione didattica ed esame di profitto.
+
+--------------------------------------------------------------------------------
+3. LIMITAZIONI E DIVIETI
+--------------------------------------------------------------------------------
+Fatte salve le disposizioni inderogabili di legge e l'uso accademico sopra
+indicato, è fatto espresso DIVIETO a qualsiasi soggetto terzo di:
+a) Riprodurre, duplicare, copiare, pubblicare o diffondere il codice sorgente o
+   parti di esso senza preventiva ed espressa autorizzazione scritta dell'autore;
+b) Modificare, alterare, adattare, tradurre o creare opere derivate basate sul
+   presente software;
+c) Distribuire, concedere in sublicenza, cedere a terzi, vendere, noleggiare o
+   sfruttare economicamente e commercialmente il software o parti di esso;
+d) Decompilare, disassemblare o effettuare operazioni di reverse engineering sul
+   software, al di fuori dei limiti consentiti dalla normativa applicabile;
+e) Rimuovere o alterare le indicazioni di copyright, le note di licenza o i
+   marchi identificativi dell'autore.
+
+--------------------------------------------------------------------------------
+4. RISORSE TERZE E COMPONENTI OPEN SOURCE
+--------------------------------------------------------------------------------
+I vincoli e le restrizioni di cui sopra si applicano esclusivamente al codice e
+ai materiali originali creati dall'autore. Le librerie, i moduli di runtime e i
+framework di terze parti integrati nel progetto (tra cui, a titolo esemplificativo:
+Node.js, Express, PostgreSQL, Vue.js, Leaflet, Bootstrap, Chart.js, Sharp, Multer,
+Bcrypt, JsonWebToken) e i dati cartografici OpenStreetMap restano disciplinati dalle
+rispettive licenze d'uso originali (MIT, BSD, Apache 2.0, PostgreSQL License,
+ODbL 1.0), i cui termini e avvisi sono pienamente rispettati e preservati nella
+documentazione tecnica.
+
+--------------------------------------------------------------------------------
+5. ESCLUSIONE DI GARANZIA (DISCLAIMER)
+--------------------------------------------------------------------------------
+IL PRESENTE SOFTWARE VIENE FORNITO DALL'AUTORE "COSÌ COM'È" ("AS IS"), SENZA
+ALCUNA GARANZIA ESPRESSA O IMPLICITA, IVI INCLUSE, A TITOLO ESEMPLIFICATIVO E
+NON ESAUSTIVO, GARANZIE IMPLICITE DI COMMERCIABILITÀ, IDONEITÀ PER UNO SCOPO
+PARTICOLARE O NON VIOLAZIONE DI DIRITTI DI TERZI. IN NESSUN CASO L'AUTORE SARÀ
+RESPONSABILE PER EVENTUALI DANNI DIRETTI, INDIRETTI, INCIDENTALI, SPECIALI O
+CONSEQUENZIALI DERIVANTI DALL'USO O DALL'IMPOSSIBILITÀ D'USO DEL SOFTWARE.
+
+--------------------------------------------------------------------------------
+6. CONTATTI E RICHIESTE DI AUTORIZZAZIONE
+--------------------------------------------------------------------------------
+Per qualsiasi richiesta di autorizzazione, informazioni sull'utilizzo,
+collaborazioni di ricerca o segnalazioni, è possibile contattare l'autore a:
+
+  Nunzio Giglio (C.F. GGLNNZ00H29B202F)
+  E-mail: contatti@nunziogiglio.it
+================================================================================
