@@ -1,0 +1,1145 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Messaggi &amp; Scambi — Centro Contatti Hermae</title>
+  <meta name="description" content="Gestione dei thread di dialogo, richieste di contatto e scambio libri tra utenti con sistema di notifica interna e tutela privacy Hermae." />
+
+  <!-- CSS Framework Bootstrap 5.3 & Bootstrap Icons -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
+
+  <!-- Tipografia Inter da Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@500;600;700&display=swap" rel="stylesheet" />
+
+  <!-- Stile personalizzato e Design System Hermae (WCAG 2.1 AA) -->
+  <link rel="stylesheet" href="assets/css/main.css" />
+
+  <style>
+    /* ==========================================================================
+       HERMAE CHAT & CENTRO SCAMBI — Layout e Regole Visive
+       ========================================================================== */
+
+    .chat-page-container {
+      height: calc(100vh - 130px);
+      min-height: 580px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    @media (max-width: 991.98px) {
+      .chat-page-container {
+        height: auto;
+        min-height: auto;
+      }
+    }
+
+    .chat-layout-card {
+      background: #ffffff;
+      border: 1px solid var(--hermae-border, #e2e8f0);
+      border-radius: 12px;
+      box-shadow: 0 4px 14px rgba(15, 23, 42, 0.06);
+      overflow: hidden;
+      flex: 1;
+      display: flex;
+    }
+
+    /* Colonna Lista Thread Sinistra */
+    .threads-sidebar {
+      width: 380px;
+      min-width: 320px;
+      max-width: 420px;
+      border-right: 1px solid var(--hermae-border, #e2e8f0);
+      display: flex;
+      flex-direction: column;
+      background-color: #f8fafc;
+    }
+
+    @media (max-width: 991.98px) {
+      .threads-sidebar {
+        width: 100%;
+        max-width: 100%;
+        border-right: none;
+        border-bottom: 1px solid var(--hermae-border, #e2e8f0);
+      }
+    }
+
+    .threads-list-scroll {
+      flex: 1;
+      overflow-y: auto;
+    }
+
+    .thread-item {
+      padding: 0.85rem 1rem;
+      border-bottom: 1px solid #edf2f7;
+      cursor: pointer;
+      transition: background-color 0.15s ease, border-left 0.15s ease;
+      border-left: 4px solid transparent;
+      background-color: #ffffff;
+    }
+
+    .thread-item:hover {
+      background-color: #f1f5f9;
+    }
+
+    .thread-item.active {
+      background-color: #eff6ff;
+      border-left-color: #2563eb;
+    }
+
+    /* Colonna Conversazione Destra */
+    .chat-main-pane {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      background-color: #f8fafc;
+      min-width: 0;
+    }
+
+    .chat-header {
+      background-color: #ffffff;
+      border-bottom: 1px solid var(--hermae-border, #e2e8f0);
+      padding: 0.85rem 1.25rem;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+    }
+
+    .messages-container {
+      flex: 1;
+      overflow-y: auto;
+      padding: 1.25rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+      background: radial-gradient(#e2e8f0 1px, transparent 1px);
+      background-size: 20px 20px;
+      background-color: #f8fafc;
+    }
+
+    .chat-footer {
+      background-color: #ffffff;
+      border-top: 1px solid var(--hermae-border, #e2e8f0);
+      padding: 0.85rem 1.25rem;
+    }
+
+    /* Bolle Messaggi */
+    .message-row {
+      display: flex;
+      flex-direction: column;
+      max-width: 78%;
+    }
+
+    .message-row.me {
+      align-self: flex-end;
+      align-items: flex-end;
+    }
+
+    .message-row.partner {
+      align-self: flex-start;
+      align-items: flex-start;
+    }
+
+    .message-bubble {
+      padding: 0.65rem 0.95rem;
+      border-radius: 14px;
+      font-size: 0.9rem;
+      line-height: 1.45;
+      word-break: break-word;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+      position: relative;
+    }
+
+    .message-row.me .message-bubble {
+      background-color: #2563eb;
+      color: #ffffff;
+      border-bottom-right-radius: 3px;
+    }
+
+    .message-row.partner .message-bubble {
+      background-color: #ffffff;
+      color: #0f172a;
+      border: 1px solid #e2e8f0;
+      border-bottom-left-radius: 3px;
+    }
+
+    .privacy-shield-tag {
+      background-color: rgba(239, 68, 68, 0.15);
+      color: #b91c1c;
+      font-weight: 600;
+      padding: 0.15rem 0.4rem;
+      border-radius: 4px;
+      border: 1px dashed #ef4444;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.25rem;
+      font-size: 0.8rem;
+    }
+
+    .message-time {
+      font-size: 0.7rem;
+      margin-top: 0.25rem;
+      color: #94a3b8;
+    }
+
+    /* Badge Stato Scambio */
+    .status-badge-IN_ATTESA { background-color: #fef3c7; color: #b45309; border: 1px solid #fde68a; }
+    .status-badge-ACCETTATA { background-color: #dcfce7; color: #15803d; border: 1px solid #bbf7d0; }
+    .status-badge-RIFIUTATA { background-color: #fee2e2; color: #b91c1c; border: 1px solid #fecaca; }
+    .status-badge-COMPLETATA { background-color: #e0e7ff; color: #4338ca; border: 1px solid #c7d2fe; }
+    .status-badge-ANNULLATA { background-color: #f1f5f9; color: #475569; border: 1px solid #e2e8f0; }
+
+    /* Notifiche Drawer */
+    .notification-item {
+      padding: 0.75rem 1rem;
+      border-bottom: 1px solid #e2e8f0;
+      transition: background-color 0.15s ease;
+      cursor: pointer;
+    }
+    .notification-item.unread {
+      background-color: #f0fdf4;
+      border-left: 4px solid #16a34a;
+    }
+    .notification-item:hover {
+      background-color: #f8fafc;
+    }
+  </style>
+</head>
+<body class="bg-light d-flex flex-column min-vh-100">
+  <div id="app" class="d-flex flex-column flex-grow-1">
+
+    <!-- Navigazione Superiore Riservata -->
+    <navbar-logged active-page="chat"></navbar-logged>
+
+    <!-- Contenuto Principale: Centro Messaggi & Scambi -->
+    <main class="flex-grow-1 py-3 px-2 px-md-4" id="main-content">
+      <div class="container-fluid max-w-7xl mx-auto chat-page-container">
+
+        <!-- Barra del Titolo e Azioni Globali -->
+        <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
+          <div>
+            <h1 class="h4 fw-bold text-dark mb-0 d-flex align-items-center gap-2 font-heading">
+              <i class="bi bi-chat-left-text-fill text-primary" aria-hidden="true"></i>
+              <span>Messaggi &amp; Scambi</span>
+            </h1>
+            <p class="text-muted small mb-0">
+              Comunica in sicurezza con gli altri lettori per concordare scambi o prestiti di libri.
+            </p>
+          </div>
+
+          <div class="d-flex align-items-center gap-2">
+            <!-- Pulsante Notifiche Interne con Badge -->
+            <button
+              type="button"
+              class="btn btn-outline-secondary btn-sm position-relative d-inline-flex align-items-center gap-1"
+              data-bs-toggle="offcanvas"
+              data-bs-target="#offcanvasNotifiche"
+              aria-controls="offcanvasNotifiche"
+              aria-label="Apri centro notifiche"
+            >
+              <i class="bi bi-bell-fill" aria-hidden="true"></i>
+              <span class="d-none d-sm-inline">Notifiche</span>
+              <span
+                v-if="notificheNonLette > 0"
+                class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger"
+              >
+                {{ notificheNonLette }}
+                <span class="visually-hidden">notifiche non lette</span>
+              </span>
+            </button>
+
+            <!-- Pulsante Ricarica Thread -->
+            <button
+              type="button"
+              class="btn btn-outline-primary btn-sm d-inline-flex align-items-center gap-1"
+              @click="caricaConversazioni(false)"
+              :disabled="loadingConversazioni"
+              title="Aggiorna conversazioni"
+            >
+              <i class="bi bi-arrow-clockwise" :class="{ 'spin-anim': loadingConversazioni }"></i>
+              <span class="d-none d-sm-inline">Aggiorna</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Contenitore Layout a 2 Colonne: Thread List + Chat View -->
+        <div class="chat-layout-card">
+
+          <!-- ========================================================== -->
+          <!-- COLONNA SINISTRA: ELENCO CONVERSAZIONI                     -->
+          <!-- ========================================================== -->
+          <aside
+            class="threads-sidebar"
+            :class="{ 'd-none d-lg-flex': conversazioneAttiva && isMobileView, 'd-flex': !conversazioneAttiva || !isMobileView }"
+            aria-label="Elenco conversazioni attive"
+          >
+            <!-- Intestazione Ricerca & Filtri della Sidebar -->
+            <div class="p-3 border-bottom bg-white">
+              <div class="input-group input-group-sm mb-2">
+                <span class="input-group-text bg-light border-end-0 text-muted">
+                  <i class="bi bi-search"></i>
+                </span>
+                <input
+                  type="text"
+                  v-model="searchFilter"
+                  class="form-control bg-light border-start-0 ps-0"
+                  placeholder="Cerca per titolo o lettore..."
+                  aria-label="Cerca nelle conversazioni"
+                />
+                <button
+                  v-if="searchFilter"
+                  class="btn btn-outline-secondary border-start-0 bg-light"
+                  type="button"
+                  @click="searchFilter = ''"
+                  aria-label="Cancella ricerca"
+                >
+                  <i class="bi bi-x"></i>
+                </button>
+              </div>
+
+              <!-- Filtri Rapidi di Stato -->
+              <div class="d-flex gap-1 overflow-x-auto pb-1" style="scrollbar-width: none;">
+                <button
+                  v-for="tab in filterTabs"
+                  :key="tab.id"
+                  type="button"
+                  class="btn btn-xs rounded-pill text-nowrap px-2 py-1"
+                  :class="activeTab === tab.id ? 'btn-primary text-white' : 'btn-outline-secondary text-secondary'"
+                  style="font-size: 0.72rem;"
+                  @click="activeTab = tab.id"
+                >
+                  {{ tab.label }}
+                  <span
+                    v-if="tab.count !== null"
+                    class="badge rounded-pill ms-1"
+                    :class="activeTab === tab.id ? 'bg-white text-primary' : 'bg-secondary-subtle text-secondary'"
+                  >
+                    {{ tab.count }}
+                  </span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Lista Scrollabile dei Thread -->
+            <div class="threads-list-scroll">
+              <div v-if="loadingConversazioni && conversazioni.length === 0" class="p-4 text-center text-muted">
+                <div class="spinner-border spinner-border-sm text-primary mb-2" role="status"></div>
+                <div class="small">Caricamento conversazioni...</div>
+              </div>
+
+              <div v-else-if="filteredConversazioni.length === 0" class="p-4 text-center text-muted">
+                <i class="bi bi-inbox fs-2 text-secondary mb-2 d-block"></i>
+                <div class="fw-semibold small">Nessuna conversazione trovata</div>
+                <div class="text-muted" style="font-size: 0.78rem;">
+                  {{ searchFilter ? 'Prova a modificare i termini di ricerca.' : 'Richiedi uno scambio partendo dalla Ricerca Libri.' }}
+                </div>
+                <a href="ricerca.html" class="btn btn-primary btn-sm mt-3">
+                  <i class="bi bi-geo-alt me-1"></i>Esplora Libri su Mappa
+                </a>
+              </div>
+
+              <div v-else>
+                <div
+                  v-for="conv in filteredConversazioni"
+                  :key="conv.id"
+                  class="thread-item"
+                  :class="{ active: conversazioneAttiva && conversazioneAttiva.id === conv.id }"
+                  @click="selezionaConversazione(conv)"
+                  role="button"
+                  tabindex="0"
+                  @keydown.enter="selezionaConversazione(conv)"
+                >
+                  <div class="d-flex gap-2 align-items-start">
+                    <!-- Copertina Libro / Icona Placeholder -->
+                    <div class="position-relative flex-shrink-0">
+                      <img
+                        v-if="conv.immagine_miniatura || conv.immagine_copertina"
+                        :src="conv.immagine_miniatura || conv.immagine_copertina"
+                        :alt="conv.libro_titolo"
+                        style="width: 44px; height: 60px; object-fit: cover; border-radius: 4px; box-shadow: 0 1px 3px rgba(0,0,0,0.15);"
+                      />
+                      <div
+                        v-else
+                        style="width: 44px; height: 60px; background-color: #1e40af; border-radius: 4px; display: flex; align-items: center; justify-content: center; color: white;"
+                      >
+                        <i class="bi bi-book fs-4"></i>
+                      </div>
+
+                      <!-- Badge Ruolo (Richiesta Inviata vs Ricevuta) -->
+                      <span
+                        class="position-absolute bottom-0 end-0 translate-middle-y badge rounded-circle p-1"
+                        :class="conv.ruolo === 'PROPRIETARIO' ? 'bg-info text-dark' : 'bg-primary text-white'"
+                        style="font-size: 0.6rem;"
+                        :title="conv.ruolo === 'PROPRIETARIO' ? 'Libro di tua proprietà (Richiesta ricevuta)' : 'Richiesta inviata da te'"
+                      >
+                        <i :class="conv.ruolo === 'PROPRIETARIO' ? 'bi-box-arrow-in-down' : 'bi-send'"></i>
+                      </span>
+                    </div>
+
+                    <!-- Informazioni Principali e Anteprima -->
+                    <div style="min-width: 0; flex-grow: 1;">
+                      <div class="d-flex align-items-center justify-content-between mb-1">
+                        <span class="badge" :class="'status-badge-' + conv.stato" style="font-size: 0.65rem; font-weight: 600;">
+                          {{ formatStato(conv.stato) }}
+                        </span>
+                        <small class="text-muted" style="font-size: 0.68rem;">
+                          {{ formatDataBreve(conv.ultimo_messaggio_data || conv.data_richiesta) }}
+                        </small>
+                      </div>
+
+                      <div class="fw-bold text-dark text-truncate small mb-0" :title="conv.libro_titolo">
+                        {{ conv.libro_titolo }}
+                      </div>
+
+                      <div class="small text-muted text-truncate mb-1" style="font-size: 0.75rem;">
+                        <span class="text-dark fw-semibold">{{ getPartnerName(conv) }}</span>
+                        <span v-if="conv.partner_citta"> • {{ conv.partner_citta }}</span>
+                      </div>
+
+                      <div class="d-flex align-items-center justify-content-between">
+                        <div class="text-muted small text-truncate" style="font-size: 0.74rem; max-width: 200px;">
+                          <span v-if="conv.ultimo_messaggio_mittente_id === user.id" class="text-secondary fw-semibold">Tu: </span>
+                          <span>{{ formatAnteprimaMessaggio(conv.ultimo_messaggio_testo) }}</span>
+                        </div>
+
+                        <!-- Pill Non Letti per questa conversazione -->
+                        <span
+                          v-if="conv.messaggi_non_letti && conv.messaggi_non_letti > 0"
+                          class="badge rounded-pill bg-danger"
+                          style="font-size: 0.65rem;"
+                        >
+                          {{ conv.messaggi_non_letti }}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </aside>
+
+          <!-- ========================================================== -->
+          <!-- COLONNA DESTRA: VISTA CHAT ATTIVA                          -->
+          <!-- ========================================================== -->
+          <section
+            class="chat-main-pane"
+            :class="{ 'd-none d-lg-flex': !conversazioneAttiva && isMobileView, 'd-flex': conversazioneAttiva || !isMobileView }"
+            aria-label="Finestra conversazione attiva"
+          >
+            <!-- Stato vuoto: Nessun thread selezionato -->
+            <div v-if="!conversazioneAttiva" class="h-100 d-flex flex-column align-items-center justify-content-center p-4 text-center text-muted">
+              <div class="bg-primary-subtle text-primary rounded-circle p-4 mb-3" style="width: 80px; height: 80px; display: flex; align-items: center; justify-content: center;">
+                <i class="bi bi-chat-heart fs-1"></i>
+              </div>
+              <h2 class="h5 fw-bold text-dark mb-1">Nessuna conversazione aperta</h2>
+              <p class="text-muted small mb-3" style="max-width: 360px;">
+                Seleziona una richiesta dalla colonna a sinistra per leggere i messaggi, oppure trova nuovi volumi da richiedere.
+              </p>
+              <a href="ricerca.html" class="btn btn-primary btn-sm px-3">
+                <i class="bi bi-search me-1"></i>Trova Libri nella tua Zona
+              </a>
+            </div>
+
+            <!-- Thread Selezionato ed Operativo -->
+            <div v-else class="h-100 d-flex flex-column">
+
+              <!-- Intestazione Conversazione Attiva -->
+              <header class="chat-header">
+                <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
+                  <!-- Sinistra: Bottone Indietro (Mobile) + Info Libro e Lettore -->
+                  <div class="d-flex align-items-center gap-2" style="min-width: 0;">
+                    <!-- Bottone Torna alla Lista per visuali Mobile -->
+                    <button
+                      type="button"
+                      class="btn btn-outline-secondary btn-sm d-lg-none py-1 px-2"
+                      @click="conversazioneAttiva = null"
+                      aria-label="Torna alla lista conversazioni"
+                    >
+                      <i class="bi bi-chevron-left"></i>
+                    </button>
+
+                    <!-- Miniatura Libro -->
+                    <img
+                      v-if="conversazioneAttiva.immagine_miniatura || conversazioneAttiva.immagine_copertina"
+                      :src="conversazioneAttiva.immagine_miniatura || conversazioneAttiva.immagine_copertina"
+                      :alt="conversazioneAttiva.libro_titolo"
+                      style="width: 40px; height: 54px; object-fit: cover; border-radius: 4px; box-shadow: 0 1px 3px rgba(0,0,0,0.15);"
+                    />
+                    <div
+                      v-else
+                      style="width: 40px; height: 54px; background-color: #1e40af; border-radius: 4px; display: flex; align-items: center; justify-content: center; color: white;"
+                    >
+                      <i class="bi bi-book fs-4"></i>
+                    </div>
+
+                    <div style="min-width: 0;">
+                      <div class="fw-bold text-dark text-truncate small" :title="conversazioneAttiva.libro_titolo">
+                        {{ conversazioneAttiva.libro_titolo }}
+                      </div>
+                      <div class="text-muted small text-truncate" style="font-size: 0.74rem;">
+                        {{ conversazioneAttiva.libro_autore }}
+                      </div>
+                      <div class="small mt-1 d-flex align-items-center gap-1" style="font-size: 0.72rem;">
+                        <i class="bi bi-person-fill text-secondary"></i>
+                        <span class="text-dark fw-semibold">{{ getPartnerName(conversazioneAttiva) }}</span>
+                        <span class="text-muted" v-if="conversazioneAttiva.partner_citta">({{ conversazioneAttiva.partner_citta }})</span>
+                        <span class="badge ms-1" :class="'status-badge-' + conversazioneAttiva.stato">
+                          {{ formatStato(conversazioneAttiva.stato) }}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Destra: Azioni di Stato dello Scambio -->
+                  <div class="d-flex align-items-center gap-2">
+                    <!-- Azioni Proprietario per Richiesta IN_ATTESA -->
+                    <template v-if="conversazioneAttiva.ruolo === 'PROPRIETARIO' && conversazioneAttiva.stato === 'IN_ATTESA'">
+                      <button
+                        type="button"
+                        class="btn btn-success btn-sm d-inline-flex align-items-center gap-1"
+                        @click="cambiaStato('ACCETTATA')"
+                        :disabled="azioneStatoInCorso"
+                      >
+                        <i class="bi bi-check-lg"></i>
+                        <span class="d-none d-sm-inline">Accetta Scambio</span>
+                      </button>
+                      <button
+                        type="button"
+                        class="btn btn-outline-danger btn-sm d-inline-flex align-items-center gap-1"
+                        @click="cambiaStato('RIFIUTATA')"
+                        :disabled="azioneStatoInCorso"
+                      >
+                        <i class="bi bi-x-lg"></i>
+                        <span class="d-none d-sm-inline">Rifiuta</span>
+                      </button>
+                    </template>
+
+                    <!-- Azioni Richiedente per Richiesta IN_ATTESA -->
+                    <template v-if="conversazioneAttiva.ruolo === 'RICHIEDENTE' && conversazioneAttiva.stato === 'IN_ATTESA'">
+                      <button
+                        type="button"
+                        class="btn btn-outline-secondary btn-sm d-inline-flex align-items-center gap-1"
+                        @click="cambiaStato('ANNULLATA')"
+                        :disabled="azioneStatoInCorso"
+                      >
+                        <i class="bi bi-slash-circle"></i>
+                        <span class="d-none d-sm-inline">Annulla Richiesta</span>
+                      </button>
+                    </template>
+
+                    <!-- Azioni per Richiesta ACCETTATA (Entrambe le parti possono completare) -->
+                    <template v-if="conversazioneAttiva.stato === 'ACCETTATA'">
+                      <button
+                        type="button"
+                        class="btn btn-primary btn-sm d-inline-flex align-items-center gap-1"
+                        @click="cambiaStato('COMPLETATA')"
+                        :disabled="azioneStatoInCorso"
+                      >
+                        <i class="bi bi-award-fill"></i>
+                        <span class="d-none d-sm-inline">Segna come Completato</span>
+                      </button>
+                    </template>
+                  </div>
+                </div>
+              </header>
+
+              <!-- Avviso Privacy Shield Hermae Permanente in Testata -->
+              <div class="py-1 px-3 bg-light border-bottom d-flex align-items-center justify-content-between small" style="font-size: 0.74rem;">
+                <div class="d-flex align-items-center gap-2 text-secondary">
+                  <i class="bi bi-shield-check text-success fs-6"></i>
+                  <span><strong>Hermae Privacy Shield attivo:</strong> I contatti diretti (email e numeri) vengono schermati automaticamente per la tua sicurezza.</span>
+                </div>
+                <span class="text-muted d-none d-md-inline">ID Scambio: #{{ conversazioneAttiva.id.substring(0, 8) }}</span>
+              </div>
+
+              <!-- Contenitore dei Messaggi con Auto-Scroll -->
+              <div class="messages-container" ref="messagesBox">
+                <div v-if="loadingMessaggi" class="text-center py-4 text-muted">
+                  <div class="spinner-border spinner-border-sm text-primary mb-2" role="status"></div>
+                  <div class="small">Caricamento messaggi...</div>
+                </div>
+
+                <div v-else-if="messaggi.length === 0" class="text-center py-5 text-muted">
+                  <i class="bi bi-chat-dots fs-1 text-secondary mb-2 d-block"></i>
+                  <div class="small fw-semibold">Nessun messaggio presente in questa conversazione.</div>
+                  <div class="small text-muted">Invia un messaggio per concordare luogo e modalità dello scambio.</div>
+                </div>
+
+                <template v-else>
+                  <div
+                    v-for="msg in messaggi"
+                    :key="msg.id"
+                    class="message-row"
+                    :class="msg.mittente_id === user.id ? 'me' : 'partner'"
+                  >
+                    <div class="message-bubble">
+                      <!-- Renderizza il testo sanitizzato con evidenziazione dei placeholder privacy -->
+                      <span v-html="renderSafeMessage(msg.testo)"></span>
+                    </div>
+
+                    <div class="message-time d-flex align-items-center gap-1">
+                      <span>{{ formatOra(msg.data_invio) }}</span>
+                      <template v-if="msg.mittente_id === user.id">
+                        <i
+                          class="bi"
+                          :class="msg.letto ? 'bi-check2-all text-primary' : 'bi-check2 text-muted'"
+                          :title="msg.letto ? 'Letto' : 'Inviato'"
+                        ></i>
+                      </template>
+                    </div>
+                  </div>
+                </template>
+              </div>
+
+              <!-- Piè di Pagina Chat: Modulo Invio o Banner Stato Concluso -->
+              <footer class="chat-footer">
+                <!-- Se lo scambio è terminato -->
+                <div v-if="['RIFIUTATA', 'COMPLETATA', 'ANNULLATA'].includes(conversazioneAttiva.stato)" class="alert alert-secondary py-2 px-3 mb-0 small text-center">
+                  <i class="bi bi-info-circle me-1"></i>
+                  Questo scambio è attualmente nello stato <strong>{{ formatStato(conversazioneAttiva.stato) }}</strong>. Il thread di conversazione è archiviato in sola lettura.
+                </div>
+
+                <!-- Form di invio nuovo messaggio -->
+                <form v-else @submit.prevent="inviaMessaggio" class="d-flex flex-column gap-1">
+                  <div class="d-flex gap-2 align-items-center">
+                    <input
+                      type="text"
+                      v-model="nuovoMessaggio"
+                      class="form-control"
+                      placeholder="Scrivi un messaggio sicuro (es. Sono disponibile sabato pomeriggio per lo scambio...)"
+                      maxlength="1000"
+                      :disabled="invioInCorso"
+                      required
+                    />
+                    <button
+                      type="submit"
+                      class="btn btn-primary d-inline-flex align-items-center gap-1 px-3"
+                      :disabled="invioInCorso || !nuovoMessaggio.trim()"
+                    >
+                      <span v-if="invioInCorso" class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                      <i v-else class="bi bi-send-fill" aria-hidden="true"></i>
+                      <span class="d-none d-sm-inline">Invia</span>
+                    </button>
+                  </div>
+
+                  <!-- Helper testo Antispam e Schermatura -->
+                  <div class="d-flex justify-content-between align-items-center px-1">
+                    <small class="text-muted" style="font-size: 0.7rem;">
+                      <i class="bi bi-shield-lock text-primary me-1"></i>I messaggi passano attraverso il filtro privacy Hermae. Non inserire IBAN o password.
+                    </small>
+                    <small class="text-muted" style="font-size: 0.7rem;">
+                      {{ nuovoMessaggio.length }} / 1000
+                    </small>
+                  </div>
+                </form>
+              </footer>
+
+            </div>
+          </section>
+
+        </div>
+
+      </div>
+
+      <!-- ========================================================== -->
+      <!-- OFFCANVAS NOTIFICHE INTERNE DI PIATTAFORMA                 -->
+      <!-- ========================================================== -->
+      <div
+        class="offcanvas offcanvas-end shadow"
+        tabindex="-1"
+        id="offcanvasNotifiche"
+        aria-labelledby="offcanvasNotificheLabel"
+      >
+        <div class="offcanvas-header bg-light border-bottom">
+          <h5 class="offcanvas-title h6 fw-bold mb-0 d-flex align-items-center gap-2" id="offcanvasNotificheLabel">
+            <i class="bi bi-bell-fill text-primary"></i>Centro Notifiche Hermae
+          </h5>
+          <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Chiudi"></button>
+        </div>
+
+        <div class="p-2 border-bottom bg-white d-flex justify-content-between align-items-center">
+          <small class="text-muted">
+            Non lette: <strong class="text-dark">{{ notificheNonLette }}</strong>
+          </small>
+          <button
+            v-if="notificheNonLette > 0"
+            type="button"
+            class="btn btn-link btn-sm text-decoration-none p-0 small"
+            @click="segnaTutteNotificheComeLette"
+          >
+            Segna tutte come lette
+          </button>
+        </div>
+
+        <div class="offcanvas-body p-0">
+          <div v-if="loadingNotifiche" class="p-4 text-center text-muted">
+            <div class="spinner-border spinner-border-sm text-primary mb-2" role="status"></div>
+            <div class="small">Caricamento notifiche...</div>
+          </div>
+
+          <div v-else-if="notifiche.length === 0" class="p-4 text-center text-muted">
+            <i class="bi bi-bell-slash fs-2 text-secondary mb-2 d-block"></i>
+            <div class="small fw-semibold">Nessuna notifica presente</div>
+            <div class="text-muted small">Riceverai aggiornamenti quando altri lettori ti contatteranno per i tuoi libri.</div>
+          </div>
+
+          <div v-else>
+            <div
+              v-for="notif in notifiche"
+              :key="notif.id"
+              class="notification-item"
+              :class="{ unread: !notif.letta }"
+              @click="cliccaNotifica(notif)"
+            >
+              <div class="d-flex align-items-start gap-2">
+                <i
+                  class="bi mt-1"
+                  :class="{
+                    'bi-envelope-paper-heart-fill text-primary': notif.tipo === 'NUOVA_RICHIESTA',
+                    'bi-chat-dots-fill text-info': notif.tipo === 'NUOVO_MESSAGGIO',
+                    'bi-check-circle-fill text-success': notif.tipo === 'STATO_AGGIORNATO' || notif.tipo === 'RICHIESTA_ACCETTATA',
+                    'bi-bell text-secondary': !['NUOVA_RICHIESTA', 'NUOVO_MESSAGGIO', 'STATO_AGGIORNATO', 'RICHIESTA_ACCETTATA'].includes(notif.tipo)
+                  }"
+                ></i>
+                <div style="min-width: 0; flex-grow: 1;">
+                  <div class="d-flex align-items-center justify-content-between">
+                    <strong class="text-dark small">{{ notif.titolo }}</strong>
+                    <small class="text-muted" style="font-size: 0.68rem;">{{ formatDataBreve(notif.data_creazione) }}</small>
+                  </div>
+                  <div class="text-secondary small mt-1" style="font-size: 0.78rem;">
+                    {{ notif.messaggio }}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </main>
+
+    <!-- Notifiche Toast Asincrone -->
+    <toast-notification :toasts="toasts" @remove-toast="removeToast"></toast-notification>
+
+    <!-- Piè di pagina globale dell'applicazione -->
+    <app-footer></app-footer>
+  </div>
+
+  <!-- Dipendenze Esterne: Bootstrap JS, Axios, Vue 3 CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/axios@1.6.8/dist/axios.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/vue@3.4.21/dist/vue.global.prod.js"></script>
+
+  <!-- Script Applicativi Interni -->
+  <script src="assets/js/api.js"></script>
+  <script src="assets/js/auth.js"></script>
+  <script src="assets/js/components/global-components.js"></script>
+
+  <!-- Logica Reattiva Centro Messaggi & Scambi (Vue 3) -->
+  <script>
+    const { createApp, ref, computed, onMounted, onBeforeUnmount, nextTick } = Vue;
+
+    const app = createApp({
+      setup() {
+        const user = ref(null);
+        const toasts = ref([]);
+        const messagesBox = ref(null);
+
+        // Stato Conversazioni e Notifiche
+        const conversazioni = ref([]);
+        const loadingConversazioni = ref(false);
+        const conversazioneAttiva = ref(null);
+        const messaggi = ref([]);
+        const loadingMessaggi = ref(false);
+        const nuovoMessaggio = ref('');
+        const invioInCorso = ref(false);
+        const azioneStatoInCorso = ref(false);
+
+        // Notifiche Interne
+        const notifiche = ref([]);
+        const loadingNotifiche = ref(false);
+        const notificheNonLette = ref(0);
+
+        // Filtri e Ricerca Thread
+        const searchFilter = ref('');
+        const activeTab = ref('TUTTI');
+        let refreshInterval = null;
+
+        // Riconoscimento responsive mobile
+        const isMobileView = computed(() => {
+          return window.innerWidth < 992;
+        });
+
+        // Aggiunge un toast visivo
+        const addToast = (title, message, type = 'info') => {
+          const id = Date.now() + Math.random();
+          toasts.value.push({ id, title, message, type });
+          setTimeout(() => removeToast(id), 5000);
+        };
+
+        const removeToast = (id) => {
+          toasts.value = toasts.value.filter(t => t.id !== id);
+        };
+
+        // Tabs di filtraggio
+        const filterTabs = computed(() => {
+          const all = conversazioni.value.length;
+          const pending = conversazioni.value.filter(c => c.stato === 'IN_ATTESA').length;
+          const active = conversazioni.value.filter(c => c.stato === 'ACCETTATA').length;
+          const done = conversazioni.value.filter(c => ['COMPLETATA', 'RIFIUTATA', 'ANNULLATA'].includes(c.stato)).length;
+
+          return [
+            { id: 'TUTTI', label: 'Tutti', count: all },
+            { id: 'IN_ATTESA', label: 'In attesa', count: pending },
+            { id: 'ATTIVI', label: 'Attivi', count: active },
+            { id: 'CONCLUSI', label: 'Conclusi', count: done }
+          ];
+        });
+
+        // Conversazioni filtrate per tab e ricerca
+        const filteredConversazioni = computed(() => {
+          let list = conversazioni.value;
+
+          if (activeTab.value === 'IN_ATTESA') {
+            list = list.filter(c => c.stato === 'IN_ATTESA');
+          } else if (activeTab.value === 'ATTIVI') {
+            list = list.filter(c => c.stato === 'ACCETTATA');
+          } else if (activeTab.value === 'CONCLUSI') {
+            list = list.filter(c => ['COMPLETATA', 'RIFIUTATA', 'ANNULLATA'].includes(c.stato));
+          }
+
+          if (searchFilter.value.trim()) {
+            const q = searchFilter.value.toLowerCase().trim();
+            list = list.filter(c => {
+              const bookMatch = (c.libro_titolo && c.libro_titolo.toLowerCase().includes(q)) ||
+                                (c.libro_autore && c.libro_autore.toLowerCase().includes(q));
+              const partnerName = getPartnerName(c).toLowerCase();
+              return bookMatch || partnerName.includes(q);
+            });
+          }
+
+          return list;
+        });
+
+        // Nome visualizzabile del partner (interlocutore)
+        const getPartnerName = (conv) => {
+          if (!conv) return 'Lettore Hermae';
+          if (conv.partner_nome) {
+            return `${conv.partner_nome} ${conv.partner_cognome_iniziale || ''}`.trim();
+          }
+          return 'Lettore Hermae';
+        };
+
+        // Carica la lista delle conversazioni/richieste dell'utente
+        const caricaConversazioni = async (silent = false) => {
+          if (!silent) loadingConversazioni.value = true;
+          try {
+            const res = await window.apiClient.get('/richieste');
+            if (res.data && res.data.success && Array.isArray(res.data.data)) {
+              conversazioni.value = res.data.data;
+
+              // Se c'è una conversazione attiva, aggiorna il suo riferimento per riflettere cambi di stato
+              if (conversazioneAttiva.value) {
+                const refreshed = conversazioni.value.find(c => c.id === conversazioneAttiva.value.id);
+                if (refreshed) {
+                  conversazioneAttiva.value = refreshed;
+                }
+              }
+            }
+          } catch (err) {
+            if (!silent) addToast('Errore', 'Impossibile aggiornare le conversazioni.', 'danger');
+          } finally {
+            if (!silent) loadingConversazioni.value = false;
+          }
+        };
+
+        // Seleziona un thread e ne carica i messaggi
+        const selezionaConversazione = async (conv) => {
+          conversazioneAttiva.value = conv;
+          await caricaMessaggi(conv.id);
+
+          // Se c'erano messaggi non letti nel thread, azzerali localmente
+          if (conv.messaggi_non_letti) {
+            conv.messaggi_non_letti = 0;
+          }
+        };
+
+        // Carica i messaggi di uno specifico thread
+        const caricaMessaggi = async (richiestaId, silent = false) => {
+          if (!richiestaId) return;
+          if (!silent) loadingMessaggi.value = true;
+
+          try {
+            const res = await window.apiClient.get(`/richieste/${richiestaId}/messaggi`);
+            if (res.data && res.data.success && Array.isArray(res.data.data)) {
+              messaggi.value = res.data.data;
+              await nextTick();
+              scrollMessaggiInFondo();
+            }
+          } catch (err) {
+            if (!silent) addToast('Errore Messaggi', 'Impossibile caricare i messaggi della conversazione.', 'danger');
+          } finally {
+            if (!silent) loadingMessaggi.value = false;
+          }
+        };
+
+        // Scorre in basso il contenitore dei messaggi
+        const scrollMessaggiInFondo = () => {
+          if (messagesBox.value) {
+            messagesBox.value.scrollTop = messagesBox.value.scrollHeight;
+          }
+        };
+
+        // Invia un nuovo messaggio nella conversazione attiva
+        const inviaMessaggio = async () => {
+          if (!conversazioneAttiva.value || !nuovoMessaggio.value.trim() || invioInCorso.value) return;
+
+          invioInCorso.value = true;
+          const testoDaInviare = nuovoMessaggio.value.trim();
+
+          try {
+            const res = await window.apiClient.post(`/richieste/${conversazioneAttiva.value.id}/messaggi`, {
+              testo: testoDaInviare
+            });
+
+            if (res.data && res.data.success && res.data.data) {
+              messaggi.value.push(res.data.data);
+              nuovoMessaggio.value = '';
+              await nextTick();
+              scrollMessaggiInFondo();
+
+              // Aggiorna l'anteprima nell'elenco a sinistra
+              conversazioneAttiva.value.ultimo_messaggio_testo = res.data.data.testo;
+              conversazioneAttiva.value.ultimo_messaggio_data = res.data.data.data_invio;
+              conversazioneAttiva.value.ultimo_messaggio_mittente_id = user.value.id;
+            } else {
+              addToast('Invio Fallito', (res.data && res.data.message) || 'Impossibile inviare il messaggio.', 'danger');
+            }
+          } catch (err) {
+            const msg = (err.response && err.response.data && err.response.data.message) || 'Errore durante l\'invio del messaggio.';
+            addToast('Invio Fallito', msg, 'danger');
+          } finally {
+            invioInCorso.value = false;
+          }
+        };
+
+        // Cambia lo stato della richiesta (ACCETTATA, RIFIUTATA, COMPLETATA, ANNULLATA)
+        const cambiaStato = async (nuovoStato) => {
+          if (!conversazioneAttiva.value || azioneStatoInCorso.value) return;
+
+          azioneStatoInCorso.value = true;
+          try {
+            const res = await window.apiClient.patch(`/richieste/${conversazioneAttiva.value.id}/stato`, {
+              stato: nuovoStato
+            });
+
+            if (res.data && res.data.success && res.data.data) {
+              conversazioneAttiva.value.stato = res.data.data.stato;
+              addToast('Stato Aggiornato', `Lo scambio è ora nello stato: ${formatStato(nuovoStato)}`, 'success');
+              await caricaConversazioni(true);
+              await caricaMessaggi(conversazioneAttiva.value.id, true);
+            } else {
+              addToast('Operazione Fallita', (res.data && res.data.message) || 'Impossibile aggiornare lo stato.', 'danger');
+            }
+          } catch (err) {
+            const msg = (err.response && err.response.data && err.response.data.message) || 'Errore durante l\'aggiornamento dello stato.';
+            addToast('Errore', msg, 'danger');
+          } finally {
+            azioneStatoInCorso.value = false;
+          }
+        };
+
+        // Carica le notifiche interne dell'utente
+        const caricaNotifiche = async () => {
+          loadingNotifiche.value = true;
+          try {
+            const [resNotifiche, resCount] = await Promise.all([
+              window.apiClient.get('/notifiche'),
+              window.apiClient.get('/notifiche/conteggio')
+            ]);
+
+            if (resNotifiche.data && resNotifiche.data.success && Array.isArray(resNotifiche.data.data)) {
+              notifiche.value = resNotifiche.data.data;
+            }
+            if (resCount.data && resCount.data.success && resCount.data.data) {
+              notificheNonLette.value = resCount.data.data.non_lette || 0;
+            }
+          } catch (e) {
+            // Silenzioso
+          } finally {
+            loadingNotifiche.value = false;
+          }
+        };
+
+        // Segna tutte le notifiche come lette
+        const segnaTutteNotificheComeLette = async () => {
+          try {
+            await window.apiClient.patch('/notifiche/lette/tutte');
+            notifiche.value.forEach(n => n.letta = true);
+            notificheNonLette.value = 0;
+            addToast('Notifiche Lette', 'Tutte le notifiche sono state contrassegnate come lette.', 'info');
+          } catch (e) {
+            addToast('Errore', 'Impossibile aggiornare le notifiche.', 'danger');
+          }
+        };
+
+        // Clicca su una notifica: segna come letta e naviga alla conversazione associata
+        const cliccaNotifica = async (notif) => {
+          if (!notif.letta) {
+            try {
+              await window.apiClient.patch(`/notifiche/${notif.id}/letta`);
+              notif.letta = true;
+              if (notificheNonLette.value > 0) notificheNonLette.value--;
+            } catch (e) {}
+          }
+
+          if (notif.richiesta_id) {
+            // Chiudi offcanvas
+            const el = document.getElementById('offcanvasNotifiche');
+            if (el) {
+              const bsOffcanvas = bootstrap.Offcanvas.getInstance(el);
+              if (bsOffcanvas) bsOffcanvas.hide();
+            }
+
+            // Cerca e seleziona la conversazione
+            const found = conversazioni.value.find(c => c.id === notif.richiesta_id);
+            if (found) {
+              selezionaConversazione(found);
+            } else {
+              // Ricarica e seleziona
+              await caricaConversazioni(true);
+              const reloaded = conversazioni.value.find(c => c.id === notif.richiesta_id);
+              if (reloaded) selezionaConversazione(reloaded);
+            }
+          }
+        };
+
+        // Formattatori leggibili
+        const formatStato = (stato) => {
+          const map = {
+            'IN_ATTESA': 'In Attesa',
+            'ACCETTATA': 'Accettata',
+            'RIFIUTATA': 'Rifiutata',
+            'COMPLETATA': 'Completata',
+            'ANNULLATA': 'Annullata'
+          };
+          return map[stato] || stato;
+        };
+
+        const formatDataBreve = (d) => {
+          if (!d) return '';
+          const date = new Date(d);
+          const now = new Date();
+          const isToday = date.toDateString() === now.toDateString();
+          if (isToday) {
+            return date.toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' });
+          }
+          return date.toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit' });
+        };
+
+        const formatOra = (d) => {
+          if (!d) return '';
+          return new Date(d).toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' });
+        };
+
+        const formatAnteprimaMessaggio = (txt) => {
+          if (!txt) return 'Nessun messaggio';
+          return txt.replace(/\[(EMAIL|NUMERO) SCHERMAT[OA] A TUTELA PRIVACY\]/g, '🔒 [Contatto Schermato]');
+        };
+
+        // Rende visivamente evidenti i tag di schermatura privacy all'interno del messaggio
+        const renderSafeMessage = (testo) => {
+          if (!testo) return '';
+          const escapeHtml = (str) => str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+          let safe = escapeHtml(testo);
+
+          safe = safe.replace(/\[EMAIL SCHERMATA A TUTELA PRIVACY\]/g, '<span class="privacy-shield-tag"><i class="bi bi-shield-slash"></i>Email Schermata</span>');
+          safe = safe.replace(/\[NUMERO SCHERMATO A TUTELA PRIVACY\]/g, '<span class="privacy-shield-tag"><i class="bi bi-shield-slash"></i>Numero Schermato</span>');
+
+          return safe.replace(/\n/g, '<br>');
+        };
+
+        // Verifica parametro URL ?id=... per pre-selezionare una conversazione
+        const controllaParametriUrl = () => {
+          const params = new URLSearchParams(window.location.search);
+          const richiestaId = params.get('id');
+          if (richiestaId && conversazioni.value.length > 0) {
+            const found = conversazioni.value.find(c => c.id === richiestaId);
+            if (found) {
+              selezionaConversazione(found);
+            }
+          }
+        };
+
+        // Inizializzazione montaggio
+        onMounted(async () => {
+          if (!window.auth.requireAuth('login.html')) {
+            return;
+          }
+
+          user.value = window.auth.getUser();
+          await Promise.all([
+            caricaConversazioni(),
+            caricaNotifiche()
+          ]);
+
+          controllaParametriUrl();
+
+          // Polling silenzioso ogni 10 secondi per aggiornare nuovi messaggi e notifiche
+          refreshInterval = setInterval(() => {
+            caricaConversazioni(true);
+            caricaNotifiche();
+            if (conversazioneAttiva.value) {
+              caricaMessaggi(conversazioneAttiva.value.id, true);
+            }
+          }, 10000);
+        });
+
+        onBeforeUnmount(() => {
+          if (refreshInterval) clearInterval(refreshInterval);
+        });
+
+        return {
+          user,
+          toasts,
+          messagesBox,
+          conversazioni,
+          loadingConversazioni,
+          conversazioneAttiva,
+          messaggi,
+          loadingMessaggi,
+          nuovoMessaggio,
+          invioInCorso,
+          azioneStatoInCorso,
+          notifiche,
+          loadingNotifiche,
+          notificheNonLette,
+          searchFilter,
+          activeTab,
+          filterTabs,
+          filteredConversazioni,
+          isMobileView,
+          caricaConversazioni,
+          selezionaConversazione,
+          inviaMessaggio,
+          cambiaStato,
+          segnaTutteNotificheComeLette,
+          cliccaNotifica,
+          getPartnerName,
+          formatStato,
+          formatDataBreve,
+          formatOra,
+          formatAnteprimaMessaggio,
+          renderSafeMessage,
+          removeToast
+        };
+      }
+    });
+
+    // Registra i componenti globali condivisi e monta l'applicazione
+    window.HermaeComponents.registerGlobalComponents(app);
+    app.mount('#app');
+  </script>
+</body>
+</html>

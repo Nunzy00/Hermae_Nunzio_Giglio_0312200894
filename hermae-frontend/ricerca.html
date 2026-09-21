@@ -628,27 +628,40 @@
                   </div>
                 </div>
 
-                <!-- Azioni della Card: Centra su Mappa e Visualizza Profilo -->
-                <div class="d-flex gap-2 mt-3 pt-2 border-top">
-                  <button
-                    type="button"
-                    class="btn btn-outline-primary btn-sm flex-grow-1 d-inline-flex align-items-center justify-content-center gap-1"
-                    @click="centraLibroSuMappa(libro)"
-                    title="Evidenzia la posizione di questo volume sulla mappa interattiva"
-                  >
-                    <i class="bi bi-pin-map-fill" aria-hidden="true"></i>
-                    <span>Mostra su Mappa</span>
-                  </button>
+                <!-- Azioni della Card: Centra su Mappa, Visualizza Profilo e Richiedi Contatto -->
+                <div class="mt-3 pt-2 border-top">
+                  <div class="d-flex gap-2 mb-2">
+                    <button
+                      type="button"
+                      class="btn btn-outline-primary btn-sm flex-grow-1 d-inline-flex align-items-center justify-content-center gap-1"
+                      @click="centraLibroSuMappa(libro)"
+                      title="Evidenzia la posizione di questo volume sulla mappa interattiva"
+                    >
+                      <i class="bi bi-pin-map-fill" aria-hidden="true"></i>
+                      <span>Mostra su Mappa</span>
+                    </button>
+
+                    <button
+                      v-if="libro.proprietario"
+                      type="button"
+                      class="btn btn-outline-secondary btn-sm flex-grow-1 d-inline-flex align-items-center justify-content-center gap-1"
+                      @click="apriProfiloLettore(libro.proprietario.id)"
+                      title="Consulta il profilo pubblico di questo lettore e tutti i suoi libri"
+                    >
+                      <i class="bi bi-person-circle text-primary" aria-hidden="true"></i>
+                      <span>Profilo</span>
+                    </button>
+                  </div>
 
                   <button
-                    v-if="libro.proprietario"
+                    v-if="!user || (libro.proprietario && libro.proprietario.id !== user.id)"
                     type="button"
-                    class="btn btn-outline-secondary btn-sm flex-grow-1 d-inline-flex align-items-center justify-content-center gap-1"
-                    @click="apriProfiloLettore(libro.proprietario.id)"
-                    title="Consulta il profilo pubblico di questo lettore e tutti i suoi libri"
+                    class="btn btn-primary btn-sm w-100 d-inline-flex align-items-center justify-content-center gap-1"
+                    @click="apriModaleContatto(libro)"
+                    title="Invia una richiesta di contatto al proprietario per questo volume"
                   >
-                    <i class="bi bi-person-circle text-primary" aria-hidden="true"></i>
-                    <span>Profilo Lettore</span>
+                    <i class="bi bi-chat-heart-fill me-1" aria-hidden="true"></i>
+                    <span>Richiedi Contatto</span>
                   </button>
                 </div>
               </div>
@@ -752,6 +765,16 @@
                     >
                       <i class="bi bi-person-circle" aria-hidden="true"></i>
                       <span>Profilo</span>
+                    </button>
+                    <button
+                      v-if="!user || (libro.proprietario && libro.proprietario.id !== user.id)"
+                      type="button"
+                      class="btn btn-primary d-inline-flex align-items-center gap-1"
+                      @click="apriModaleContatto(libro)"
+                      title="Invia richiesta di contatto per questo volume"
+                    >
+                      <i class="bi bi-chat-heart-fill" aria-hidden="true"></i>
+                      <span>Richiedi</span>
                     </button>
                   </div>
                 </td>
@@ -864,8 +887,18 @@
                           </span>
                           <div class="fw-bold text-dark text-truncate small" :title="b.titolo">{{ b.titolo }}</div>
                           <div class="text-muted small text-truncate">{{ b.autore }}</div>
-                          <div class="small mt-1">
+                          <div class="d-flex align-items-center justify-content-between mt-1">
                             <span class="badge bg-white text-dark border" style="font-size: 0.65rem;">{{ b.stato_conservazione }}</span>
+                            <button
+                              v-if="!user || profiloSelezionato.id !== user.id"
+                              type="button"
+                              class="btn btn-primary btn-sm px-2 py-0 d-inline-flex align-items-center gap-1"
+                              style="font-size: 0.70rem; line-height: 1.6;"
+                              @click="apriModaleContatto(b, profiloSelezionato)"
+                              title="Richiedi questo libro"
+                            >
+                              <i class="bi bi-chat-heart-fill"></i>Richiedi
+                            </button>
                           </div>
                         </div>
                       </div>
@@ -891,6 +924,113 @@
               <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">
                 Chiudi Scheda
               </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- MODALE RICHIESTA CONTATTO & SCAMBIO (Fase 22) -->
+      <div
+        class="modal fade"
+        id="modalRichiestaContatto"
+        tabindex="-1"
+        aria-labelledby="modalRichiestaContattoLabel"
+        aria-hidden="true"
+      >
+        <div class="modal-dialog modal-dialog-centered">
+          <div class="modal-content shadow-lg border-0">
+            <div class="modal-header bg-primary text-white">
+              <h5 class="modal-title h6 fw-bold mb-0 d-flex align-items-center gap-2" id="modalRichiestaContattoLabel">
+                <i class="bi bi-chat-heart-fill"></i>Richiedi Contatto per Scambio
+              </h5>
+              <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Chiudi"></button>
+            </div>
+
+            <div class="modal-body p-4" v-if="libroPerContatto">
+              <!-- Box Scheda Libro Selezionato -->
+              <div class="d-flex gap-3 p-3 bg-light rounded-3 mb-3 border align-items-center">
+                <img
+                  v-if="libroPerContatto.immagine_miniatura || libroPerContatto.immagine_copertina"
+                  :src="libroPerContatto.immagine_miniatura || libroPerContatto.immagine_copertina"
+                  :alt="libroPerContatto.titolo"
+                  style="width: 50px; height: 72px; object-fit: cover; border-radius: 4px; box-shadow: 0 2px 5px rgba(0,0,0,0.15);"
+                />
+                <div v-else style="width: 50px; height: 72px; background-color: #1e40af; border-radius: 4px; display: flex; align-items: center; justify-content: center; color: white;">
+                  <i class="bi bi-book fs-3"></i>
+                </div>
+                <div style="min-width: 0; flex-grow: 1;">
+                  <span class="badge bg-primary-subtle text-primary mb-1" style="font-size: 0.68rem;">
+                    {{ libroPerContatto.categoria_nome || 'Libro' }}
+                  </span>
+                  <div class="fw-bold text-dark text-truncate small">{{ libroPerContatto.titolo }}</div>
+                  <div class="text-muted small text-truncate">{{ libroPerContatto.autore }}</div>
+                  <div class="small text-secondary mt-1">
+                    <i class="bi bi-person-fill me-1"></i>Proprietario: <strong>{{ getOwnerDisplayName(libroPerContatto) }}</strong>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Avviso Privacy Shield: Recapiti Protetti -->
+              <div class="alert alert-info d-flex align-items-center gap-2 py-2 px-3 small mb-3 border-info-subtle">
+                <i class="bi bi-shield-check text-primary fs-3 flex-shrink-0" aria-hidden="true"></i>
+                <div>
+                  <strong>Privacy Shield Hermae:</strong> I tuoi recapiti personali (email e telefono) rimangono protetti e schermati. La comunicazione avviene interamente e in sicurezza all'interno della piattaforma.
+                </div>
+              </div>
+
+              <!-- Form Messaggio Iniziale -->
+              <form @submit.prevent="inviaRichiestaContatto">
+                <div class="mb-3">
+                  <label for="messaggioContatto" class="form-label fw-semibold small text-dark">
+                    Messaggio per il Proprietario <span class="text-danger">*</span>
+                  </label>
+                  <textarea
+                    id="messaggioContatto"
+                    v-model="messaggioContatto"
+                    class="form-control"
+                    rows="4"
+                    placeholder="Ciao, ho visto la disponibilità di questo volume e mi piacerebbe concordare uno scambio o prestito..."
+                    maxlength="1000"
+                    required
+                    :disabled="contattoInvioInCorso"
+                  ></textarea>
+                  <div class="d-flex justify-content-between align-items-center mt-1">
+                    <small class="text-muted" style="font-size: 0.72rem;">Minimo 5 caratteri</small>
+                    <small :class="messaggioContatto.length > 900 ? 'text-warning fw-bold' : 'text-muted'" style="font-size: 0.72rem;">
+                      {{ messaggioContatto.length }} / 1000
+                    </small>
+                  </div>
+                </div>
+
+                <!-- Feedback Errore / Successo -->
+                <div v-if="contattoErrore" class="alert alert-danger py-2 px-3 small mb-3" role="alert">
+                  <i class="bi bi-exclamation-triangle-fill me-1"></i>{{ contattoErrore }}
+                </div>
+
+                <div v-if="contattoSuccesso" class="alert alert-success py-2 px-3 small mb-3" role="alert">
+                  <div class="fw-bold mb-1"><i class="bi bi-check-circle-fill me-1"></i>Richiesta inviata con successo!</div>
+                  <div class="mb-2">Il proprietario ha ricevuto una notifica interna. Puoi continuare a chattare nel centro messaggi.</div>
+                  <a :href="'chat.html?id=' + richiestaCreataId" class="btn btn-success btn-sm d-inline-flex align-items-center gap-1">
+                    <i class="bi bi-chat-dots-fill"></i>Vai alla Conversazione
+                  </a>
+                </div>
+
+                <div class="modal-footer px-0 pb-0 border-0">
+                  <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal" :disabled="contattoInvioInCorso">
+                    Annulla
+                  </button>
+                  <button
+                    v-if="!contattoSuccesso"
+                    type="submit"
+                    class="btn btn-primary btn-sm d-inline-flex align-items-center gap-1 px-3"
+                    :disabled="contattoInvioInCorso || messaggioContatto.trim().length < 5"
+                  >
+                    <span v-if="contattoInvioInCorso" class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                    <i v-else class="bi bi-send-fill" aria-hidden="true"></i>
+                    <span>{{ contattoInvioInCorso ? 'Invio in corso...' : 'Invia Richiesta' }}</span>
+                  </button>
+                </div>
+              </form>
             </div>
           </div>
         </div>
@@ -958,6 +1098,15 @@
         const profiloModalLoading = ref(false);
         const profiloSelezionato = ref(null);
         let bsProfileModal = null;
+
+        // Stato Modale Richiesta Contatto & Scambio (Fase 22)
+        const libroPerContatto = ref(null);
+        const messaggioContatto = ref('');
+        const contattoInvioInCorso = ref(false);
+        const contattoErrore = ref('');
+        const contattoSuccesso = ref(false);
+        const richiestaCreataId = ref(null);
+        let bsContactModal = null;
 
         // Riferimenti alle istanze Leaflet cartografiche
         let leafletMap = null;
@@ -1298,6 +1447,9 @@
                     ${ownerId ? `<button onclick="window.hermaeAppApriProfilo('${ownerId}')" class="btn btn-primary btn-sm d-flex align-items-center justify-content-center gap-1 py-1" style="font-size: 0.75rem;">
                       <i class="bi bi-person-circle"></i>Visualizza Profilo Lettore
                     </button>` : ''}
+                    <button onclick="window.hermaeAppRichiediContatto('${b.id}')" class="btn btn-outline-success btn-sm d-flex align-items-center justify-content-center gap-1 py-1" style="font-size: 0.75rem;">
+                      <i class="bi bi-chat-dots-fill"></i>Richiedi Contatto
+                    </button>
                   </div>
                 </div>
               `;
@@ -1535,9 +1687,90 @@
           }
         };
 
+        // Ottiene il nome del proprietario visualizzabile per un volume
+        const getOwnerDisplayName = (libro) => {
+          if (!libro) return 'Lettore Hermae';
+          if (libro.proprietario && libro.proprietario.nome) {
+            return `${libro.proprietario.nome} ${libro.proprietario.cognome_iniziale || ''}`.trim();
+          }
+          if (libro.proprietario_nome) {
+            return `${libro.proprietario_nome} ${libro.proprietario_cognome_iniziale || ''}`.trim();
+          }
+          return 'Lettore Hermae';
+        };
+
+        // Apre la modale per inviare una richiesta di contatto per un libro
+        const apriModaleContatto = (libro, proprietarioOverride = null) => {
+          if (!libro) return;
+
+          // Controlla se l'utente sta cercando di richiedere un proprio libro
+          const currentUserId = user.value ? user.value.id : null;
+          const ownerId = (proprietarioOverride && proprietarioOverride.id) || (libro.proprietario && libro.proprietario.id) || libro.proprietario_id;
+          if (currentUserId && ownerId && currentUserId === ownerId) {
+            addToast('Operazione non consentita', 'Non puoi inviare una richiesta di scambio a te stesso per un tuo libro.', 'warning');
+            return;
+          }
+
+          libroPerContatto.value = {
+            ...libro,
+            proprietario: proprietarioOverride || libro.proprietario
+          };
+          messaggioContatto.value = '';
+          contattoErrore.value = '';
+          contattoSuccesso.value = false;
+          richiestaCreataId.value = null;
+
+          if (!bsContactModal) {
+            const el = document.getElementById('modalRichiestaContatto');
+            if (el) {
+              bsContactModal = new bootstrap.Modal(el);
+            }
+          }
+          if (bsContactModal) {
+            bsContactModal.show();
+          }
+        };
+
+        // Invia la richiesta di contatto e primo messaggio al proprietario
+        const inviaRichiestaContatto = async () => {
+          if (!libroPerContatto.value || !messaggioContatto.value.trim()) return;
+
+          contattoInvioInCorso.value = true;
+          contattoErrore.value = '';
+
+          try {
+            const payload = {
+              esemplare_id: libroPerContatto.value.id,
+              messaggio: messaggioContatto.value.trim()
+            };
+
+            const res = await window.apiClient.post('/richieste', payload);
+            if (res.data && res.data.success && res.data.data) {
+              contattoSuccesso.value = true;
+              richiestaCreataId.value = res.data.data.id;
+              addToast('Richiesta Inviata', 'La richiesta di scambio e il primo messaggio sono stati inoltrati al proprietario.', 'success');
+            } else {
+              contattoErrore.value = (res.data && res.data.message) || 'Impossibile inviare la richiesta di contatto.';
+            }
+          } catch (err) {
+            const msg = (err.response && err.response.data && err.response.data.message) || 'Errore durante l\'invio della richiesta.';
+            contattoErrore.value = msg;
+            addToast('Invio Fallito', msg, 'danger');
+          } finally {
+            contattoInvioInCorso.value = false;
+          }
+        };
+
         // Registra le funzioni accessibili globalmente da popup Leaflet DOM
         window.hermaeAppApriProfilo = (utenteId) => {
           apriProfiloLettore(utenteId);
+        };
+
+        window.hermaeAppRichiediContatto = (libroId) => {
+          const found = libriTrovati.value.find(b => b.id === libroId);
+          if (found) {
+            apriModaleContatto(found);
+          }
         };
 
         // Montaggio dell'applicazione
@@ -1581,6 +1814,12 @@
           salvataggioInCorso,
           profiloModalLoading,
           profiloSelezionato,
+          libroPerContatto,
+          messaggioContatto,
+          contattoInvioInCorso,
+          contattoErrore,
+          contattoSuccesso,
+          richiestaCreataId,
           onSearchChange,
           onCategoriaChange,
           onProssimitaToggle,
@@ -1592,6 +1831,9 @@
           applicaNuovaPosizione,
           centraLibroSuMappa,
           apriProfiloLettore,
+          apriModaleContatto,
+          inviaRichiestaContatto,
+          getOwnerDisplayName,
           formatDataRegistrazione,
           removeToast
         };

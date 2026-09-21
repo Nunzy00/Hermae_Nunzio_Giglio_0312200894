@@ -119,7 +119,20 @@ CREATE TABLE IF NOT EXISTS messaggi_chat (
     data_invio TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- 7. Creazione Tabella METRICHE_VISITE
+-- 7. Creazione Tabella NOTIFICHE (Fase 22)
+-- Notifiche interne asincrone per richieste di contatto, messaggistica e aggiornamenti di stato
+CREATE TABLE IF NOT EXISTS notifiche (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    utente_id UUID NOT NULL REFERENCES utenti(id) ON DELETE CASCADE,
+    richiesta_id UUID REFERENCES richieste_prestito(id) ON DELETE CASCADE,
+    tipo VARCHAR(50) NOT NULL,
+    titolo VARCHAR(150) NOT NULL,
+    messaggio TEXT NOT NULL,
+    letta BOOLEAN NOT NULL DEFAULT FALSE,
+    data_creazione TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- 8. Creazione Tabella METRICHE_VISITE
 -- Tracciamento analitico anonimizzato delle interazioni per la dashboard
 CREATE TABLE IF NOT EXISTS metriche_visite (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -151,6 +164,8 @@ CREATE INDEX IF NOT EXISTS idx_richieste_esemplare ON richieste_prestito (esempl
 CREATE INDEX IF NOT EXISTS idx_richieste_richiedente ON richieste_prestito (richiedente_id);
 CREATE INDEX IF NOT EXISTS idx_richieste_proprietario ON richieste_prestito (proprietario_id);
 CREATE INDEX IF NOT EXISTS idx_chat_richiesta ON messaggi_chat (richiesta_id);
+CREATE INDEX IF NOT EXISTS idx_notifiche_utente ON notifiche (utente_id);
+CREATE INDEX IF NOT EXISTS idx_notifiche_letta ON notifiche (utente_id, letta);
 
 -- 10. Popolamento Dati Iniziali (Seed Tassonomia Gerarchica a Due Livelli)
 INSERT INTO categorie (nome, slug, descrizione, icona, colore_hex, sottogeneri_predefiniti) VALUES

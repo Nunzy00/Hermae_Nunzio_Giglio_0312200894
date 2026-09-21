@@ -53,8 +53,21 @@ const NavbarLogged = {
   },
   data() {
     return {
-      user: window.auth ? window.auth.getUser() : null
+      user: window.auth ? window.auth.getUser() : null,
+      unreadCount: 0
     };
+  },
+  async mounted() {
+    if (window.apiClient && window.auth && window.auth.isAuthenticated()) {
+      try {
+        const res = await window.apiClient.get('/notifiche/conteggio');
+        if (res.data && res.data.data) {
+          this.unreadCount = res.data.data.non_lette || 0;
+        }
+      } catch (e) {
+        // Silenzioso
+      }
+    }
   },
   methods: {
     // Gestisce l'azione di disconnessione delegando al modulo di autenticazione
@@ -136,8 +149,11 @@ const NavbarLogged = {
                 </a>
               </li>
               <li class="nav-item">
-                <a class="nav-link" :class="{ active: activePage === 'chat' }" href="chat.html">
+                <a class="nav-link d-flex align-items-center gap-1" :class="{ active: activePage === 'chat' }" href="chat.html">
                   <i class="bi bi-chat-dots me-1" aria-hidden="true"></i>Messaggi
+                  <span v-if="unreadCount > 0" class="badge bg-danger rounded-pill px-1" style="font-size: 0.65rem;" title="Nuovi messaggi o notifiche non lette">
+                    {{ unreadCount > 99 ? '99+' : unreadCount }}
+                  </span>
                 </a>
               </li>
             </ul>
