@@ -8,6 +8,34 @@ const isValidUUID = (str) => {
   return typeof str === 'string' && uuidRegex.test(str);
 };
 
+// Proiezione standard delle colonne per garantire il principio DRY ed evitare duplicazioni query
+const BASE_ESEMPLARI_SELECT = `
+  e.id,
+  e.utente_id,
+  e.categoria_id,
+  e.sottogenere,
+  e.titolo,
+  e.autore,
+  e.editore,
+  e.anno_pubblicazione,
+  e.isbn,
+  e.lingua,
+  e.descrizione,
+  e.note,
+  e.stato_conservazione,
+  e.stato_disponibilita,
+  e.immagine_copertina,
+  e.immagine_miniatura,
+  e.coordinate_esemplare,
+  e.visibile_pubblico,
+  e.data_creazione,
+  c.nome as categoria_nome,
+  c.slug as categoria_slug,
+  c.icona as categoria_icona,
+  c.colore_hex as categoria_colore,
+  c.sottogeneri_predefiniti as categoria_sottogeneri
+`;
+
 // Formatta e tipizza un record restituito dal database relazionale
 const formatEsemplareRow = (row) => {
   if (!row) return null;
@@ -33,6 +61,7 @@ const formatEsemplareRow = (row) => {
     stato_disponibilita: row.stato_disponibilita || 'DISPONIBILE',
     immagine_copertina: row.immagine_copertina || null,
     immagine_miniatura: row.immagine_miniatura || null,
+    visibile_pubblico: row.visibile_pubblico !== false,
     coordinate: row.coordinate_esemplare ? {
       lng: typeof row.coordinate_esemplare.x !== 'undefined' ? row.coordinate_esemplare.x : null,
       lat: typeof row.coordinate_esemplare.y !== 'undefined' ? row.coordinate_esemplare.y : null
@@ -159,6 +188,7 @@ const createEsemplare = async (utenteId, data) => {
     throw error;
   }
   const finalStatoCons = stato_conservazione || 'Buono';
+  const finalVisibilePubblico = typeof data.visibile_pubblico === 'boolean' ? data.visibile_pubblico : true;
 
   // Validazione stato di disponibilità
   if (stato_disponibilita && !STATI_DISPONIBILITA_VALIDI.includes(stato_disponibilita)) {
@@ -201,9 +231,10 @@ const createEsemplare = async (utenteId, data) => {
       stato_disponibilita,
       immagine_copertina,
       immagine_miniatura,
-      coordinate_esemplare
+      coordinate_esemplare,
+      visibile_pubblico
     ) VALUES (
-      $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16
+      $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17
     )
     RETURNING *;
   `;
@@ -224,31 +255,37 @@ const createEsemplare = async (utenteId, data) => {
     finalStatoDisp,
     immagine_copertina || null,
     immagine_miniatura || null,
-    coordinatePoint
+    coordinatePoint,
+    finalVisibilePubblico
   ];
 
   const result = await db.query(insertQuery, values);
-  return getEsemplareById(result.rows[0].id);
+  return getEsemplareById(result.rows[0].id, utenteId);
 };
 
 /**
  * Recupera tutti gli esemplari appartenenti all'utente specificato con filtri opzionali
+ * (Vista personale: include sia i volumi pubblici che quelli privati)
  */
 const getMyEsemplari = async (utenteId, filters = {}) => {
   let query = `
     SELECT 
-      e.*,
-      c.nome as categoria_nome,
-      c.slug as categoria_slug,
-      c.icona as categoria_icona,
-      c.colore_hex as categoria_colore,
-      c.sottogeneri_predefiniti as categoria_sottogeneri
+      ${BASE_ESEMPLARI_SELECT}
     FROM esemplari e
     JOIN categorie c ON e.categoria_id = c.id
     WHERE e.utente_id = $1
   `;
   const params = [utenteId];
   let paramIdx = 2;
+
+  // Filtro visibilità opzionale per la consultazione personale
+  if (filters.visibilita) {
+    if (filters.visibilita.toUpperCase() === 'PUBBLICO') {
+      query += ` AND e.visibile_pubblico = TRUE`;
+    } else if (filters.visibilita.toUpperCase() === 'PRIVATO') {
+      query += ` AND e.visibile_pubblico = FALSE`;
+    }
+  }
 
   if (filters.categoria_id) {
     query += ` AND e.categoria_id = $${paramIdx}`;
@@ -288,22 +325,20 @@ const getMyEsemplari = async (utenteId, filters = {}) => {
 
 /**
  * Recupera un singolo esemplare tramite identificativo UUID
+ * Se il libro è privato o la libreria è nascosta, l'accesso è consentito esclusivamente al proprietario
  */
-const getEsemplareById = async (id) => {
+const getEsemplareById = async (id, requestingUserId = null) => {
   const query = `
     SELECT 
-      e.*,
-      c.nome as categoria_nome,
-      c.slug as categoria_slug,
-      c.icona as categoria_icona,
-      c.colore_hex as categoria_colore,
-      c.sottogeneri_predefiniti as categoria_sottogeneri,
+      ${BASE_ESEMPLARI_SELECT},
       u.nome as proprietario_nome,
       u.cognome as proprietario_cognome,
-      p.citta as proprietario_citta
+      p.citta as proprietario_citta,
+      priv.mostra_libreria as proprietario_mostra_libreria
     FROM esemplari e
     JOIN categorie c ON e.categoria_id = c.id
     JOIN utenti u ON e.utente_id = u.id
+    LEFT JOIN preferenze_privacy_utenti priv ON u.id = priv.utente_id
     LEFT JOIN posizione_utenti p ON u.id = p.utente_id
     WHERE e.id = $1
     LIMIT 1;
@@ -317,7 +352,23 @@ const getEsemplareById = async (id) => {
     throw error;
   }
 
-  return formatEsemplareRow(result.rows[0]);
+  const row = result.rows[0];
+
+  // Controllo di riservatezza granulare:
+  // Se il libro è privato o l'utente proprietario ha nascosto l'intera libreria,
+  // la scheda non è visibile a terzi né a utenti non autenticati (risposta 404 per evitare enumerazione)
+  const isPrivateBook = row.visibile_pubblico === false;
+  const isPrivateLibrary = row.proprietario_mostra_libreria === false;
+  const isOwner = requestingUserId && requestingUserId === row.utente_id;
+
+  if ((isPrivateBook || isPrivateLibrary) && !isOwner) {
+    const error = new Error('Esemplare non trovato nel catalogo.');
+    error.statusCode = 404;
+    error.code = 'ESEMPLARE_NOT_FOUND';
+    throw error;
+  }
+
+  return formatEsemplareRow(row);
 };
 
 /**
@@ -478,14 +529,14 @@ const updateEsemplare = async (id, utenteId, updateData) => {
     paramIdx++;
   }
 
-  if (typeof updateData.immagine_copertina !== 'undefined') {
-    setClauses.push(`immagine_copertina = $${paramIdx}`);
-    params.push(updateData.immagine_copertina || null);
+  if (typeof updateData.visibile_pubblico !== 'undefined') {
+    setClauses.push(`visibile_pubblico = $${paramIdx}`);
+    params.push(Boolean(updateData.visibile_pubblico));
     paramIdx++;
   }
 
   if (setClauses.length === 0) {
-    return getEsemplareById(id);
+    return getEsemplareById(id, utenteId);
   }
 
   const updateQuery = `
@@ -496,7 +547,33 @@ const updateEsemplare = async (id, utenteId, updateData) => {
   `;
 
   await db.query(updateQuery, params);
-  return getEsemplareById(id);
+  return getEsemplareById(id, utenteId);
+};
+
+/**
+ * Inverte atomicamente la visibilità pubblica/privata di un esemplare (solo proprietario)
+ */
+const toggleVisibilitaEsemplare = async (id, utenteId) => {
+  // 1. Verifica esistenza e controllo titolarità
+  const checkRes = await db.query('SELECT utente_id, visibile_pubblico FROM esemplari WHERE id = $1', [id]);
+  if (checkRes.rows.length === 0) {
+    const error = new Error('Esemplare non trovato.');
+    error.statusCode = 404;
+    error.code = 'ESEMPLARE_NOT_FOUND';
+    throw error;
+  }
+
+  if (checkRes.rows[0].utente_id !== utenteId) {
+    const error = new Error('Accesso negato. Non disponi dei permessi per modificare la visibilità di questo esemplare.');
+    error.statusCode = 403;
+    error.code = 'FORBIDDEN_NOT_OWNER';
+    throw error;
+  }
+
+  const nuovoStato = !checkRes.rows[0].visibile_pubblico;
+  await db.query('UPDATE esemplari SET visibile_pubblico = $1 WHERE id = $2', [nuovoStato, id]);
+
+  return getEsemplareById(id, utenteId);
 };
 
 /**
@@ -607,17 +684,13 @@ const removeBookCover = async (id, utenteId) => {
 };
 
 /**
- * Ricerca catalogo esemplari disponibili nella piattaforma
+ * Ricerca catalogo esemplari disponibili nella piattaforma per la community
+ * (Filtro difensivo di privacy: esclude automaticamente libri privati e intere librerie occultate)
  */
 const searchEsemplari = async (filters = {}) => {
   let query = `
     SELECT 
-      e.*,
-      c.nome as categoria_nome,
-      c.slug as categoria_slug,
-      c.icona as categoria_icona,
-      c.colore_hex as categoria_colore,
-      c.sottogeneri_predefiniti as categoria_sottogeneri,
+      ${BASE_ESEMPLARI_SELECT},
       u.nome as proprietario_nome,
       u.cognome as proprietario_cognome,
       p.citta as proprietario_citta
@@ -627,6 +700,7 @@ const searchEsemplari = async (filters = {}) => {
     LEFT JOIN preferenze_privacy_utenti priv ON u.id = priv.utente_id
     LEFT JOIN posizione_utenti p ON u.id = p.utente_id
     WHERE (priv.mostra_libreria IS NULL OR priv.mostra_libreria = TRUE)
+      AND e.visibile_pubblico = TRUE
   `;
   const params = [];
   let paramIdx = 1;
@@ -638,6 +712,13 @@ const searchEsemplari = async (filters = {}) => {
   } else {
     // Di default mostra solo quelli disponibili allo scambio
     query += ` AND e.stato_disponibilita = 'DISPONIBILE'`;
+  }
+
+  // Esclusione opzionale dei propri libri dalla ricerca community
+  if (filters.escludi_utente_id) {
+    query += ` AND e.utente_id != $${paramIdx}`;
+    params.push(filters.escludi_utente_id);
+    paramIdx++;
   }
 
   if (filters.categoria_id) {
@@ -698,6 +779,7 @@ module.exports = {
   getMyEsemplari,
   getEsemplareById,
   updateEsemplare,
+  toggleVisibilitaEsemplare,
   deleteEsemplare,
   updateBookCover,
   removeBookCover,

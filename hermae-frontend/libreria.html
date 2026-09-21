@@ -544,6 +544,22 @@
         </div>
       </section>
 
+      <!-- Banner informativo se l'intera libreria è occultata al pubblico (Fase 20) -->
+      <div v-if="preferenzePrivacy && preferenzePrivacy.mostra_libreria === false" class="alert alert-warning border-warning d-flex align-items-center justify-content-between gap-3 mb-4 shadow-sm" role="alert">
+        <div class="d-flex align-items-center gap-3">
+          <i class="bi bi-eye-slash-fill fs-3 text-warning flex-shrink-0"></i>
+          <div>
+            <div class="fw-bold">Libreria Personale Occultata al Pubblico</div>
+            <div class="small text-secondary">
+              Nelle tue impostazioni di privacy hai scelto di non mostrare la libreria ad altri utenti. I tuoi volumi sono consultabili e gestibili solo da te e non compariranno nelle ricerche pubbliche o comunitarie.
+            </div>
+          </div>
+        </div>
+        <a href="impostazioni.html" class="btn btn-outline-dark btn-sm text-nowrap flex-shrink-0">
+          <i class="bi bi-shield-lock me-1"></i>Gestisci Privacy
+        </a>
+      </div>
+
       <!-- Griglia Metriche / 4 Quadrati su UN'UNICA RIGA CONTINUA — Layout Verticale Anti-Collisione -->
       <section class="mb-4" aria-label="Riepilogo statistico della libreria">
         <div class="row g-2 g-md-3 row-cols-4">
@@ -644,10 +660,10 @@
           </div>
         </div>
 
-        <!-- Riga 2: Filtri Compattati su Un'Unica Riga (4 Colonne Paritetiche Responsive) -->
+        <!-- Riga 2: Filtri Compattati su Un'Unica Riga (5 Colonne Paritetiche Responsive) -->
         <div class="row g-2 align-items-center">
           <!-- Categoria Disciplinare (Livello 1) -->
-          <div class="col-6 col-md-3">
+          <div class="col-6 col-md-4 col-lg">
             <select id="catSelect" class="form-select form-select-sm" v-model="filtri.categoria_id" @change="filtri.sottogenere = ''" aria-label="Filtro per macro-categoria disciplinare">
               <option value="">Tutte le macro-aree</option>
               <option v-for="cat in categorie" :key="cat.id" :value="cat.id">
@@ -657,7 +673,7 @@
           </div>
 
           <!-- Sottogenere / Tag (Livello 2) -->
-          <div class="col-6 col-md-3">
+          <div class="col-6 col-md-4 col-lg">
             <select id="subSelect" class="form-select form-select-sm" v-model="filtri.sottogenere" aria-label="Filtro per sottogenere o tag tematico">
               <option value="">Tutti i sottogeneri</option>
               <option v-for="sub in sottogeneriDisponibiliFiltri" :key="sub" :value="sub">
@@ -667,7 +683,7 @@
           </div>
 
           <!-- Disponibilità -->
-          <div class="col-6 col-md-3">
+          <div class="col-6 col-md-4 col-lg">
             <select id="dispSelect" class="form-select form-select-sm" v-model="filtri.stato_disponibilita" aria-label="Filtro per disponibilità">
               <option value="">Tutti gli stati</option>
               <option value="DISPONIBILE">Disponibile</option>
@@ -677,13 +693,22 @@
           </div>
 
           <!-- Usura / Conservazione -->
-          <div class="col-6 col-md-3">
+          <div class="col-6 col-md-6 col-lg">
             <select id="consSelect" class="form-select form-select-sm" v-model="filtri.stato_conservazione" aria-label="Filtro per usura">
               <option value="">Tutti i livelli</option>
               <option value="Come nuovo">Come nuovo</option>
               <option value="Ottimo">Ottimo</option>
               <option value="Buono">Buono</option>
               <option value="Usurato">Usurato</option>
+            </select>
+          </div>
+
+          <!-- Visibilità Privacy (Fase 20) -->
+          <div class="col-12 col-md-6 col-lg">
+            <select id="visSelect" class="form-select form-select-sm" v-model="filtri.visibilita" aria-label="Filtro per visibilità privacy">
+              <option value="">Tutte le visibilità</option>
+              <option value="PUBBLICO">🌐 Solo Pubblici</option>
+              <option value="PRIVATO">🔒 Solo Privati</option>
             </select>
           </div>
         </div>
@@ -809,7 +834,12 @@
                       <i class="bi bi-book-half"></i>
                     </div>
                     <div>
-                      <div class="fw-bold text-dark">{{ libro.titolo }}</div>
+                      <div class="d-flex align-items-center gap-2">
+                        <span class="fw-bold text-dark">{{ libro.titolo }}</span>
+                        <span v-if="libro.visibile_pubblico === false" class="badge bg-dark text-warning border border-warning-subtle font-monospace" style="font-size: 0.65rem;" title="Volume privato: escluso dalle ricerche della community">
+                          <i class="bi bi-lock-fill me-1"></i>Privato
+                        </span>
+                      </div>
                       <div class="text-muted small">di {{ libro.autore }}</div>
                       <div v-if="libro.isbn" class="small text-secondary">
                         <span class="font-monospace">ISBN: {{ libro.isbn }}</span>
@@ -863,6 +893,15 @@
                     <button 
                       type="button" 
                       class="btn btn-outline-secondary" 
+                      @click="toggleVisibilita(libro)"
+                      :title="libro.visibile_pubblico === false ? 'Rendi visibile al pubblico' : 'Occulta libro al pubblico (rendi privato)'"
+                      :aria-label="libro.visibile_pubblico === false ? 'Rendi visibile' : 'Occulta'"
+                    >
+                      <i class="bi" :class="libro.visibile_pubblico === false ? 'bi-eye-slash-fill text-warning' : 'bi-eye'"></i>
+                    </button>
+                    <button 
+                      type="button" 
+                      class="btn btn-outline-secondary" 
                       @click="apriModalModifica(libro)"
                       title="Modifica metadati libro"
                       aria-label="Modifica libro"
@@ -902,10 +941,15 @@
                       {{ libro.sottogenere }}
                     </span>
                   </div>
-                  <span class="badge small flex-shrink-0" :class="getDisponibilitaBadgeClass(libro.stato_disponibilita)">
-                    <i class="bi" :class="getDisponibilitaIconClass(libro.stato_disponibilita)" aria-hidden="true"></i>
-                    {{ formatDisponibilitaLabel(libro.stato_disponibilita) }}
-                  </span>
+                  <div class="d-flex align-items-center gap-1">
+                    <span v-if="libro.visibile_pubblico === false" class="badge bg-dark text-warning border border-dark small flex-shrink-0" title="Occultato al pubblico (privato)">
+                      <i class="bi bi-lock-fill me-1"></i>Privato
+                    </span>
+                    <span class="badge small flex-shrink-0" :class="getDisponibilitaBadgeClass(libro.stato_disponibilita)">
+                      <i class="bi" :class="getDisponibilitaIconClass(libro.stato_disponibilita)" aria-hidden="true"></i>
+                      {{ formatDisponibilitaLabel(libro.stato_disponibilita) }}
+                    </span>
+                  </div>
                 </div>
 
                 <!-- Corpo Card: Miniatura Copertina + Dati -->
@@ -965,6 +1009,15 @@
                   <button 
                     type="button" 
                     class="btn btn-outline-secondary btn-sm d-inline-flex align-items-center gap-1"
+                    @click="toggleVisibilita(libro)"
+                    :title="libro.visibile_pubblico === false ? 'Rendi visibile al pubblico' : 'Occulta libro al pubblico'"
+                  >
+                    <i class="bi" :class="libro.visibile_pubblico === false ? 'bi-eye-slash-fill text-warning' : 'bi-eye'"></i>
+                    <span class="d-none d-sm-inline">{{ libro.visibile_pubblico === false ? 'Rendi Pubblico' : 'Occulta' }}</span>
+                  </button>
+                  <button 
+                    type="button" 
+                    class="btn btn-outline-secondary btn-sm d-inline-flex align-items-center gap-1"
                     @click="apriModalModifica(libro)"
                     title="Modifica libro"
                   >
@@ -1019,9 +1072,14 @@
                 <div class="book-header-top">
                   <div class="d-flex justify-content-between align-items-center mb-2" style="font-size: 0.65rem; opacity: 0.9;">
                     <span class="text-uppercase fw-bold letter-spacing-1">Collezione Hermae</span>
-                    <span class="badge bg-black bg-opacity-40 border border-white border-opacity-25" style="font-size: 0.6rem;">
-                      {{ libro.lingua || 'IT' }}
-                    </span>
+                    <div class="d-flex align-items-center gap-1">
+                      <span v-if="libro.visibile_pubblico === false" class="badge bg-black bg-opacity-75 text-warning border border-warning border-opacity-50" style="font-size: 0.58rem;" title="Volume occultato al pubblico">
+                        <i class="bi bi-lock-fill"></i> PRIVATO
+                      </span>
+                      <span class="badge bg-black bg-opacity-40 border border-white border-opacity-25" style="font-size: 0.6rem;">
+                        {{ libro.lingua || 'IT' }}
+                      </span>
+                    </div>
                   </div>
                   <!-- Titolo Impresso in Lamina Dorata -->
                   <div class="book-title-foil" :title="libro.titolo">
@@ -1070,6 +1128,14 @@
                   <div v-if="libro.sottogenere" class="badge bg-light text-dark mb-2 small text-truncate" style="max-width: 90%;">
                     {{ libro.sottogenere }}
                   </div>
+                  <button 
+                    type="button" 
+                    class="btn btn-dark btn-sm w-75 d-inline-flex align-items-center justify-content-center gap-1 shadow-sm"
+                    @click="toggleVisibilita(libro)"
+                  >
+                    <i class="bi" :class="libro.visibile_pubblico === false ? 'bi-eye' : 'bi-eye-slash-fill text-warning'"></i>
+                    <span>{{ libro.visibile_pubblico === false ? 'Rendi Pubblico' : 'Occulta' }}</span>
+                  </button>
                   <button 
                     type="button" 
                     class="btn btn-light btn-sm w-75 d-inline-flex align-items-center justify-content-center gap-1 shadow-sm"
@@ -1371,6 +1437,36 @@
                   </select>
                 </div>
 
+                <!-- Controllo Granulare Privacy / Occultamento Esemplare (Fase 20) -->
+                <div class="col-12">
+                  <div class="p-3 bg-light rounded-3 border d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-3">
+                    <div>
+                      <div class="fw-semibold text-dark d-flex align-items-center gap-2">
+                        <i class="bi" :class="form.visibile_pubblico ? 'bi-globe2 text-success' : 'bi-lock-fill text-warning'"></i>
+                        <span>Visibilità nel Catalogo Pubblico</span>
+                        <span class="badge" :class="form.visibile_pubblico ? 'bg-success-subtle text-success border border-success-subtle' : 'bg-warning-subtle text-dark border border-warning-subtle'">
+                          {{ form.visibile_pubblico ? 'Visibile a Tutti' : 'Occultato (Solo Privato)' }}
+                        </span>
+                      </div>
+                      <div class="small text-muted mt-1">
+                        {{ form.visibile_pubblico 
+                            ? 'Il volume è visibile alla community e ricercabile nelle ricerche di prossimità per lo scambio culturale.' 
+                            : 'Il volume è riservato esclusivamente al tuo archivio privato; non comparirà nelle ricerche comunitarie né nel tuo profilo pubblico.' }}
+                      </div>
+                    </div>
+                    <div class="form-check form-switch fs-5 mb-0 flex-shrink-0">
+                      <input 
+                        class="form-check-input" 
+                        type="checkbox" 
+                        role="switch" 
+                        id="switchVisibilita" 
+                        v-model="form.visibile_pubblico"
+                      />
+                      <label class="form-check-label visually-hidden" for="switchVisibilita">Attiva visibilità pubblica</label>
+                    </div>
+                  </div>
+                </div>
+
                 <!-- Note d'Esemplare -->
                 <div class="col-12">
                   <label for="formNote" class="form-label fw-semibold">Note sull'Esemplare Fisico</label>
@@ -1654,6 +1750,7 @@
           lingua: 'Italiano',
           stato_conservazione: 'Ottimo',
           stato_disponibilita: 'DISPONIBILE',
+          visibile_pubblico: true,
           note: '',
           descrizione: ''
         });
@@ -1664,7 +1761,8 @@
           categoria_id: '',
           sottogenere: '',
           stato_disponibilita: '',
-          stato_conservazione: ''
+          stato_conservazione: '',
+          visibilita: ''
         });
 
         // Verifica filtri attivi
@@ -1674,7 +1772,8 @@
             filtri.value.categoria_id ||
             filtri.value.sottogenere ||
             filtri.value.stato_disponibilita ||
-            filtri.value.stato_conservazione
+            filtri.value.stato_conservazione ||
+            filtri.value.visibilita
           );
         });
 
@@ -1754,6 +1853,13 @@
             if (filtri.value.stato_conservazione && book.stato_conservazione !== filtri.value.stato_conservazione) {
               return false;
             }
+            // Filtro Visibilità Privacy (Fase 20)
+            if (filtri.value.visibilita === 'PUBBLICO' && book.visibile_pubblico === false) {
+              return false;
+            }
+            if (filtri.value.visibilita === 'PRIVATO' && book.visibile_pubblico !== false) {
+              return false;
+            }
             // Filtro Testuale
             if (filtri.value.search && filtri.value.search.trim()) {
               const q = filtri.value.search.trim().toLowerCase();
@@ -1776,8 +1882,23 @@
             categoria_id: '',
             sottogenere: '',
             stato_disponibilita: '',
-            stato_conservazione: ''
+            stato_conservazione: '',
+            visibilita: ''
           };
+        };
+
+        // Preferenze di riservatezza (Fase 20: occultamento intera libreria)
+        const preferenzePrivacy = ref({ mostra_libreria: true });
+
+        const caricaPreferenzePrivacy = async () => {
+          try {
+            const res = await window.apiClient.get('/privacy/me');
+            if (res.data && res.data.data) {
+              preferenzePrivacy.value = res.data.data;
+            }
+          } catch (err) {
+            // Mantieni default mostra_libreria: true
+          }
         };
 
         // Caricamento dati da backend
@@ -1807,6 +1928,24 @@
           }
         };
 
+        // Toggle atomico della visibilità pubblica/privata del singolo libro (Fase 20)
+        const toggleVisibilita = async (libro) => {
+          try {
+            const res = await window.apiClient.patch(`/esemplari/${libro.id}/visibilita`);
+            if (res.data && res.data.data) {
+              libro.visibile_pubblico = res.data.data.visibile_pubblico;
+              addToast(
+                'Visibilità Modificata',
+                `"${libro.titolo}" è ora ${libro.visibile_pubblico ? 'visibile al pubblico nel catalogo' : 'occultato (privato)'}.`,
+                libro.visibile_pubblico ? 'success' : 'info'
+              );
+            }
+          } catch (err) {
+            const msg = err.response?.data?.error?.message || 'Impossibile modificare la visibilità del libro.';
+            addToast('Errore Privacy', msg, 'danger');
+          }
+        };
+
         // Apertura modali
         const apriModalNuovo = () => {
           isEditMode.value = false;
@@ -1831,6 +1970,7 @@
             lingua: 'Italiano',
             stato_conservazione: 'Ottimo',
             stato_disponibilita: 'DISPONIBILE',
+            visibile_pubblico: true,
             note: '',
             descrizione: ''
           };
@@ -1862,6 +2002,7 @@
             lingua: libro.lingua || 'Italiano',
             stato_conservazione: libro.stato_conservazione || 'Buono',
             stato_disponibilita: libro.stato_disponibilita || 'DISPONIBILE',
+            visibile_pubblico: libro.visibile_pubblico !== false,
             note: libro.note || '',
             descrizione: libro.descrizione || ''
           };
@@ -2035,7 +2176,8 @@
 
           await Promise.all([
             caricaCategorie(),
-            caricaLibreria()
+            caricaLibreria(),
+            caricaPreferenzePrivacy()
           ]);
 
           // Chiusura automatica del popover informativo cliccando all'esterno
@@ -2074,6 +2216,8 @@
           fileInputRef,
           isDragOver,
           validationErrors,
+          preferenzePrivacy,
+          toggleVisibilita,
           getImageUrl,
           triggerFileInput,
           onCoverSelected,

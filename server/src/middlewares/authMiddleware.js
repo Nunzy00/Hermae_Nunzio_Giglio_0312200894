@@ -41,7 +41,27 @@ const authenticate = (req, res, next) => {
   }
 };
 
-// Esporta il middleware di autenticazione per la protezione delle rotte applicative
+// Intercetta opzionalmente il Bearer token se presente senza bloccare la richiesta
+const optionalAuth = (req, res, next) => {
+  const authHeader = req.headers.authorization;
+  if (!authHeader) {
+    return next();
+  }
+
+  const parts = authHeader.split(' ');
+  if (parts.length === 2 && parts[0] === 'Bearer') {
+    try {
+      const decoded = verifyAccessToken(parts[1]);
+      req.user = decoded;
+    } catch (err) {
+      // Token non valido o scaduto: prosegue come richiesta anonima
+    }
+  }
+  next();
+};
+
+// Esporta i middleware di autenticazione per la protezione delle rotte applicative
 module.exports = {
-  authenticate
+  authenticate,
+  optionalAuth
 };

@@ -1,6 +1,6 @@
 // Router Express per la gestione degli endpoint dell'entità Esemplare
 const express = require('express');
-const { authenticate } = require('../middlewares/authMiddleware');
+const { authenticate, optionalAuth } = require('../middlewares/authMiddleware');
 const { uploadCoverMiddleware } = require('../middlewares/uploadMiddleware');
 const esemplariController = require('../controllers/esemplariController');
 
@@ -15,10 +15,13 @@ router.post('/', authenticate, esemplariController.createBook);
 // 3. Ricerca catalogo esemplari disponibili nella piattaforma
 router.get('/', esemplariController.searchBooks);
 
-// 4. Recupera singolo esemplare tramite ID
-router.get('/:id', esemplariController.getBookById);
+// 4. Recupera singolo esemplare tramite ID (optionalAuth per verificare se chi consulta è il proprietario di un esemplare privato)
+router.get('/:id', optionalAuth, esemplariController.getBookById);
 
-// 5. Aggiorna metadati dell'esemplare (richiede autenticazione e titolarità)
+// 5. Alterna lo stato di visibilità pubblica/privata dell'esemplare (richiede autenticazione e titolarità)
+router.patch('/:id/visibilita', authenticate, esemplariController.toggleVisibilita);
+
+// 6. Aggiorna metadati dell'esemplare (richiede autenticazione e titolarità)
 router.put('/:id', authenticate, esemplariController.updateBook);
 
 // 6. Elimina esemplare dal catalogo (richiede autenticazione e titolarità)

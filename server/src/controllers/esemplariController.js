@@ -7,12 +7,13 @@ const imageService = require('../services/imageService');
  */
 const getMyBooks = async (req, res, next) => {
   try {
-    const { categoria_id, sottogenere, stato_disponibilita, search } = req.query;
+    const { categoria_id, sottogenere, stato_disponibilita, search, visibilita } = req.query;
     const books = await esemplariService.getMyEsemplari(req.user.id, {
       categoria_id,
       sottogenere,
       stato_disponibilita,
-      search
+      search,
+      visibilita
     });
 
     res.status(200).json({
@@ -46,7 +47,7 @@ const createBook = async (req, res, next) => {
  */
 const getBookById = async (req, res, next) => {
   try {
-    const book = await esemplariService.getEsemplareById(req.params.id);
+    const book = await esemplariService.getEsemplareById(req.params.id, req.user?.id);
     res.status(200).json({
       success: true,
       data: book
@@ -172,6 +173,22 @@ const getCategories = async (req, res, next) => {
   }
 };
 
+/**
+ * Alterna lo stato di visibilità pubblica/privata di un esemplare (solo proprietario)
+ */
+const toggleVisibilita = async (req, res, next) => {
+  try {
+    const updatedBook = await esemplariService.toggleVisibilitaEsemplare(req.params.id, req.user.id);
+    res.status(200).json({
+      success: true,
+      message: `Visibilità esemplare impostata su ${updatedBook.visibile_pubblico ? 'PUBBLICO' : 'PRIVATO'}.`,
+      data: updatedBook
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   getMyBooks,
   createBook,
@@ -181,5 +198,6 @@ module.exports = {
   uploadCover,
   removeCover,
   searchBooks,
-  getCategories
+  getCategories,
+  toggleVisibilita
 };
