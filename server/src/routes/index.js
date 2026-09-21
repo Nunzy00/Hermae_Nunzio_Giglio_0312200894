@@ -9,6 +9,7 @@ const categorieRoutes = require('./categorieRoutes');
 const richiesteRoutes = require('./richiesteRoutes');
 const notificheRoutes = require('./notificheRoutes');
 const prestitiRoutes = require('./prestitiRoutes');
+const analyticsRoutes = require('./analyticsRoutes');
 
 // Istanzia il router principale di Express per aggregare tutti gli endpoint applicativi
 const router = express.Router();
@@ -86,6 +87,10 @@ router.use('/notifiche', notificheRoutes);
 // Monta il router per la gestione del ciclo di vita dei prestiti sui percorsi /prestiti e /attivita (Fase 23)
 router.use('/prestiti', prestitiRoutes);
 router.use('/attivita', prestitiRoutes);
+
+// Monta il router per le statistiche aggregate e analytics della dashboard utente (Fase 24)
+router.use('/analytics', analyticsRoutes);
+router.use('/statistiche', analyticsRoutes);
 
 // Esporta il router principale per essere montato sull'applicazione Express con il prefisso /api
 module.exports = router;

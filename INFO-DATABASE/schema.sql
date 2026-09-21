@@ -173,6 +173,12 @@ CREATE INDEX IF NOT EXISTS idx_richieste_data_scadenza ON richieste_prestito (da
 CREATE INDEX IF NOT EXISTS idx_chat_richiesta ON messaggi_chat (richiesta_id);
 CREATE INDEX IF NOT EXISTS idx_notifiche_utente ON notifiche (utente_id);
 CREATE INDEX IF NOT EXISTS idx_notifiche_letta ON notifiche (utente_id, letta);
+CREATE INDEX IF NOT EXISTS idx_metriche_visite_esemplare ON metriche_visite (esemplare_id);
+CREATE INDEX IF NOT EXISTS idx_metriche_visite_data ON metriche_visite (data_evento DESC);
+CREATE INDEX IF NOT EXISTS idx_metriche_visite_tipo ON metriche_visite (tipo_evento);
+CREATE INDEX IF NOT EXISTS idx_richieste_proprietario_stato ON richieste_prestito (proprietario_id, stato);
+CREATE INDEX IF NOT EXISTS idx_richieste_richiedente_stato ON richieste_prestito (richiedente_id, stato);
+CREATE INDEX IF NOT EXISTS idx_esemplari_utente_disp ON esemplari (utente_id, stato_disponibilita);
 
 -- 10. Popolamento Dati Iniziali (Seed Tassonomia Gerarchica a Due Livelli)
 INSERT INTO categorie (nome, slug, descrizione, icona, colore_hex, sottogeneri_predefiniti) VALUES

@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Dashboard — Hermae Sharing Culturale</title>
-  <meta name="description" content="Pannello di controllo personale per la gestione della libreria, prestiti e geolocalizzazione culturale Hermae." />
+  <title>Dashboard & Analytics — Hermae Sharing Culturale</title>
+  <meta name="description" content="Pannello di controllo e analytics personale per monitorare volumi condivisi, prestiti completati, letture archiviate e statistiche d'uso in Hermae." />
 
   <!-- CSS Framework Bootstrap 5.3 & Bootstrap Icons -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" />
@@ -17,35 +17,122 @@
 
   <!-- Stile personalizzato e Design System Hermae (WCAG 2.1 AA) -->
   <link rel="stylesheet" href="assets/css/main.css" />
+
+  <!-- Stili specifici per la visualizzazione dei grafici e dei cruscotti analitici -->
+  <style>
+    .chart-container-wrapper {
+      position: relative;
+      width: 100%;
+      min-height: 280px;
+      height: 300px;
+    }
+    @media (max-width: 767.98px) {
+      .chart-container-wrapper {
+        height: 240px;
+        min-height: 220px;
+      }
+    }
+    .period-pill {
+      font-size: 0.8rem;
+      font-weight: 600;
+      padding: 0.35rem 0.85rem;
+      border-radius: 50rem;
+      transition: all 0.15s ease-in-out;
+      border: 1px solid var(--hermae-border, #e2e8f0);
+      background-color: #fff;
+      color: #64748b;
+      cursor: pointer;
+    }
+    .period-pill:hover {
+      background-color: #f8fafc;
+      color: #0f172a;
+    }
+    .period-pill.active {
+      background-color: var(--hermae-primary, #2563eb);
+      color: #ffffff;
+      border-color: var(--hermae-primary, #2563eb);
+      box-shadow: 0 2px 4px rgba(37, 99, 235, 0.25);
+    }
+    .legend-indicator-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      display: inline-block;
+      flex-shrink: 0;
+    }
+    .top-book-thumb {
+      width: 44px;
+      height: 60px;
+      object-fit: cover;
+      border-radius: 6px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+      flex-shrink: 0;
+    }
+    .top-book-placeholder {
+      width: 44px;
+      height: 60px;
+      border-radius: 6px;
+      background-color: #f1f5f9;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #94a3b8;
+      font-size: 1.25rem;
+      flex-shrink: 0;
+    }
+    .efficiency-meter-bar {
+      height: 8px;
+      border-radius: 4px;
+      background-color: #e2e8f0;
+      overflow: hidden;
+    }
+    .efficiency-meter-fill {
+      height: 100%;
+      border-radius: 4px;
+      transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    /* Modalità accessibile a contrasto e focus per tastiera */
+    .period-pill:focus-visible,
+    .btn:focus-visible {
+      outline: 2px solid var(--hermae-primary, #2563eb);
+      outline-offset: 2px;
+    }
+    .accessible-data-table {
+      font-size: 0.8rem;
+    }
+  </style>
 </head>
 <body>
   <div id="app" class="d-flex flex-column min-vh-100">
-    <!-- Comando di salto accessibile per tastiera e screen reader -->
+    <!-- Comando di salto accessibile per tastiera e screen reader (WCAG 2.1 AA) -->
     <a href="#main-content" class="skip-link">Salta al contenuto principale</a>
 
     <!-- Intestazione applicativa riservata per utenti autenticati -->
     <navbar-logged active-page="dashboard"></navbar-logged>
 
-    <!-- Contenuto principale della Dashboard -->
+    <!-- Contenuto principale della Dashboard & Analytics -->
     <main id="main-content" class="container-fluid px-lg-5 py-4 flex-grow-1">
       
-      <!-- Hero Banner di Benvenuto -->
+      <!-- Hero Banner di Benvenuto & Riepilogo Sessione -->
       <section class="card-hermae p-4 p-md-5 mb-4 bg-white border-0 shadow-sm" aria-labelledby="welcomeHeading">
         <div class="row align-items-center g-4">
           <div class="col-lg-8">
-            <div class="d-flex align-items-center gap-2 mb-2">
+            <div class="d-flex align-items-center flex-wrap gap-2 mb-2">
               <span class="badge bg-success-subtle text-success border border-success-subtle px-2 py-1">
-                <i class="bi bi-shield-check me-1" aria-hidden="true"></i>Sessione Attiva &bull; Access Token Valido
+                <i class="bi bi-shield-check me-1" aria-hidden="true"></i>Sessione Attiva &bull; Token Valido
               </span>
               <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-2 py-1">
                 <i class="bi bi-geo-alt me-1" aria-hidden="true"></i>{{ user ? user.citta : 'Città' }}
+              </span>
+              <span v-if="analytics && analytics.metadati" class="badge bg-secondary-subtle text-secondary border border-secondary-subtle px-2 py-1 d-none d-sm-inline">
+                <i class="bi bi-lightning-charge me-1" aria-hidden="true"></i>Query CTE: {{ analytics.metadati.tempoElaborazioneMs }}ms
               </span>
             </div>
             <h1 id="welcomeHeading" class="h2 fw-bold text-dark mb-2">
               Bentornato, {{ user ? user.nome + ' ' + user.cognome : 'Lettore' }}!
             </h1>
             <p class="text-muted mb-0 lead fs-6">
-              Benvenuto nel tuo cruscotto personale di <strong>Hermae</strong>. Da qui puoi gestire i libri che hai messo a disposizione, monitorare i prestiti di prossimità ed esplorare il patrimonio culturale condiviso nella tua città.
+              Questa è la tua cabina di regia personale di <strong>Hermae</strong>. Consulta le metriche d'impatto culturale, monitora i prestiti concessi e le letture archiviate della tua libreria.
             </p>
           </div>
           <div class="col-lg-4 text-lg-end">
@@ -56,171 +143,754 @@
               <a href="libreria.html" class="btn btn-outline-secondary d-inline-flex align-items-center gap-2">
                 <i class="bi bi-plus-circle" aria-hidden="true"></i>Aggiungi Libro
               </a>
+              <a href="attivita.html" class="btn btn-outline-primary d-inline-flex align-items-center gap-2">
+                <i class="bi bi-arrow-left-right" aria-hidden="true"></i>Prestiti
+              </a>
             </div>
           </div>
         </div>
       </section>
 
-      <!-- Griglia delle Schede Metriche (Metric Cards) — 2 per riga su mobile come quadrati smussati -->
-      <section class="mb-4" aria-label="Metriche personali e attività">
+      <!-- Griglia delle Schede Metriche (Metric Cards) — 4 KPI card collegate all'endpoint /api/analytics -->
+      <section class="mb-4" aria-label="Metriche di sintesi e KPI personali">
         <div class="row g-2 g-md-3">
-          <!-- Card 1: Libri Condivisi -->
+          <!-- Card 1: Volumi Condivisi -->
           <div class="col-6 col-xl-3">
-            <div class="metric-card-square">
-              <div class="d-flex justify-content-between align-items-start mb-1">
-                <span class="text-muted fw-semibold text-uppercase metric-title">Libri</span>
-                <div class="p-1 p-sm-2 bg-primary bg-opacity-10 text-primary rounded-3 metric-icon d-flex align-items-center justify-content-center">
-                  <i class="bi bi-bookshelf"></i>
+            <a href="libreria.html" class="text-decoration-none d-block h-100" title="Vai alla gestione della libreria">
+              <div class="metric-card-square">
+                <div class="d-flex justify-content-between align-items-start mb-1">
+                  <span class="text-muted fw-semibold text-uppercase metric-title">Volumi Condivisi</span>
+                  <div class="p-1 p-sm-2 bg-primary bg-opacity-10 text-primary rounded-3 metric-icon d-flex align-items-center justify-content-center">
+                    <i class="bi bi-bookshelf"></i>
+                  </div>
+                </div>
+                <div class="metric-val fw-bold text-dark">
+                  {{ analytics ? analytics.kpi.volumi.totale : libriCount }}
+                </div>
+                <div class="metric-desc text-muted">
+                  <span class="d-none d-sm-inline">
+                    {{ analytics ? analytics.kpi.volumi.disponibili + ' disponibili · ' + analytics.kpi.volumi.inPrestito + ' in prestito' : 'Volumi in catalogo' }}
+                  </span>
+                  <span class="d-inline d-sm-none">
+                    {{ analytics ? analytics.kpi.volumi.disponibili + ' disp.' : 'In libreria' }}
+                  </span>
                 </div>
               </div>
-              <div class="metric-val fw-bold text-dark">{{ libriCount }}</div>
-              <div class="metric-desc text-muted">
-                <span class="d-none d-sm-inline">Volumi in catalogo</span>
-                <span class="d-inline d-sm-none">In libreria</span>
-              </div>
-            </div>
+            </a>
           </div>
 
-          <!-- Card 2: Prestiti Attivi -->
+          <!-- Card 2: Prestiti Concessi & Completati -->
           <div class="col-6 col-xl-3">
-            <div class="metric-card-square">
-              <div class="d-flex justify-content-between align-items-start mb-1">
-                <span class="text-muted fw-semibold text-uppercase metric-title">Prestiti</span>
-                <div class="p-1 p-sm-2 bg-success bg-opacity-10 text-success rounded-3 metric-icon d-flex align-items-center justify-content-center">
-                  <i class="bi bi-arrow-left-right"></i>
+            <a href="attivita.html?ruolo=proprietario" class="text-decoration-none d-block h-100" title="Visualizza i prestiti concessi alla community">
+              <div class="metric-card-square">
+                <div class="d-flex justify-content-between align-items-start mb-1">
+                  <span class="text-muted fw-semibold text-uppercase metric-title">Prestiti Conclusi</span>
+                  <div class="p-1 p-sm-2 bg-success bg-opacity-10 text-success rounded-3 metric-icon d-flex align-items-center justify-content-center">
+                    <i class="bi bi-check-circle-fill"></i>
+                  </div>
+                </div>
+                <div class="metric-val fw-bold text-dark">
+                  {{ analytics ? analytics.kpi.prestiti.completati : 0 }}
+                </div>
+                <div class="metric-desc text-muted">
+                  <span class="d-none d-sm-inline">
+                    {{ analytics ? analytics.kpi.prestiti.attivi + ' attivi · Tasso succ. ' + analytics.kpi.prestiti.tassoSuccessoPercentuale + '%' : 'Scambi completati' }}
+                  </span>
+                  <span class="d-inline d-sm-none">
+                    {{ analytics ? analytics.kpi.prestiti.attivi + ' in corso' : 'Completati' }}
+                  </span>
                 </div>
               </div>
-              <div class="metric-val fw-bold text-dark">0</div>
-              <div class="metric-desc text-muted">
-                <span class="d-none d-sm-inline">Scambi in corso</span>
-                <span class="d-inline d-sm-none">Attivi</span>
-              </div>
-            </div>
+            </a>
           </div>
 
-          <!-- Card 3: Consultazioni Ricevute -->
+          <!-- Card 3: Letture Archiviate (Libri presi in prestito) -->
+          <div class="col-6 col-xl-3">
+            <a href="attivita.html" class="text-decoration-none d-block h-100" title="Visualizza le letture e i libri ricevuti in prestito">
+              <div class="metric-card-square">
+                <div class="d-flex justify-content-between align-items-start mb-1">
+                  <span class="text-muted fw-semibold text-uppercase metric-title">Letture Archiviate</span>
+                  <div class="p-1 p-sm-2 bg-purple bg-opacity-10 text-purple rounded-3 metric-icon d-flex align-items-center justify-content-center" style="background-color: rgba(139, 92, 246, 0.1); color: #7c3aed;">
+                    <i class="bi bi-journal-bookmark-fill"></i>
+                  </div>
+                </div>
+                <div class="metric-val fw-bold text-dark">
+                  {{ analytics ? analytics.kpi.letture.completate : 0 }}
+                </div>
+                <div class="metric-desc text-muted">
+                  <span class="d-none d-sm-inline">
+                    {{ analytics ? analytics.kpi.letture.inCorso + ' in lettura · ' + analytics.kpi.letture.inAttesa + ' richieste' : 'Libri letti' }}
+                  </span>
+                  <span class="d-inline d-sm-none">
+                    {{ analytics ? analytics.kpi.letture.inCorso + ' in lettura' : 'Archiviate' }}
+                  </span>
+                </div>
+              </div>
+            </a>
+          </div>
+
+          <!-- Card 4: Impatto Culturale & Consultazioni -->
           <div class="col-6 col-xl-3">
             <div class="metric-card-square">
               <div class="d-flex justify-content-between align-items-start mb-1">
-                <span class="text-muted fw-semibold text-uppercase metric-title">Impatti</span>
+                <span class="text-muted fw-semibold text-uppercase metric-title">Impatto & Visite</span>
                 <div class="p-1 p-sm-2 bg-warning bg-opacity-10 text-warning rounded-3 metric-icon d-flex align-items-center justify-content-center">
-                  <i class="bi bi-eye"></i>
+                  <i class="bi bi-stars"></i>
                 </div>
               </div>
-              <div class="metric-val fw-bold text-dark">1</div>
-              <div class="metric-desc text-muted">
-                <span class="d-none d-sm-inline">Visualizzazioni schede</span>
-                <span class="d-inline d-sm-none">Visite</span>
+              <div class="metric-val fw-bold text-dark">
+                {{ analytics ? analytics.kpi.impatto.indiceImpatto : 0 }}
+                <span class="fs-6 fw-normal text-muted">pts</span>
               </div>
-            </div>
-          </div>
-
-          <!-- Card 4: Raggio Confidenziale PostGIS -->
-          <div class="col-6 col-xl-3">
-            <div class="metric-card-square">
-              <div class="d-flex justify-content-between align-items-start mb-1">
-                <span class="text-muted fw-semibold text-uppercase metric-title">Privacy</span>
-                <div class="p-1 p-sm-2 bg-info bg-opacity-10 text-info rounded-3 metric-icon d-flex align-items-center justify-content-center">
-                  <i class="bi bi-shield-lock"></i>
-                </div>
-              </div>
-              <div class="metric-val fw-bold text-dark">300m</div>
               <div class="metric-desc text-muted">
-                <span class="d-none d-sm-inline">Offuscamento PostGIS</span>
-                <span class="d-inline d-sm-none">Raggio GPS</span>
+                <span class="d-none d-sm-inline">
+                  {{ analytics ? analytics.kpi.impatto.visualizzazioniTotali + ' visualizzazioni schede' : 'Punti sharing' }}
+                </span>
+                <span class="d-inline d-sm-none">
+                  {{ analytics ? analytics.kpi.impatto.visualizzazioniTotali + ' visite' : 'Condivisione' }}
+                </span>
               </div>
             </div>
           </div>
         </div>
       </section>
 
-      <!-- Sezioni Secondarie Predisposte (Temporaneamente vuote) -->
+      <!-- Barra Filtri Analitici & Selettore Temporale (Fase 24) -->
+      <section class="card-hermae p-3 p-md-4 mb-4 bg-white border-0 shadow-sm" aria-label="Controlli e filtri temporali per le statistiche">
+        <div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3">
+          <div class="d-flex align-items-center gap-2">
+            <i class="bi bi-graph-up-arrow text-primary fs-5"></i>
+            <div>
+              <h2 class="h5 fw-bold mb-0 text-dark">Analisi Attività & Impatto Culturale</h2>
+              <span class="small text-muted">Visualizzazione delle serie storiche e della composizione tematica</span>
+            </div>
+          </div>
+
+          <div class="d-flex align-items-center flex-wrap gap-2">
+            <!-- Pulsanti Selettori Periodo -->
+            <div class="d-flex gap-1" role="group" aria-label="Seleziona arco temporale dei grafici">
+              <button
+                type="button"
+                class="period-pill"
+                :class="{ active: periodoSelezionato === '30d' }"
+                @click="cambiaPeriodo('30d')"
+              >
+                30 Giorni
+              </button>
+              <button
+                type="button"
+                class="period-pill"
+                :class="{ active: periodoSelezionato === '6m' }"
+                @click="cambiaPeriodo('6m')"
+              >
+                6 Mesi
+              </button>
+              <button
+                type="button"
+                class="period-pill"
+                :class="{ active: periodoSelezionato === '1y' }"
+                @click="cambiaPeriodo('1y')"
+              >
+                1 Anno
+              </button>
+              <button
+                type="button"
+                class="period-pill"
+                :class="{ active: periodoSelezionato === 'all' }"
+                @click="cambiaPeriodo('all')"
+              >
+                Tutto
+              </button>
+            </div>
+
+            <!-- Tasto Toggle Visualizzazione Tabella Dati (Accessibilità WCAG 2.1 AA) -->
+            <button
+              type="button"
+              class="btn btn-sm btn-outline-secondary d-inline-flex align-items-center gap-1"
+              @click="mostraTabellaAccessibile = !mostraTabellaAccessibile"
+              :aria-pressed="mostraTabellaAccessibile"
+              title="Attiva o disattiva la visualizzazione tabellare accessibile dei dati per screen reader"
+            >
+              <i class="bi bi-table"></i>
+              <span class="d-none d-sm-inline">{{ mostraTabellaAccessibile ? 'Nascondi Tabella' : 'Tabella Dati' }}</span>
+            </button>
+
+            <!-- Tasto Aggiorna Dati in tempo reale -->
+            <button
+              type="button"
+              class="btn btn-sm btn-light border d-inline-flex align-items-center gap-1 text-secondary"
+              @click="caricaDatiAnalytics()"
+              :disabled="loading"
+              title="Ricarica i dati analitici dal server"
+            >
+              <i class="bi bi-arrow-clockwise" :class="{ 'spin': loading }"></i>
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- Griglia dei Grafici Interattivi Chart.js (Fase 24) -->
       <div class="row g-3 g-md-4 mb-4">
-        <!-- Colonna Sinistra (Temporaneamente vuota) -->
-        <div class="col-lg-6">
-          <div class="card-hermae p-4 h-100" style="min-height: 220px;">
+        <!-- Colonna Sinistra: Trend Attività Culturali nel Tempo (Line Chart) -->
+        <div class="col-lg-7">
+          <div class="card-hermae p-4 bg-white border-0 shadow-sm h-100 d-flex flex-column">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+              <div>
+                <h3 class="h6 fw-bold mb-1 text-dark d-flex align-items-center gap-2">
+                  <i class="bi bi-activity text-primary"></i>
+                  Trend Attività Culturali
+                </h3>
+                <span class="small text-muted">Andamento mensile di volumi aggiunti, prestiti concessi e letture</span>
+              </div>
+              <div class="d-flex align-items-center gap-2 small">
+                <span class="badge bg-light text-secondary border">
+                  {{ analytics ? analytics.grafici.trendTemporale.labels.length + ' intervalli' : '6 mesi' }}
+                </span>
+              </div>
+            </div>
+
+            <!-- Canvas Chart.js per Trend Temporale -->
+            <div class="chart-container-wrapper flex-grow-1" v-show="!mostraTabellaAccessibile">
+              <canvas id="trendChartCanvas" ref="trendChartRef" aria-label="Grafico a linee delle attività culturali mensili" role="img"></canvas>
+            </div>
+
+            <!-- Tabella Dati Alternativa per Screen Reader e Accessibilità (WCAG 2.1 AA) -->
+            <div v-show="mostraTabellaAccessibile" class="table-responsive flex-grow-1">
+              <table class="table table-sm table-hover align-middle accessible-data-table mb-0">
+                <caption class="visually-hidden">Dati numerici del trend temporale delle attività</caption>
+                <thead class="table-light">
+                  <tr>
+                    <th scope="col">Mese</th>
+                    <th scope="col" class="text-end">Libri Aggiunti</th>
+                    <th scope="col" class="text-end">Prestiti Concessi</th>
+                    <th scope="col" class="text-end">Letture Concluse</th>
+                    <th scope="col" class="text-end">Visualizzazioni</th>
+                  </tr>
+                </thead>
+                <tbody v-if="analytics">
+                  <tr v-for="item in analytics.grafici.trendTemporale.dettagli" :key="item.codice">
+                    <th scope="row" class="fw-semibold">{{ item.label }}</th>
+                    <td class="text-end">{{ item.libriAggiunti }}</td>
+                    <td class="text-end text-success fw-semibold">{{ item.prestitiConcessi }}</td>
+                    <td class="text-end text-purple fw-semibold" style="color: #7c3aed;">{{ item.lettureCompletate }}</td>
+                    <td class="text-end text-muted">{{ item.visualizzazioni }}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <!-- Legenda Personalizzata Dinamica -->
+            <div class="mt-3 pt-3 border-top d-flex flex-wrap align-items-center justify-content-center gap-3 small text-muted">
+              <div class="d-flex align-items-center gap-1">
+                <span class="legend-indicator-dot" style="background-color: #2563eb;"></span>
+                <span>Volumi Aggiunti</span>
+              </div>
+              <div class="d-flex align-items-center gap-1">
+                <span class="legend-indicator-dot" style="background-color: #10b981;"></span>
+                <span>Prestiti Concessi</span>
+              </div>
+              <div class="d-flex align-items-center gap-1">
+                <span class="legend-indicator-dot" style="background-color: #8b5cf6;"></span>
+                <span>Letture Archiviate</span>
+              </div>
+              <div class="d-flex align-items-center gap-1">
+                <span class="legend-indicator-dot" style="background-color: #f59e0b;"></span>
+                <span>Consultazioni Schede</span>
+              </div>
+            </div>
           </div>
         </div>
 
-        <!-- Colonna Destra (Temporaneamente vuota) -->
-        <div class="col-lg-6">
-          <div class="card-hermae p-4 h-100" style="min-height: 220px;">
+        <!-- Colonna Destra: Composizione Tematica per Categorie (Doughnut Chart) -->
+        <div class="col-lg-5">
+          <div class="card-hermae p-4 bg-white border-0 shadow-sm h-100 d-flex flex-column">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+              <div>
+                <h3 class="h6 fw-bold mb-1 text-dark d-flex align-items-center gap-2">
+                  <i class="bi bi-pie-chart-fill text-primary"></i>
+                  Composizione per Categoria
+                </h3>
+                <span class="small text-muted">Ripartizione percentuale dei generi presenti nella libreria</span>
+              </div>
+            </div>
+
+            <!-- Stato di nessun libro presente -->
+            <div v-if="analytics && analytics.grafici.distribuzioneCategorie.data.length === 0" class="text-center py-5 my-auto text-muted">
+              <i class="bi bi-bookmarks fs-1 text-secondary mb-2 d-block"></i>
+              <div class="fw-semibold">Nessun volume catalogato</div>
+              <p class="small mb-3">Aggiungi libri alla tua libreria per sbloccare la distribuzione dei generi.</p>
+              <a href="libreria.html" class="btn btn-sm btn-primary">Aggiungi il tuo primo libro</a>
+            </div>
+
+            <!-- Canvas Chart.js Doughnut -->
+            <div v-else class="chart-container-wrapper flex-grow-1" v-show="!mostraTabellaAccessibile">
+              <canvas id="categoriesChartCanvas" ref="categoriesChartRef" aria-label="Grafico a ciambella della distribuzione dei libri per genere" role="img"></canvas>
+            </div>
+
+            <!-- Tabella Dati Alternativa Accessibile per Categorie -->
+            <div v-show="mostraTabellaAccessibile && analytics && analytics.grafici.distribuzioneCategorie.data.length > 0" class="table-responsive flex-grow-1">
+              <table class="table table-sm table-hover align-middle accessible-data-table mb-0">
+                <caption class="visually-hidden">Ripartizione percentuale dei libri per genere</caption>
+                <thead class="table-light">
+                  <tr>
+                    <th scope="col">Genere Letterario</th>
+                    <th scope="col" class="text-end">Volumi</th>
+                    <th scope="col" class="text-end">Quota %</th>
+                  </tr>
+                </thead>
+                <tbody v-if="analytics">
+                  <tr v-for="cat in analytics.grafici.distribuzioneCategorie.dettagli" :key="cat.id">
+                    <th scope="row" class="fw-normal d-flex align-items-center gap-2">
+                      <span class="legend-indicator-dot" :style="{ backgroundColor: cat.colore }"></span>
+                      <span>{{ cat.nome }}</span>
+                    </th>
+                    <td class="text-end fw-semibold">{{ cat.count }}</td>
+                    <td class="text-end text-muted">{{ cat.percentuale }}%</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <!-- Elenco dei Generi più presenti con badge e percentuali -->
+            <div v-if="analytics && analytics.grafici.distribuzioneCategorie.dettagli.length > 0" class="mt-3 pt-3 border-top">
+              <div class="row g-2 small">
+                <div
+                  v-for="cat in analytics.grafici.distribuzioneCategorie.dettagli.slice(0, 4)"
+                  :key="cat.id"
+                  class="col-6 d-flex align-items-center justify-content-between p-2 rounded-2 bg-light"
+                >
+                  <div class="d-flex align-items-center gap-1 text-truncate pe-1">
+                    <span class="legend-indicator-dot" :style="{ backgroundColor: cat.colore }"></span>
+                    <span class="text-truncate fw-medium" :title="cat.nome">{{ cat.nome }}</span>
+                  </div>
+                  <span class="badge bg-white text-dark border">{{ cat.count }} ({{ cat.percentuale }}%)</span>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
+
+      <!-- Terza Sezione: Top Volumi dell'Utente & Indicatori di Efficienza Condivisione -->
+      <div class="row g-3 g-md-4 mb-4">
+        <!-- Colonna Sinistra: Libri Più Consultati dell'Utente -->
+        <div class="col-lg-6">
+          <div class="card-hermae p-4 bg-white border-0 shadow-sm h-100">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+              <div>
+                <h3 class="h6 fw-bold mb-1 text-dark d-flex align-items-center gap-2">
+                  <i class="bi bi-eye-fill text-primary"></i>
+                  Volumi Più Consultati
+                </h3>
+                <span class="small text-muted">I titoli della tua libreria che hanno suscitato maggior interesse nella community</span>
+              </div>
+              <a href="libreria.html" class="btn btn-sm btn-outline-secondary">Vedi tutti</a>
+            </div>
+
+            <div v-if="analytics && analytics.topLibri.length === 0" class="text-center py-4 text-muted">
+              <i class="bi bi-journal-x fs-2 text-secondary mb-2 d-block"></i>
+              <div class="small">Nessun volume visualizzato di recente.</div>
+            </div>
+
+            <div v-else-if="analytics" class="d-flex flex-column gap-3">
+              <div
+                v-for="(book, idx) in analytics.topLibri"
+                :key="book.id"
+                class="d-flex align-items-center gap-3 p-2 rounded-3 hover-bg-light transition"
+              >
+                <!-- Indice di posizione -->
+                <span class="badge bg-light text-secondary rounded-pill px-2 py-1 fs-6 fw-bold" style="min-width: 28px;">
+                  #{{ idx + 1 }}
+                </span>
+
+                <!-- Copertina o Placeholder -->
+                <img
+                  v-if="book.copertina"
+                  :src="book.copertina"
+                  :alt="book.titolo"
+                  class="top-book-thumb"
+                />
+                <div v-else class="top-book-placeholder">
+                  <i class="bi bi-book"></i>
+                </div>
+
+                <!-- Dati del libro -->
+                <div class="flex-grow-1 min-w-0">
+                  <div class="fw-bold text-dark text-truncate" :title="book.titolo">{{ book.titolo }}</div>
+                  <div class="small text-muted text-truncate">{{ book.autore }}</div>
+                  <div class="d-flex align-items-center gap-2 mt-1">
+                    <span
+                      class="badge"
+                      :style="{ backgroundColor: (book.categoriaColore || '#475569') + '15', color: book.categoriaColore || '#475569', border: '1px solid ' + (book.categoriaColore || '#475569') + '30' }"
+                      style="font-size: 0.68rem;"
+                    >
+                      {{ book.categoria || 'Genere' }}
+                    </span>
+                    <span class="badge bg-light text-secondary" style="font-size: 0.68rem;">
+                      {{ book.stato === 'DISPONIBILE' ? 'Disponibile' : (book.stato === 'IN_PRESTITO' ? 'In prestito' : book.stato) }}
+                    </span>
+                  </div>
+                </div>
+
+                <!-- Metriche del libro: visualizzazioni e prestiti -->
+                <div class="text-end ps-2 flex-shrink-0">
+                  <div class="fw-bold text-dark d-flex align-items-center justify-content-end gap-1">
+                    <i class="bi bi-eye text-warning"></i>
+                    <span>{{ book.visualizzazioni }}</span>
+                  </div>
+                  <div class="small text-muted" style="font-size: 0.72rem;">
+                    {{ book.prestitiRicevuti }} prestiti
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Colonna Destra: Indicatori Sintetici di Efficienza & Riservatezza -->
+        <div class="col-lg-6">
+          <div class="card-hermae p-4 bg-white border-0 shadow-sm h-100">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+              <div>
+                <h3 class="h6 fw-bold mb-1 text-dark d-flex align-items-center gap-2">
+                  <i class="bi bi-shield-check text-success"></i>
+                  Efficienza di Condivisione & Privacy
+                </h3>
+                <span class="small text-muted">Metriche operative, tasso di restituzione e salvaguardia della privacy</span>
+              </div>
+            </div>
+
+            <div v-if="analytics" class="d-flex flex-column gap-3">
+              <!-- Metrica 1: Tasso di Successo Prestiti -->
+              <div class="p-3 bg-light rounded-3">
+                <div class="d-flex justify-content-between align-items-center mb-1">
+                  <span class="small fw-semibold text-dark">Tasso di Successo Prestiti</span>
+                  <span class="small fw-bold text-success">{{ analytics.kpi.prestiti.tassoSuccessoPercentuale }}%</span>
+                </div>
+                <div class="efficiency-meter-bar mb-2">
+                  <div
+                    class="efficiency-meter-fill bg-success"
+                    :style="{ width: analytics.kpi.prestiti.tassoSuccessoPercentuale + '%' }"
+                  ></div>
+                </div>
+                <div class="small text-muted d-flex justify-content-between" style="font-size: 0.72rem;">
+                  <span>{{ analytics.kpi.prestiti.completati }} prestiti conclusi regolarmente</span>
+                  <span>{{ analytics.kpi.prestiti.rifiutati + analytics.kpi.prestiti.annullati }} non conclusi</span>
+                </div>
+              </div>
+
+              <!-- Metrica 2: Durata Media del Prestito -->
+              <div class="p-3 bg-light rounded-3 d-flex align-items-center justify-content-between">
+                <div>
+                  <div class="small fw-semibold text-dark">Durata Media Prestito</div>
+                  <div class="small text-muted">Tempo concordato di permanenza del volume</div>
+                </div>
+                <div class="text-end">
+                  <span class="h5 fw-bold text-primary mb-0">{{ analytics.kpi.prestiti.durataMediaGiorni }}</span>
+                  <span class="small text-muted ms-1">giorni</span>
+                </div>
+              </div>
+
+              <!-- Metrica 3: Bilanciamento Privacy & Visibilità (Fase 20) -->
+              <div class="p-3 bg-light rounded-3">
+                <div class="d-flex justify-content-between align-items-center mb-1">
+                  <span class="small fw-semibold text-dark">Visibilità della Libreria (Fase 20)</span>
+                  <span class="small text-muted">
+                    {{ analytics.kpi.volumi.pubblici }} Pubblici · {{ analytics.kpi.volumi.privati }} Privati
+                  </span>
+                </div>
+                <div class="efficiency-meter-bar mb-2">
+                  <div
+                    class="efficiency-meter-fill bg-primary"
+                    :style="{ width: (analytics.kpi.volumi.totale > 0 ? (analytics.kpi.volumi.pubblici / analytics.kpi.volumi.totale) * 100 : 100) + '%' }"
+                  ></div>
+                </div>
+                <div class="small text-muted" style="font-size: 0.72rem;">
+                  <i class="bi bi-lock-fill text-secondary me-1"></i>
+                  I volumi contrassegnati come privati rimangono visibili solo a te nel tuo scaffale personale.
+                </div>
+              </div>
+
+              <!-- Metrica 4: Geolocalizzazione di Prossimità & Territorio -->
+              <div class="p-3 bg-light rounded-3 d-flex align-items-center justify-content-between">
+                <div>
+                  <div class="small fw-semibold text-dark">Raggio Confidenziale PostGIS</div>
+                  <div class="small text-muted">Coordinate offuscate su base spaziale urbana</div>
+                </div>
+                <div class="text-end">
+                  <span class="badge bg-info-subtle text-info border border-info-subtle px-2 py-1">
+                    <i class="bi bi-geo-alt me-1"></i>300m confidenziale
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
     </main>
 
     <!-- Notifiche Toast Asincrone -->
     <toast-notification :toasts="toasts" @remove-toast="removeToast"></toast-notification>
 
     <!-- Indicatore di Caricamento Globale -->
-    <loading-spinner :active="loading" message="Aggiornamento dati dal server in corso..."></loading-spinner>
+    <loading-spinner :active="loading" message="Elaborazione query analitiche in corso..."></loading-spinner>
 
     <!-- Piè di pagina globale dell'applicazione -->
     <app-footer></app-footer>
   </div>
 
-  <!-- Dipendenze Esterne: Bootstrap JS, Axios, Vue 3 CDN -->
+  <!-- Dipendenze Esterne: Bootstrap JS, Axios, Vue 3 CDN, Chart.js 4.4 CDN -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/axios@1.6.8/dist/axios.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/vue@3.4.21/dist/vue.global.prod.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
 
   <!-- Script Applicativi Interni -->
   <script src="assets/js/api.js"></script>
   <script src="assets/js/auth.js"></script>
   <script src="assets/js/components/global-components.js"></script>
 
-  <!-- Logica Reattiva della Dashboard -->
+  <!-- Logica Reattiva della Dashboard & Analytics (Fase 24) -->
   <script>
-    const { createApp, ref, computed, onMounted } = Vue;
+    const { createApp, ref, computed, onMounted, nextTick } = Vue;
 
-    // Crea l'applicazione Vue per la Dashboard riservata
     const app = createApp({
       setup() {
         const user = ref(null);
         const loading = ref(false);
-        const testingMe = ref(false);
         const libriCount = ref(0);
         const toasts = ref([]);
 
-        // Aggiunge una notifica alla coda visiva
+        // Stato Analytics (Fase 24)
+        const analytics = ref(null);
+        const periodoSelezionato = ref('6m');
+        const mostraTabellaAccessibile = ref(false);
+
+        // Riferimenti alle istanze Chart.js per distruzione e ridisegno reattivo
+        let trendChartInstance = null;
+        let categoriesChartInstance = null;
+
+        // Gestione Toast Notifiche
         const addToast = (title, message, type = 'info') => {
           const id = Date.now() + Math.random();
           toasts.value.push({ id, title, message, type });
           setTimeout(() => removeToast(id), 5000);
         };
 
-        // Rimuove una notifica dalla lista
         const removeToast = (id) => {
           toasts.value = toasts.value.filter(t => t.id !== id);
         };
 
-        // Formatta una data ISO in stringa leggibile italiana
-        const formatDate = (isoString) => {
-          if (!isoString) return '-';
+        // Caricamento Dati Analytics tramite endpoint ottimizzato /api/analytics
+        const caricaDatiAnalytics = async (periodo = periodoSelezionato.value) => {
+          loading.value = true;
           try {
-            return new Date(isoString).toLocaleDateString('it-IT', {
-              day: '2-digit',
-              month: 'long',
-              year: 'numeric',
-              hour: '2-digit',
-              minute: '2-digit'
-            });
-          } catch (e) {
-            return isoString;
+            const res = await window.apiClient.get(`/analytics?periodo=${periodo}`);
+            if (res.data && res.data.success) {
+              analytics.value = res.data.data;
+              libriCount.value = res.data.data.kpi.volumi.totale;
+              
+              // Ridisegna i grafici al prossimo ciclo di rendering del DOM
+              await nextTick();
+              renderGraficoTrend();
+              renderGraficoCategorie();
+            }
+          } catch (err) {
+            console.error('Errore nel caricamento delle metriche analitiche:', err);
+            addToast('Attenzione', 'Impossibile recuperare i dati aggregati della dashboard.', 'warning');
+          } finally {
+            loading.value = false;
           }
         };
 
-        // Calcola uno snippet abbreviato dell'Access Token per visualizzazione sicura
-        const tokenSnippet = computed(() => {
-          const token = window.auth.getAccessToken();
-          if (!token) return 'Nessun token presente';
-          return token.substring(0, 24) + '...' + token.substring(token.length - 12);
-        });
+        // Cambio periodo temporale (30d, 6m, 1y, all)
+        const cambiaPeriodo = async (nuovoPeriodo) => {
+          if (periodoSelezionato.value === nuovoPeriodo) return;
+          periodoSelezionato.value = nuovoPeriodo;
+          await caricaDatiAnalytics(nuovoPeriodo);
+        };
 
-        // Esegue il controllo di gatekeeping all'avvio e sincronizza il profilo
+        // Rendering Grafico 1: Trend Attività Culturali nel Tempo (Line Chart)
+        const renderGraficoTrend = () => {
+          const canvas = document.getElementById('trendChartCanvas');
+          if (!canvas || !analytics.value) return;
+
+          const trendData = analytics.value.grafici.trendTemporale;
+
+          if (trendChartInstance) {
+            trendChartInstance.destroy();
+          }
+
+          const ctx = canvas.getContext('2d');
+
+          // Gradienti tenui per le curve spline
+          const gradienteLibri = ctx.createLinearGradient(0, 0, 0, 260);
+          gradienteLibri.addColorStop(0, 'rgba(37, 99, 235, 0.22)');
+          gradienteLibri.addColorStop(1, 'rgba(37, 99, 235, 0.0)');
+
+          const gradientePrestiti = ctx.createLinearGradient(0, 0, 0, 260);
+          gradientePrestiti.addColorStop(0, 'rgba(16, 185, 129, 0.22)');
+          gradientePrestiti.addColorStop(1, 'rgba(16, 185, 129, 0.0)');
+
+          trendChartInstance = new Chart(ctx, {
+            type: 'line',
+            data: {
+              labels: trendData.labels,
+              datasets: [
+                {
+                  label: 'Volumi Aggiunti',
+                  data: trendData.datasets.libriAggiunti,
+                  borderColor: '#2563eb',
+                  backgroundColor: gradienteLibri,
+                  borderWidth: 2.5,
+                  tension: 0.35,
+                  fill: true,
+                  pointBackgroundColor: '#2563eb',
+                  pointRadius: 4,
+                  pointHoverRadius: 6
+                },
+                {
+                  label: 'Prestiti Concessi',
+                  data: trendData.datasets.prestitiConcessi,
+                  borderColor: '#10b981',
+                  backgroundColor: gradientePrestiti,
+                  borderWidth: 2.5,
+                  tension: 0.35,
+                  fill: true,
+                  pointBackgroundColor: '#10b981',
+                  pointRadius: 4,
+                  pointHoverRadius: 6
+                },
+                {
+                  label: 'Letture Concluse',
+                  data: trendData.datasets.lettureCompletate,
+                  borderColor: '#8b5cf6',
+                  backgroundColor: 'transparent',
+                  borderWidth: 2,
+                  borderDash: [5, 4],
+                  tension: 0.35,
+                  pointBackgroundColor: '#8b5cf6',
+                  pointRadius: 3,
+                  pointHoverRadius: 5
+                },
+                {
+                  label: 'Consultazioni Schede',
+                  data: trendData.datasets.visualizzazioni,
+                  borderColor: '#f59e0b',
+                  backgroundColor: 'transparent',
+                  borderWidth: 1.5,
+                  tension: 0.35,
+                  pointBackgroundColor: '#f59e0b',
+                  pointRadius: 2.5,
+                  pointHoverRadius: 5
+                }
+              ]
+            },
+            options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              interaction: {
+                mode: 'index',
+                intersect: false
+              },
+              plugins: {
+                legend: {
+                  display: false // Usiamo la legenda custom sottostante accessibile
+                },
+                tooltip: {
+                  backgroundColor: '#0f172a',
+                  titleFont: { family: 'Inter', size: 12, weight: 'bold' },
+                  bodyFont: { family: 'Inter', size: 12 },
+                  padding: 10,
+                  cornerRadius: 8,
+                  boxPadding: 4
+                }
+              },
+              scales: {
+                x: {
+                  grid: {
+                    display: false
+                  },
+                  ticks: {
+                    font: { family: 'Inter', size: 11 },
+                    color: '#64748b'
+                  }
+                },
+                y: {
+                  beginAtZero: true,
+                  grid: {
+                    color: 'rgba(226, 232, 240, 0.8)'
+                  },
+                  ticks: {
+                    stepSize: 1,
+                    precision: 0,
+                    font: { family: 'Inter', size: 11 },
+                    color: '#64748b'
+                  }
+                }
+              }
+            }
+          });
+        };
+
+        // Rendering Grafico 2: Composizione per Genere Letterario (Doughnut Chart)
+        const renderGraficoCategorie = () => {
+          const canvas = document.getElementById('categoriesChartCanvas');
+          if (!canvas || !analytics.value) return;
+
+          const catData = analytics.value.grafici.distribuzioneCategorie;
+          if (!catData || catData.data.length === 0) return;
+
+          if (categoriesChartInstance) {
+            categoriesChartInstance.destroy();
+          }
+
+          const ctx = canvas.getContext('2d');
+
+          categoriesChartInstance = new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+              labels: catData.labels,
+              datasets: [{
+                data: catData.data,
+                backgroundColor: catData.colors,
+                borderWidth: 2,
+                borderColor: '#ffffff',
+                hoverOffset: 6
+              }]
+            },
+            options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              cutout: '68%',
+              plugins: {
+                legend: {
+                  display: false // Gestito tramite pillole e tabella accessibile
+                },
+                tooltip: {
+                  backgroundColor: '#0f172a',
+                  titleFont: { family: 'Inter', size: 12, weight: 'bold' },
+                  bodyFont: { family: 'Inter', size: 12 },
+                  padding: 10,
+                  cornerRadius: 8,
+                  callbacks: {
+                    label: function(context) {
+                      const label = context.label || '';
+                      const value = context.raw || 0;
+                      const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                      const perc = total > 0 ? Math.round((value / total) * 100) : 0;
+                      return ` ${label}: ${value} volumi (${perc}%)`;
+                    }
+                  }
+                }
+              }
+            }
+          });
+        };
+
+        // Inizializzazione al mount
         onMounted(async () => {
-          // Gatekeeper: Se l'utente non è autenticato reindirizza immediatamente al login
           if (!window.auth.requireAuth('login.html')) {
             return;
           }
@@ -232,52 +902,22 @@
             addToast('Benvenuto!', 'Accesso completato con successo. La tua sessione è attiva.', 'success');
           }
 
-          // Sincronizza i dati anagrafici e il conteggio libri della libreria
-          try {
-            const [updatedUser, booksRes] = await Promise.all([
-              window.auth.fetchCurrentUser(),
-              window.apiClient.get('/esemplari/mie')
-            ]);
-            user.value = updatedUser;
-            if (booksRes.data && typeof booksRes.data.count === 'number') {
-              libriCount.value = booksRes.data.count;
-            }
-          } catch (err) {
-            // Se fallisce per sessione scaduta, l'interceptor di api.js interverrà automaticamente
-          }
+          // Carica i dati analitici completi per la dashboard
+          await caricaDatiAnalytics();
         });
-
-        // Testa la chiamata all'endpoint protetto /api/auth/me
-        const testAuthMe = async () => {
-          testingMe.value = true;
-          try {
-            const res = await window.auth.fetchCurrentUser();
-            user.value = res;
-            addToast('Verifica Riuscita', 'Risposta 200 OK dall\'endpoint protetto /api/auth/me.', 'success');
-          } catch (err) {
-            addToast('Errore Verifica', 'Impossibile convalidare la sessione protetta.', 'danger');
-          } finally {
-            testingMe.value = false;
-          }
-        };
-
-        // Avvia la procedura di disconnessione
-        const triggerLogout = async () => {
-          await window.auth.logout();
-        };
 
         return {
           user,
           loading,
-          testingMe,
           libriCount,
           toasts,
-          tokenSnippet,
+          analytics,
+          periodoSelezionato,
+          mostraTabellaAccessibile,
           addToast,
           removeToast,
-          formatDate,
-          testAuthMe,
-          triggerLogout
+          caricaDatiAnalytics,
+          cambiaPeriodo
         };
       }
     });

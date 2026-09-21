@@ -1,6 +1,7 @@
 // Controller per la gestione delle richieste HTTP afferenti all'entità Esemplare e Categorie
 const esemplariService = require('../services/esemplariService');
 const imageService = require('../services/imageService');
+const analyticsService = require('../services/analyticsService');
 
 /**
  * Restituisce l'elenco degli esemplari appartenenti all'utente autenticato
@@ -48,6 +49,12 @@ const createBook = async (req, res, next) => {
 const getBookById = async (req, res, next) => {
   try {
     const book = await esemplariService.getEsemplareById(req.params.id, req.user?.id);
+    
+    // Registra la consultazione in modo asincrono per le metriche analitiche
+    if (book && (!req.user || req.user.id !== book.utente_id)) {
+      analyticsService.tracciaVisitaLibro(book.id, 'VISUALIZZAZIONE_SCHEDA', req.user?.citta || null).catch(() => {});
+    }
+
     res.status(200).json({
       success: true,
       data: book
