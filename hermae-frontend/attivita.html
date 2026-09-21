@@ -28,32 +28,54 @@
       letter-spacing: -0.02em;
     }
 
-    /* 4 Card Statistiche Orizzontali */
-    .metric-card-summary {
-      background-color: #ffffff;
+    /* 4 Quadrati Statistiche su Singola Riga Continua — Standard Uniforme La Mia Libreria */
+    .metric-card-square {
+      background-color: var(--hermae-surface, #ffffff);
       border: 1px solid var(--hermae-border, #e2e8f0);
-      border-radius: 12px;
-      box-shadow: 0 2px 6px rgba(15, 23, 42, 0.04);
-      padding: 1rem 1.15rem;
+      border-radius: var(--radius-md, 12px);
+      box-shadow: var(--shadow-sm, 0 1px 3px rgba(0,0,0,0.05));
+      padding: 0.85rem 0.6rem;
       display: flex;
+      flex-direction: column;
       align-items: center;
-      gap: 0.9rem;
+      justify-content: center;
+      text-align: center;
       transition: transform 0.15s ease, box-shadow 0.2s ease;
       height: 100%;
     }
-    .metric-card-summary:hover {
-      transform: translateY(-2px);
+    .metric-card-square:hover {
       box-shadow: 0 6px 16px rgba(15, 23, 42, 0.08);
+      transform: translateY(-2px);
     }
-    .metric-icon-bubble {
-      width: 44px;
-      height: 44px;
-      border-radius: 10px;
-      display: flex;
+    .metric-card-square .metric-icon-bubble {
+      width: 34px;
+      height: 34px;
+      border-radius: 8px;
+      display: inline-flex;
       align-items: center;
       justify-content: center;
-      font-size: 1.35rem;
+      font-size: 1.1rem;
+      margin-bottom: 0.35rem;
       flex-shrink: 0;
+    }
+    .metric-card-square .metric-val {
+      font-size: 1.45rem;
+      font-weight: 800;
+      line-height: 1.1;
+      margin-bottom: 0.15rem;
+    }
+    .metric-card-square .metric-title {
+      font-size: 0.70rem;
+      font-weight: 700;
+      letter-spacing: 0.03em;
+      text-transform: uppercase;
+      color: #475569;
+      line-height: 1.2;
+    }
+    .metric-card-square .metric-desc {
+      font-size: 0.66rem;
+      color: #64748b;
+      line-height: 1.2;
     }
 
     /* Card Singolo Prestito */
@@ -131,6 +153,14 @@
     <main class="flex-grow-1 py-4 px-2 px-md-4" id="main-content">
       <div class="container-fluid max-w-7xl mx-auto">
 
+        <!-- Breadcrumb Accessibile Unificato (Stesso standard La Mia Libreria) -->
+        <nav aria-label="breadcrumb" class="mb-3">
+          <ol class="breadcrumb mb-0 small">
+            <li class="breadcrumb-item"><a href="dashboard.html" class="text-decoration-none text-primary">Dashboard</a></li>
+            <li class="breadcrumb-item active" aria-current="page">I Miei Prestiti &amp; Attività</li>
+          </ol>
+        </nav>
+
         <!-- Testata Sezione: Titolo & Azioni Rapide -->
         <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
           <div>
@@ -144,7 +174,7 @@
           </div>
 
           <div class="d-flex align-items-center gap-2">
-            <a href="ricerca.html" class="btn btn-outline-primary btn-sm d-inline-flex align-items-center gap-1">
+            <a href="ricerca.html" class="btn btn-primary btn-sm d-inline-flex align-items-center gap-1 shadow-sm">
               <i class="bi bi-geo-alt-fill"></i>
               <span>Cerca Nuovi Libri</span>
             </a>
@@ -161,68 +191,58 @@
           </div>
         </div>
 
-        <!-- 4 Quadrati Statistiche Riassuntive (Cruscotto Orizzontale) -->
-        <section class="row g-3 mb-4" aria-label="Riepilogo metriche prestiti">
+        <!-- 4 Quadrati Statistiche Riassuntive (Uniformi allo standard La Mia Libreria) -->
+        <section class="row g-2 g-md-3 mb-4" aria-label="Riepilogo metriche prestiti">
           <!-- 1. Prestiti Attivi Ricevuti -->
           <div class="col-6 col-lg-3">
-            <div class="metric-card-summary">
+            <div class="metric-card-square">
               <div class="metric-icon-bubble bg-primary-subtle text-primary">
                 <i class="bi bi-book-half"></i>
               </div>
-              <div>
-                <div class="h4 fw-bold text-dark mb-0 lh-1">{{ metriche.attivi_ricevuti }}</div>
-                <div class="small fw-semibold text-secondary mt-1" style="font-size: 0.78rem;">Ricevuti in Lettura</div>
-                <small class="text-muted" style="font-size: 0.7rem;">In corso di prestito</small>
-              </div>
+              <div class="metric-val text-dark">{{ metriche.attivi_ricevuti }}</div>
+              <div class="metric-title">Ricevuti</div>
+              <div class="metric-desc">In corso di lettura</div>
             </div>
           </div>
 
           <!-- 2. Prestiti Concessi a Terzi -->
           <div class="col-6 col-lg-3">
-            <div class="metric-card-summary">
+            <div class="metric-card-square">
               <div class="metric-icon-bubble bg-info-subtle text-info">
                 <i class="bi bi-box-arrow-up-right"></i>
               </div>
-              <div>
-                <div class="h4 fw-bold text-dark mb-0 lh-1">{{ metriche.attivi_concessi }}</div>
-                <div class="small fw-semibold text-secondary mt-1" style="font-size: 0.78rem;">Concessi a Terzi</div>
-                <small class="text-muted" style="font-size: 0.7rem;">Libri tuoi in prestito</small>
-              </div>
+              <div class="metric-val text-dark">{{ metriche.attivi_concessi }}</div>
+              <div class="metric-title">Concessi</div>
+              <div class="metric-desc">Libri tuoi in prestito</div>
             </div>
           </div>
 
           <!-- 3. In Scadenza o In Ritardo -->
           <div class="col-6 col-lg-3">
-            <div class="metric-card-summary">
+            <div class="metric-card-square">
               <div
                 class="metric-icon-bubble"
                 :class="metriche.in_ritardo > 0 ? 'bg-danger-subtle text-danger' : 'bg-warning-subtle text-warning'"
               >
                 <i :class="metriche.in_ritardo > 0 ? 'bi-exclamation-triangle-fill' : 'bi-clock-history'"></i>
               </div>
-              <div>
-                <div class="h4 fw-bold mb-0 lh-1" :class="metriche.in_ritardo > 0 ? 'text-danger' : 'text-dark'">
-                  {{ metriche.in_ritardo > 0 ? metriche.in_ritardo : metriche.in_scadenza }}
-                </div>
-                <div class="small fw-semibold text-secondary mt-1" style="font-size: 0.78rem;">
-                  {{ metriche.in_ritardo > 0 ? 'Scaduti in Ritardo' : 'In Scadenza (≤5 gg)' }}
-                </div>
-                <small class="text-muted" style="font-size: 0.7rem;">Richiedono restituzione</small>
+              <div class="metric-val" :class="metriche.in_ritardo > 0 ? 'text-danger' : 'text-dark'">
+                {{ metriche.in_ritardo > 0 ? metriche.in_ritardo : metriche.in_scadenza }}
               </div>
+              <div class="metric-title">{{ metriche.in_ritardo > 0 ? 'Scaduti' : 'In Scadenza' }}</div>
+              <div class="metric-desc">{{ metriche.in_ritardo > 0 ? 'Richiedono restituzione' : '≤ 5 giorni al termine' }}</div>
             </div>
           </div>
 
           <!-- 4. Prestiti Conclusi con Successo -->
           <div class="col-6 col-lg-3">
-            <div class="metric-card-summary">
+            <div class="metric-card-square">
               <div class="metric-icon-bubble bg-success-subtle text-success">
                 <i class="bi bi-check-circle-fill"></i>
               </div>
-              <div>
-                <div class="h4 fw-bold text-dark mb-0 lh-1">{{ metriche.restituiti_totali }}</div>
-                <div class="small fw-semibold text-secondary mt-1" style="font-size: 0.78rem;">Restituiti con Successo</div>
-                <small class="text-muted" style="font-size: 0.7rem;">Ciclo completato</small>
-              </div>
+              <div class="metric-val text-dark">{{ metriche.restituiti_totali }}</div>
+              <div class="metric-title">Restituiti</div>
+              <div class="metric-desc">Ciclo completato</div>
             </div>
           </div>
         </section>
@@ -354,19 +374,21 @@
                 <div :id="'prestito-' + p.id" class="loan-card p-3">
                   <!-- Header Card: Info Libro + Copertina -->
                   <div class="d-flex gap-3 align-items-start mb-3">
-                    <img
-                      v-if="p.immagine_miniatura || p.immagine_copertina"
-                      :src="p.immagine_miniatura || p.immagine_copertina"
-                      :alt="p.libro_titolo"
-                      class="loan-cover-img"
-                    />
-                    <div
-                      v-else
-                      class="loan-cover-placeholder"
-                      :style="{ backgroundColor: p.categoria_colore || '#1e40af' }"
-                    >
-                      <i class="bi" :class="p.categoria_icona || 'bi-book'" style="font-size: 1.8rem;"></i>
-                    </div>
+                    <a :href="'libro.html?id=' + p.esemplare_id" class="text-decoration-none" title="Visualizza scheda volume Book[ID]">
+                      <img
+                        v-if="p.immagine_miniatura || p.immagine_copertina"
+                        :src="p.immagine_miniatura || p.immagine_copertina"
+                        :alt="p.libro_titolo"
+                        class="loan-cover-img"
+                      />
+                      <div
+                        v-else
+                        class="loan-cover-placeholder"
+                        :style="{ backgroundColor: p.categoria_colore || '#1e40af' }"
+                      >
+                        <i class="bi" :class="p.categoria_icona || 'bi-book'" style="font-size: 1.8rem;"></i>
+                      </div>
+                    </a>
 
                     <div style="min-width: 0; flex-grow: 1;">
                       <div class="d-flex align-items-center justify-content-between mb-1">
@@ -381,9 +403,9 @@
                         </span>
                       </div>
 
-                      <div class="fw-bold text-dark text-truncate small" :title="p.libro_titolo">
+                      <a :href="'libro.html?id=' + p.esemplare_id" class="fw-bold text-dark text-truncate small text-decoration-none hover-primary d-block" :title="p.libro_titolo">
                         {{ p.libro_titolo }}
-                      </div>
+                      </a>
                       <div class="text-muted small text-truncate" style="font-size: 0.74rem;">
                         {{ p.libro_autore }}
                       </div>
@@ -392,7 +414,10 @@
                       <div class="small text-secondary mt-1 d-flex align-items-center gap-1" style="font-size: 0.72rem;">
                         <i class="bi bi-person-fill text-muted"></i>
                         <span>{{ tabRuolo === 'RICHIEDENTE' ? 'Proprietario:' : 'Richiedente:' }}</span>
-                        <strong class="text-dark">{{ p.partner_nome }} {{ p.partner_cognome_iniziale }}</strong>
+                        <a v-if="p.proprietario_id || p.partner_id" :href="'profilo.html?id=' + (tabRuolo === 'RICHIEDENTE' ? p.proprietario_id : p.partner_id)" class="text-decoration-none text-dark fw-bold hover-primary">
+                          {{ p.partner_nome }} {{ p.partner_cognome || p.partner_cognome_iniziale }}
+                        </a>
+                        <strong v-else class="text-dark">{{ p.partner_nome }} {{ p.partner_cognome_iniziale }}</strong>
                         <span v-if="p.partner_citta" class="text-muted">({{ p.partner_citta }})</span>
                       </div>
                     </div>
@@ -476,17 +501,37 @@
                     </template>
                   </div>
 
-                  <!-- Azioni Contestuali del Prestito -->
-                  <div class="mt-auto d-flex flex-wrap gap-1 align-items-center justify-content-between pt-2 border-top">
-                    <!-- Collegamento Diretto al Thread Chat -->
-                    <a
-                      :href="'chat.html?id=' + p.id"
-                      class="btn btn-outline-secondary btn-sm py-1 px-2 d-inline-flex align-items-center gap-1"
-                      style="font-size: 0.74rem;"
-                    >
-                      <i class="bi bi-chat-dots-fill text-primary"></i>
-                      <span>Chat Accordi</span>
-                    </a>
+                  <!-- Footer Card: Azioni e Messaggi -->
+                  <div class="d-flex align-items-center justify-content-between mt-auto pt-2 border-top gap-1 flex-wrap">
+                    <!-- Link a Scheda Libro e Status Prestito -->
+                    <div class="d-flex align-items-center gap-1">
+                      <a
+                        :href="'chat.html?richiesta_id=' + p.id"
+                        class="btn btn-outline-secondary btn-sm py-1 px-2 d-inline-flex align-items-center gap-1"
+                        style="font-size: 0.74rem;"
+                        title="Apri messaggi con il lettore"
+                      >
+                        <i class="bi bi-chat-dots-fill text-primary"></i>
+                        <span>Chat</span>
+                      </a>
+                      <a 
+                        :href="'status-prestito.html?id=' + p.id"
+                        class="btn btn-outline-info btn-sm py-1 px-2 d-inline-flex align-items-center gap-1"
+                        style="font-size: 0.74rem;"
+                        title="Visualizza avanzamento e timeline prestito"
+                      >
+                        <i class="bi bi-diagram-3"></i>
+                        <span>Status</span>
+                      </a>
+                      <a 
+                        :href="'libro.html?id=' + p.esemplare_id"
+                        class="btn btn-outline-primary btn-sm py-1 px-2 d-inline-flex align-items-center gap-1"
+                        style="font-size: 0.74rem;"
+                        title="Scheda Volume"
+                      >
+                        <i class="bi bi-book"></i>
+                      </a>
+                    </div>
 
                     <!-- AZIONI SPECIFICHE PROPRIETARIO (Libri concessi) -->
                     <template v-if="tabRuolo === 'PROPRIETARIO'">

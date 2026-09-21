@@ -13,7 +13,7 @@ router.get('/mie', authenticate, esemplariController.getMyBooks);
 router.post('/', authenticate, esemplariController.createBook);
 
 // 3. Ricerca catalogo esemplari disponibili nella piattaforma
-router.get('/', esemplariController.searchBooks);
+router.get('/', optionalAuth, esemplariController.searchBooks);
 
 // 4. Recupera singolo esemplare tramite ID (optionalAuth per verificare se chi consulta è il proprietario di un esemplare privato)
 router.get('/:id', optionalAuth, esemplariController.getBookById);

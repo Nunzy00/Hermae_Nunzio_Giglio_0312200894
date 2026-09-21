@@ -11,15 +11,9 @@ const rateLimitMap = new Map();
 const EMAIL_REGEX = /\b[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}\b/gi;
 
 /**
- * Regex per il rilevamento di numeri telefonici mobili e fissi italiani e internazionali
- * Copre formati: +39 333 1234567, 333-1234567, 081.1234567, (02) 12345678, sequenze continue da 9-12 cifre
- */
-const PHONE_REGEX = /(?:(?:\+|00)39[\s.-]?)?(?:(?:3\d{2}[\s.-]?\d{3}[\s.-]?\d{3,4})|(?:0\d{1,4}[\s.-]?\d{5,8})|(?:\b[30]\d{8,11}\b))/g;
-
-/**
- * Sanifica un testo di messaggio o richiesta, sostituendo email e numeri telefonici con placeholder di riservatezza
+ * Sanifica un testo di messaggio o richiesta, sostituendo l'indirizzo email con il placeholder di riservatezza
  * @param {string} testo - Testo originale digitato dall'utente
- * @returns {{ testoSanificato: string, schermaturaApplicata: boolean, emailRilevate: number, telefoniRilevati: number }}
+ * @returns {{ testoSanificato: string, schermaturaApplicata: boolean, emailRilevate: number }}
  */
 const sanitizeMessage = (testo) => {
   if (!testo || typeof testo !== 'string') {
@@ -33,27 +27,20 @@ const sanitizeMessage = (testo) => {
 
   let testoSanificato = testo;
   let emailCount = 0;
-  let phoneCount = 0;
 
-  // Intercetta e sostituisce indirizzi email
+  // Intercetta e sostituisce indirizzi email a tutela della riservatezza
   testoSanificato = testoSanificato.replace(EMAIL_REGEX, () => {
     emailCount++;
     return '[EMAIL SCHERMATA A TUTELA PRIVACY]';
   });
 
-  // Intercetta e sostituisce recapiti telefonici
-  testoSanificato = testoSanificato.replace(PHONE_REGEX, () => {
-    phoneCount++;
-    return '[NUMERO SCHERMATO A TUTELA PRIVACY]';
-  });
-
-  const schermaturaApplicata = emailCount > 0 || phoneCount > 0;
+  const schermaturaApplicata = emailCount > 0;
 
   return {
     testoSanificato,
     schermaturaApplicata,
     emailRilevate: emailCount,
-    telefoniRilevati: phoneCount
+    telefoniRilevati: 0
   };
 };
 
@@ -103,6 +90,5 @@ module.exports = {
   sanitizeMessage,
   checkRateLimit,
   resetRateLimit,
-  EMAIL_REGEX,
-  PHONE_REGEX
+  EMAIL_REGEX
 };

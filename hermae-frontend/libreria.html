@@ -292,7 +292,9 @@
     }
     .physical-book {
       position: relative;
-      height: 255px;
+      height: 290px;
+      min-height: 290px;
+      max-height: 290px;
       border-radius: 3px 8px 8px 3px;
       padding: 12px 10px;
       display: flex;
@@ -307,7 +309,9 @@
     }
     @media (max-width: 575.98px) {
       .physical-book {
-        height: 225px;
+        height: 265px;
+        min-height: 265px;
+        max-height: 265px;
         padding: 10px 8px;
       }
     }
@@ -338,23 +342,25 @@
     .physical-book .book-title-foil {
       font-family: Georgia, 'Times New Roman', serif;
       font-weight: 700;
-      font-size: 0.92rem;
+      font-size: 0.90rem;
       line-height: 1.25;
       color: #fffbeb;
       text-shadow: 0 1px 2px rgba(0,0,0,0.8);
       display: -webkit-box;
-      -webkit-line-clamp: 4;
+      -webkit-line-clamp: 2;
       -webkit-box-orient: vertical;
       overflow: hidden;
+      height: 2.5em;
     }
     .physical-book .book-author-foil {
       font-size: 0.72rem;
       color: rgba(255, 255, 255, 0.85);
       font-style: italic;
-      margin-top: 4px;
+      margin-top: 2px;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
+      height: 1.2em;
     }
     .physical-book .book-cover-bg {
       position: absolute;
@@ -380,13 +386,14 @@
     .physical-book .book-plate-label {
       position: relative;
       z-index: 2;
-      background: rgba(255, 255, 255, 0.95);
+      background: rgba(255, 255, 255, 0.96);
       color: #0f172a;
-      border-radius: 5px;
-      padding: 5px 6px;
+      border-radius: 6px;
+      padding: 6px 7px;
       font-size: 0.68rem;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.25);
+      box-shadow: 0 2px 6px rgba(0,0,0,0.28);
       border: 1px solid rgba(0,0,0,0.1);
+      flex-shrink: 0;
     }
     .physical-book-overlay {
       position: absolute;
@@ -637,8 +644,9 @@
         </div>
 
         <!-- Riga 1: Barra di Ricerca Singola su tutta la larghezza -->
-        <div class="mb-2">
-          <div class="input-group">
+        <!-- Riga 1: Barra di Ricerca Testuale con Bottone Filtro Libri Personali -->
+        <div class="d-flex flex-column flex-md-row align-items-stretch align-items-md-center gap-2 mb-2">
+          <div class="input-group flex-grow-1">
             <span class="input-group-text bg-light border-end-0 text-muted"><i class="bi bi-search"></i></span>
             <input 
               id="searchInput"
@@ -658,9 +666,23 @@
               <i class="bi bi-x-lg"></i>
             </button>
           </div>
+
+          <!-- Bottone Filtro Escludi Libri Personali (Stile Filtro Pill) -->
+          <button 
+            type="button" 
+            class="btn btn-sm text-nowrap d-inline-flex align-items-center justify-content-center gap-1 py-2 px-3 flex-shrink-0"
+            :class="escludiPersonali ? 'btn-primary shadow-sm' : 'btn-outline-secondary'"
+            @click="toggleEscludiPersonali"
+            :aria-pressed="escludiPersonali"
+            title="Escludi i libri personali o di proprietà dalla visualizzazione"
+          >
+            <i class="bi" :class="escludiPersonali ? 'bi-person-slash' : 'bi-person-x'"></i>
+            <span class="fw-semibold">{{ escludiPersonali ? 'Libri personali esclusi' : 'Escludi libri personali' }}</span>
+            <span v-if="escludiPersonali" class="badge bg-white text-primary rounded-pill ms-1" style="font-size: 0.65rem;">ATTIVO</span>
+          </button>
         </div>
 
-        <!-- Riga 2: Filtri Compattati su Un'Unica Riga (5 Colonne Paritetiche Responsive) -->
+        <!-- Riga 2: Filtri Compattati (6 Colonne Paritetiche Responsive) -->
         <div class="row g-2 align-items-center">
           <!-- Categoria Disciplinare (Livello 1) -->
           <div class="col-6 col-md-4 col-lg">
@@ -682,6 +704,15 @@
             </select>
           </div>
 
+          <!-- Titolarità (Di Proprietà vs In Prestito) -->
+          <div class="col-6 col-md-4 col-lg">
+            <select id="titSelect" class="form-select form-select-sm" v-model="filtri.titolarita" aria-label="Filtro per titolarità">
+              <option value="">Tutte le titolarità</option>
+              <option value="PROPRIETA">Di Proprietà</option>
+              <option value="IN_PRESTITO">In Prestito Temporaneo</option>
+            </select>
+          </div>
+
           <!-- Disponibilità -->
           <div class="col-6 col-md-4 col-lg">
             <select id="dispSelect" class="form-select form-select-sm" v-model="filtri.stato_disponibilita" aria-label="Filtro per disponibilità">
@@ -693,7 +724,7 @@
           </div>
 
           <!-- Usura / Conservazione -->
-          <div class="col-6 col-md-6 col-lg">
+          <div class="col-6 col-md-4 col-lg">
             <select id="consSelect" class="form-select form-select-sm" v-model="filtri.stato_conservazione" aria-label="Filtro per usura">
               <option value="">Tutti i livelli</option>
               <option value="Come nuovo">Come nuovo</option>
@@ -704,13 +735,37 @@
           </div>
 
           <!-- Visibilità Privacy (Fase 20) -->
-          <div class="col-12 col-md-6 col-lg">
+          <div class="col-6 col-md-4 col-lg">
             <select id="visSelect" class="form-select form-select-sm" v-model="filtri.visibilita" aria-label="Filtro per visibilità privacy">
               <option value="">Tutte le visibilità</option>
               <option value="PUBBLICO">🌐 Solo Pubblici</option>
               <option value="PRIVATO">🔒 Solo Privati</option>
             </select>
           </div>
+        </div>
+
+        <!-- Indicatori Filtri Attivi (Chips rimovibili) -->
+        <div v-if="hasActiveFilters" class="d-flex flex-wrap align-items-center gap-2 mt-2 pt-2 border-top">
+          <span class="small text-muted fw-medium">Filtri attivi:</span>
+
+          <span v-if="escludiPersonali" class="badge bg-primary-subtle text-primary border border-primary-subtle d-inline-flex align-items-center gap-1">
+            <i class="bi bi-person-slash"></i>Libri Personali Esclusi
+            <i class="bi bi-x-circle text-danger ms-1" style="cursor: pointer;" @click="escludiPersonali = false" title="Rimuovi filtro"></i>
+          </span>
+
+          <span v-if="filtri.titolarita" class="badge bg-info-subtle text-info-emphasis border border-info-subtle d-inline-flex align-items-center gap-1">
+            Titolarità: {{ filtri.titolarita === 'IN_PRESTITO' ? 'In Prestito Temporaneo' : 'Di Proprietà' }}
+            <i class="bi bi-x-circle text-danger ms-1" style="cursor: pointer;" @click="filtri.titolarita = ''"></i>
+          </span>
+
+          <span v-if="filtri.search" class="badge bg-light text-dark border d-inline-flex align-items-center gap-1">
+            Testo: "{{ filtri.search }}"
+            <i class="bi bi-x-circle text-danger ms-1" style="cursor: pointer;" @click="filtri.search = ''"></i>
+          </span>
+
+          <button type="button" class="btn btn-link btn-sm p-0 text-danger text-decoration-none small ms-auto" @click="resetFiltri">
+            Azzera tutti
+          </button>
         </div>
       </section>
 
@@ -819,23 +874,36 @@
             </thead>
             <tbody>
               <tr v-for="libro in filteredLibri" :key="libro.id">
-                <!-- Titolo, Autore & Copertina Mini -->
+                <!-- Titolo, Autore, Titolarità & Copertina Mini -->
                 <td>
                   <div class="d-flex align-items-center gap-3">
-                    <div v-if="libro.immagine_miniatura || libro.immagine_copertina" class="book-cover-thumb-wrapper">
-                      <img 
-                        :src="getImageUrl(libro.immagine_miniatura || libro.immagine_copertina)" 
-                        :alt="'Copertina di ' + libro.titolo" 
-                        class="book-cover-thumb-img"
-                        loading="lazy"
-                      />
-                    </div>
-                    <div v-else class="book-cover-placeholder" :class="getCategoryThemeClass(libro.categoria_slug)">
-                      <i class="bi bi-book-half"></i>
-                    </div>
+                    <a :href="'libro.html?id=' + libro.id" class="text-decoration-none" title="Apri scheda dettagliata volume">
+                      <div v-if="libro.immagine_miniatura || libro.immagine_copertina" class="book-cover-thumb-wrapper">
+                        <img 
+                          :src="getImageUrl(libro.immagine_miniatura || libro.immagine_copertina)" 
+                          :alt="'Copertina di ' + libro.titolo" 
+                          class="book-cover-thumb-img"
+                          loading="lazy"
+                        />
+                      </div>
+                      <div v-else class="book-cover-placeholder" :class="getCategoryThemeClass(libro.categoria_slug)">
+                        <i class="bi bi-book-half"></i>
+                      </div>
+                    </a>
                     <div>
-                      <div class="d-flex align-items-center gap-2">
-                        <span class="fw-bold text-dark">{{ libro.titolo }}</span>
+                      <div class="d-flex align-items-center gap-2 flex-wrap mb-1">
+                        <a :href="'libro.html?id=' + libro.id" class="fw-bold text-dark text-decoration-none hover-primary">
+                          {{ libro.titolo }}
+                        </a>
+                        <!-- Badge Titolarità (Di Proprietà vs In Prestito Temporaneo) -->
+                        <span 
+                          class="badge" 
+                          :class="libro.titolarita === 'IN_PRESTITO' ? 'bg-warning-subtle text-dark border border-warning-subtle' : 'bg-primary-subtle text-primary border border-primary-subtle'" 
+                          style="font-size: 0.65rem;"
+                        >
+                          <i class="bi" :class="libro.titolarita === 'IN_PRESTITO' ? 'bi-hourglass-split me-1' : 'bi-person-check-fill me-1'"></i>
+                          {{ libro.titolarita === 'IN_PRESTITO' ? 'In Prestito' : 'Di Proprietà' }}
+                        </span>
                         <span v-if="libro.visibile_pubblico === false" class="badge bg-dark text-warning border border-warning-subtle font-monospace" style="font-size: 0.65rem;" title="Volume privato: escluso dalle ricerche della community">
                           <i class="bi bi-lock-fill me-1"></i>Privato
                         </span>
@@ -890,6 +958,14 @@
                 <!-- Azioni -->
                 <td class="text-end">
                   <div class="btn-group btn-group-sm" role="group" aria-label="Azioni per l'esemplare">
+                    <a 
+                      :href="'libro.html?id=' + libro.id" 
+                      class="btn btn-outline-primary" 
+                      title="Visualizza scheda volume Book[ID]"
+                      aria-label="Scheda libro"
+                    >
+                      <i class="bi bi-book"></i>
+                    </a>
                     <button 
                       type="button" 
                       class="btn btn-outline-secondary" 
@@ -955,32 +1031,36 @@
                 <!-- Corpo Card: Miniatura Copertina + Dati -->
                 <div class="d-flex gap-3 mb-2 flex-grow-1">
                   <!-- Mini Copertina Libro (Immagine Reale o Mockup) -->
-                  <div v-if="libro.immagine_copertina || libro.immagine_miniatura" class="book-card-cover-wrapper">
-                    <img 
-                      :src="getImageUrl(libro.immagine_copertina || libro.immagine_miniatura)" 
-                      :alt="'Copertina di ' + libro.titolo" 
-                      class="book-card-cover-img"
-                      loading="lazy"
-                    />
-                  </div>
-                  <div v-else class="book-card-cover-mini" :class="getCategoryThemeClass(libro.categoria_slug)">
-                    <div class="d-flex justify-content-between align-items-center">
-                      <span class="small" style="font-size: 0.6rem; opacity: 0.85;">HERMAE</span>
-                      <i class="bi bi-bookmark-fill text-danger" style="font-size: 0.75rem;"></i>
+                  <a :href="'libro.html?id=' + libro.id" class="text-decoration-none" title="Vedi scheda volume">
+                    <div v-if="libro.immagine_copertina || libro.immagine_miniatura" class="book-card-cover-wrapper">
+                      <img 
+                        :src="getImageUrl(libro.immagine_copertina || libro.immagine_miniatura)" 
+                        :alt="'Copertina di ' + libro.titolo" 
+                        class="book-card-cover-img"
+                        loading="lazy"
+                      />
                     </div>
-                    <div class="text-center my-auto">
-                      <i class="bi bi-book-half fs-4"></i>
+                    <div v-else class="book-card-cover-mini" :class="getCategoryThemeClass(libro.categoria_slug)">
+                      <div class="d-flex justify-content-between align-items-center">
+                        <span class="small" style="font-size: 0.6rem; opacity: 0.85;">HERMAE</span>
+                        <i class="bi bi-bookmark-fill text-danger" style="font-size: 0.75rem;"></i>
+                      </div>
+                      <div class="text-center my-auto">
+                        <i class="bi bi-book-half fs-4"></i>
+                      </div>
+                      <div class="text-truncate" style="font-size: 0.58rem; opacity: 0.85;">
+                        {{ libro.lingua || 'Italiano' }}
+                      </div>
                     </div>
-                    <div class="text-truncate" style="font-size: 0.58rem; opacity: 0.85;">
-                      {{ libro.lingua || 'Italiano' }}
-                    </div>
-                  </div>
+                  </a>
 
                   <!-- Metadati -->
                   <div class="flex-grow-1 min-w-0">
-                    <h3 class="h6 fw-bold text-dark mb-1 text-truncate" :title="libro.titolo">
-                      {{ libro.titolo }}
-                    </h3>
+                    <a :href="'libro.html?id=' + libro.id" class="text-decoration-none text-dark hover-primary">
+                      <h3 class="h6 fw-bold mb-1 text-truncate" :title="libro.titolo">
+                        {{ libro.titolo }}
+                      </h3>
+                    </a>
                     <div class="text-muted small mb-1 text-truncate">
                       di <strong>{{ libro.autore }}</strong>
                     </div>
@@ -989,6 +1069,15 @@
                       <span v-if="libro.anno_pubblicazione">({{ libro.anno_pubblicazione }})</span>
                     </div>
                     <div class="d-flex flex-wrap gap-1 align-items-center mt-2">
+                      <!-- Badge Titolarità Card -->
+                      <span 
+                        class="badge small" 
+                        :class="libro.titolarita === 'IN_PRESTITO' ? 'bg-warning-subtle text-dark border border-warning-subtle' : 'bg-primary-subtle text-primary border border-primary-subtle'"
+                        style="font-size: 0.68rem;"
+                      >
+                        <i class="bi" :class="libro.titolarita === 'IN_PRESTITO' ? 'bi-hourglass-split me-1' : 'bi-person-check-fill me-1'"></i>
+                        {{ libro.titolarita === 'IN_PRESTITO' ? 'In Prestito' : 'Di Proprietà' }}
+                      </span>
                       <span class="badge small" :class="getConservazioneBadgeClass(libro.stato_conservazione)">
                         {{ libro.stato_conservazione }}
                       </span>
@@ -1005,7 +1094,15 @@
                 </div>
 
                 <!-- Piè di Pagina Card: Azioni -->
-                <div class="d-flex justify-content-end gap-2 pt-2 border-top mt-auto">
+                <div class="d-flex justify-content-end gap-1 pt-2 border-top mt-auto flex-wrap">
+                  <a 
+                    :href="'libro.html?id=' + libro.id" 
+                    class="btn btn-outline-primary btn-sm d-inline-flex align-items-center gap-1"
+                    title="Scheda completa volume Book[ID]"
+                  >
+                    <i class="bi bi-book"></i>
+                    <span>Scheda</span>
+                  </a>
                   <button 
                     type="button" 
                     class="btn btn-outline-secondary btn-sm d-inline-flex align-items-center gap-1"
@@ -1051,6 +1148,7 @@
                 :class="getCategoryThemeClass(libro.categoria_slug)"
                 tabindex="0"
                 :aria-label="libro.titolo + ' di ' + libro.autore"
+                @click="vaiASchedaLibro(libro.id)"
               >
                 <!-- Nastro Segnalibro di Stoffa -->
                 <div class="book-ribbon"></div>
@@ -1070,13 +1168,22 @@
 
                 <!-- Testata Superiore Copertina -->
                 <div class="book-header-top">
-                  <div class="d-flex justify-content-between align-items-center mb-2" style="font-size: 0.65rem; opacity: 0.9;">
-                    <span class="text-uppercase fw-bold letter-spacing-1">Collezione Hermae</span>
+                  <div class="d-flex justify-content-between align-items-center mb-1" style="font-size: 0.62rem; opacity: 0.95;">
+                    <!-- Badge Titolarità (Di Proprietà vs In Prestito) -->
+                    <span 
+                      class="badge" 
+                      :class="libro.titolarita === 'IN_PRESTITO' ? 'bg-warning text-dark' : 'bg-primary text-white'" 
+                      style="font-size: 0.58rem;"
+                    >
+                      <i class="bi" :class="libro.titolarita === 'IN_PRESTITO' ? 'bi-hourglass-split' : 'bi-person-check-fill'"></i>
+                      {{ libro.titolarita === 'IN_PRESTITO' ? 'In Prestito' : 'Di Proprietà' }}
+                    </span>
+
                     <div class="d-flex align-items-center gap-1">
-                      <span v-if="libro.visibile_pubblico === false" class="badge bg-black bg-opacity-75 text-warning border border-warning border-opacity-50" style="font-size: 0.58rem;" title="Volume occultato al pubblico">
+                      <span v-if="libro.visibile_pubblico === false" class="badge bg-black bg-opacity-75 text-warning border border-warning border-opacity-50" style="font-size: 0.55rem;" title="Volume occultato al pubblico">
                         <i class="bi bi-lock-fill"></i> PRIVATO
                       </span>
-                      <span class="badge bg-black bg-opacity-40 border border-white border-opacity-25" style="font-size: 0.6rem;">
+                      <span class="badge bg-black bg-opacity-40 border border-white border-opacity-25" style="font-size: 0.58rem;">
                         {{ libro.lingua || 'IT' }}
                       </span>
                     </div>
@@ -1092,7 +1199,7 @@
                 </div>
 
                 <!-- Sezione Centrale: Sigillo / Icona Categoria -->
-                <div v-if="!libro.immagine_copertina" class="text-center my-2" style="opacity: 0.25;">
+                <div v-if="!libro.immagine_copertina" class="text-center my-1" style="opacity: 0.25;">
                   <i class="bi bi-book-half display-6"></i>
                 </div>
                 <div v-else class="my-auto"></div>
@@ -1121,17 +1228,28 @@
                 </div>
 
                 <!-- Overlay Azioni al passaggio del mouse / focus -->
-                <div class="physical-book-overlay">
+                <div class="physical-book-overlay" @click.stop>
                   <div class="text-white text-center small fw-bold mb-1 text-truncate px-2 w-100">
                     {{ libro.titolo }}
                   </div>
                   <div v-if="libro.sottogenere" class="badge bg-light text-dark mb-2 small text-truncate" style="max-width: 90%;">
                     {{ libro.sottogenere }}
                   </div>
+
+                  <!-- Bottone Primario Scheda Volume Book[ID] -->
+                  <a 
+                    :href="'libro.html?id=' + libro.id" 
+                    class="btn btn-primary btn-sm w-75 d-inline-flex align-items-center justify-content-center gap-1 shadow-sm"
+                    @click.stop
+                  >
+                    <i class="bi bi-book"></i>
+                    <span>Scheda Libro</span>
+                  </a>
+
                   <button 
                     type="button" 
                     class="btn btn-dark btn-sm w-75 d-inline-flex align-items-center justify-content-center gap-1 shadow-sm"
-                    @click="toggleVisibilita(libro)"
+                    @click.stop="toggleVisibilita(libro)"
                   >
                     <i class="bi" :class="libro.visibile_pubblico === false ? 'bi-eye' : 'bi-eye-slash-fill text-warning'"></i>
                     <span>{{ libro.visibile_pubblico === false ? 'Rendi Pubblico' : 'Occulta' }}</span>
@@ -1139,7 +1257,7 @@
                   <button 
                     type="button" 
                     class="btn btn-light btn-sm w-75 d-inline-flex align-items-center justify-content-center gap-1 shadow-sm"
-                    @click="apriModalModifica(libro)"
+                    @click.stop="apriModalModifica(libro)"
                   >
                     <i class="bi bi-pencil"></i>
                     <span>Modifica</span>
@@ -1147,7 +1265,7 @@
                   <button 
                     type="button" 
                     class="btn btn-danger btn-sm w-75 d-inline-flex align-items-center justify-content-center gap-1 shadow-sm"
-                    @click="apriModalElimina(libro)"
+                    @click.stop="apriModalElimina(libro)"
                   >
                     <i class="bi bi-trash3"></i>
                     <span>Elimina</span>
@@ -1416,24 +1534,33 @@
                   />
                 </div>
 
+                <!-- Titolarità / Provenienza Esemplare (Requisito 4) -->
+                <div class="col-md-4">
+                  <label for="formTitolarita" class="form-label fw-semibold">Titolarità / Possesso</label>
+                  <select id="formTitolarita" class="form-select" v-model="form.titolarita">
+                    <option value="PROPRIETA">Di Proprietà (Personale)</option>
+                    <option value="IN_PRESTITO">In Prestito Temporaneo</option>
+                  </select>
+                </div>
+
                 <!-- Stato di Conservazione (Usura) -->
-                <div class="col-md-6">
-                  <label for="formStatoCons" class="form-label fw-semibold">Stato di Conservazione / Usura</label>
+                <div class="col-md-4">
+                  <label for="formStatoCons" class="form-label fw-semibold">Stato d'Usura</label>
                   <select id="formStatoCons" class="form-select" v-model="form.stato_conservazione">
-                    <option value="Come nuovo">Come nuovo (pari al nuovo, intonso)</option>
-                    <option value="Ottimo">Ottimo (lievissimi segni di lettura)</option>
-                    <option value="Buono">Buono (piccole pieghe, segni d'uso normali)</option>
-                    <option value="Usurato">Usurato (dorso vissuto, note a margine, pagine ingiallite)</option>
+                    <option value="Come nuovo">Come nuovo (intonso)</option>
+                    <option value="Ottimo">Ottimo (lievi segni)</option>
+                    <option value="Buono">Buono (segni d'uso normali)</option>
+                    <option value="Usurato">Usurato (vissuto)</option>
                   </select>
                 </div>
 
                 <!-- Stato Disponibilità Scambio -->
-                <div class="col-md-6">
-                  <label for="formStatoDisp" class="form-label fw-semibold">Disponibilità per il Prestito</label>
+                <div class="col-md-4">
+                  <label for="formStatoDisp" class="form-label fw-semibold">Disponibilità Prestito</label>
                   <select id="formStatoDisp" class="form-select" v-model="form.stato_disponibilita">
-                    <option value="DISPONIBILE">Disponibile (aperto a richieste di scambio)</option>
-                    <option value="IN_PRESTITO">In Prestito (attualmente affidato a un lettore)</option>
-                    <option value="NON_DISPONIBILE">Non Disponibile (temporaneamente ritirato)</option>
+                    <option value="DISPONIBILE">Disponibile (aperto)</option>
+                    <option value="IN_PRESTITO">In Prestito (affidato)</option>
+                    <option value="NON_DISPONIBILE">Non Disponibile</option>
                   </select>
                 </div>
 
@@ -1750,16 +1877,30 @@
           lingua: 'Italiano',
           stato_conservazione: 'Ottimo',
           stato_disponibilita: 'DISPONIBILE',
+          titolarita: 'PROPRIETA',
           visibile_pubblico: true,
           note: '',
           descrizione: ''
         });
+
+        // Filtro rapido libri personali (Requisito 3)
+        const escludiPersonali = ref(false);
+        const toggleEscludiPersonali = () => {
+          escludiPersonali.value = !escludiPersonali.value;
+        };
+
+        const vaiASchedaLibro = (id) => {
+          if (id) {
+            window.location.href = 'libro.html?id=' + id;
+          }
+        };
 
         // Filtri di ricerca
         const filtri = ref({
           search: '',
           categoria_id: '',
           sottogenere: '',
+          titolarita: '',
           stato_disponibilita: '',
           stato_conservazione: '',
           visibilita: ''
@@ -1771,9 +1912,11 @@
             (filtri.value.search && filtri.value.search.trim()) ||
             filtri.value.categoria_id ||
             filtri.value.sottogenere ||
+            filtri.value.titolarita ||
             filtri.value.stato_disponibilita ||
             filtri.value.stato_conservazione ||
-            filtri.value.visibilita
+            filtri.value.visibilita ||
+            escludiPersonali.value
           );
         });
 
@@ -1849,6 +1992,14 @@
             if (filtri.value.stato_disponibilita && book.stato_disponibilita !== filtri.value.stato_disponibilita) {
               return false;
             }
+            // Filtro Escludi Libri Personali (Requisito 3)
+            if (escludiPersonali.value && (book.titolarita === 'PROPRIETA' || book.visibile_pubblico === false)) {
+              return false;
+            }
+            // Filtro Titolarità
+            if (filtri.value.titolarita && book.titolarita !== filtri.value.titolarita) {
+              return false;
+            }
             // Filtro Conservazione
             if (filtri.value.stato_conservazione && book.stato_conservazione !== filtri.value.stato_conservazione) {
               return false;
@@ -1881,10 +2032,12 @@
             search: '',
             categoria_id: '',
             sottogenere: '',
+            titolarita: '',
             stato_disponibilita: '',
             stato_conservazione: '',
             visibilita: ''
           };
+          escludiPersonali.value = false;
         };
 
         // Preferenze di riservatezza (Fase 20: occultamento intera libreria)
@@ -1970,6 +2123,7 @@
             lingua: 'Italiano',
             stato_conservazione: 'Ottimo',
             stato_disponibilita: 'DISPONIBILE',
+            titolarita: 'PROPRIETA',
             visibile_pubblico: true,
             note: '',
             descrizione: ''
@@ -2002,6 +2156,7 @@
             lingua: libro.lingua || 'Italiano',
             stato_conservazione: libro.stato_conservazione || 'Buono',
             stato_disponibilita: libro.stato_disponibilita || 'DISPONIBILE',
+            titolarita: libro.titolarita || 'PROPRIETA',
             visibile_pubblico: libro.visibile_pubblico !== false,
             note: libro.note || '',
             descrizione: libro.descrizione || ''
@@ -2180,6 +2335,16 @@
             caricaPreferenzePrivacy()
           ]);
 
+          // Supporto parametro ?modifica=UUID da altre schede (es. libro.html)
+          const urlParams = new URLSearchParams(window.location.search);
+          const modificaId = urlParams.get('modifica');
+          if (modificaId) {
+            const target = libri.value.find(b => b.id === modificaId);
+            if (target) {
+              apriModalModifica(target);
+            }
+          }
+
           // Chiusura automatica del popover informativo cliccando all'esterno
           document.addEventListener('click', (e) => {
             const wrapper = document.querySelector('.info-tooltip-wrapper');
@@ -2202,6 +2367,9 @@
           toasts,
           form,
           filtri,
+          escludiPersonali,
+          toggleEscludiPersonali,
+          vaiASchedaLibro,
           stats,
           filteredLibri,
           viewMode,

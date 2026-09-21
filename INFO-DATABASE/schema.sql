@@ -92,6 +92,7 @@ CREATE TABLE IF NOT EXISTS esemplari (
     immagine_miniatura VARCHAR(255),
     coordinate_esemplare POINT,
     visibile_pubblico BOOLEAN NOT NULL DEFAULT TRUE,
+    titolarita VARCHAR(30) DEFAULT 'PROPRIETA',
     data_creazione TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -165,6 +166,7 @@ CREATE INDEX IF NOT EXISTS idx_esemplari_utente ON esemplari (utente_id);
 CREATE INDEX IF NOT EXISTS idx_esemplari_categoria ON esemplari (categoria_id);
 CREATE INDEX IF NOT EXISTS idx_esemplari_sottogenere ON esemplari (sottogenere);
 CREATE INDEX IF NOT EXISTS idx_esemplari_visibile_pubblico ON esemplari (visibile_pubblico);
+CREATE INDEX IF NOT EXISTS idx_esemplari_titolarita ON esemplari (titolarita);
 CREATE INDEX IF NOT EXISTS idx_richieste_esemplare ON richieste_prestito (esemplare_id);
 CREATE INDEX IF NOT EXISTS idx_richieste_esemplare_stato ON richieste_prestito (esemplare_id, stato);
 CREATE INDEX IF NOT EXISTS idx_richieste_richiedente ON richieste_prestito (richiedente_id);

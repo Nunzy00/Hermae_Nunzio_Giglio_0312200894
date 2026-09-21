@@ -216,6 +216,14 @@
     <main class="flex-grow-1 py-3 px-2 px-md-4" id="main-content">
       <div class="container-fluid max-w-7xl mx-auto chat-page-container">
 
+        <!-- Breadcrumb Navigazione -->
+        <nav aria-label="breadcrumb" class="mb-2">
+          <ol class="breadcrumb mb-0 small">
+            <li class="breadcrumb-item"><a href="dashboard.html" class="text-decoration-none">Dashboard</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Messaggi &amp; Scambi</li>
+          </ol>
+        </nav>
+
         <!-- Barra del Titolo e Azioni Globali -->
         <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
           <div>
@@ -223,8 +231,11 @@
               <i class="bi bi-chat-left-text-fill text-primary" aria-hidden="true"></i>
               <span>Messaggi &amp; Scambi</span>
             </h1>
-            <p class="text-muted small mb-0">
-              Comunica in sicurezza con gli altri lettori per concordare scambi o prestiti di libri.
+            <p class="text-muted small mb-0 d-flex flex-wrap align-items-center gap-2">
+              <span>Comunica in sicurezza con gli altri lettori per concordare scambi o prestiti di libri.</span>
+              <span class="badge bg-warning-subtle text-dark border border-warning-subtle fw-medium py-1 px-2">
+                <i class="bi bi-clock-history me-1 text-warning"></i>La chat verrà rimossa automaticamente dopo 30 giorni dall'ultimo messaggio.
+              </span>
             </p>
           </div>
 
@@ -353,18 +364,40 @@
                   <div class="d-flex gap-2 align-items-start">
                     <!-- Copertina Libro / Icona Placeholder -->
                     <div class="position-relative flex-shrink-0">
-                      <img
-                        v-if="conv.immagine_miniatura || conv.immagine_copertina"
-                        :src="conv.immagine_miniatura || conv.immagine_copertina"
-                        :alt="conv.libro_titolo"
-                        style="width: 44px; height: 60px; object-fit: cover; border-radius: 4px; box-shadow: 0 1px 3px rgba(0,0,0,0.15);"
-                      />
-                      <div
-                        v-else
-                        style="width: 44px; height: 60px; background-color: #1e40af; border-radius: 4px; display: flex; align-items: center; justify-content: center; color: white;"
+                      <a
+                        v-if="conv.libro_id"
+                        :href="'libro.html?id=' + conv.libro_id"
+                        @click.stop
+                        class="d-block"
+                        :title="'Scheda volume: ' + conv.libro_titolo"
                       >
-                        <i class="bi bi-book fs-4"></i>
-                      </div>
+                        <img
+                          v-if="conv.immagine_miniatura || conv.immagine_copertina"
+                          :src="conv.immagine_miniatura || conv.immagine_copertina"
+                          :alt="conv.libro_titolo"
+                          style="width: 44px; height: 60px; object-fit: cover; border-radius: 4px; box-shadow: 0 1px 3px rgba(0,0,0,0.15);"
+                        />
+                        <div
+                          v-else
+                          style="width: 44px; height: 60px; background-color: #1e40af; border-radius: 4px; display: flex; align-items: center; justify-content: center; color: white;"
+                        >
+                          <i class="bi bi-book fs-4"></i>
+                        </div>
+                      </a>
+                      <template v-else>
+                        <img
+                          v-if="conv.immagine_miniatura || conv.immagine_copertina"
+                          :src="conv.immagine_miniatura || conv.immagine_copertina"
+                          :alt="conv.libro_titolo"
+                          style="width: 44px; height: 60px; object-fit: cover; border-radius: 4px; box-shadow: 0 1px 3px rgba(0,0,0,0.15);"
+                        />
+                        <div
+                          v-else
+                          style="width: 44px; height: 60px; background-color: #1e40af; border-radius: 4px; display: flex; align-items: center; justify-content: center; color: white;"
+                        >
+                          <i class="bi bi-book fs-4"></i>
+                        </div>
+                      </template>
 
                       <!-- Badge Ruolo (Richiesta Inviata vs Ricevuta) -->
                       <span
@@ -383,17 +416,43 @@
                         <span class="badge" :class="'status-badge-' + conv.stato" style="font-size: 0.65rem; font-weight: 600;">
                           {{ formatStato(conv.stato) }}
                         </span>
-                        <small class="text-muted" style="font-size: 0.68rem;">
-                          {{ formatDataBreve(conv.ultimo_messaggio_data || conv.data_richiesta) }}
-                        </small>
+                        <div class="d-flex align-items-center gap-1">
+                          <span
+                            class="badge bg-warning-subtle text-dark border border-warning-subtle py-0 px-1"
+                            style="font-size: 0.62rem;"
+                            :title="'La chat verrà rimossa dopo 30 giorni dall\'ultimo messaggio (' + (conv.giorni_rimanenti_chat !== undefined ? conv.giorni_rimanenti_chat : 30) + ' giorni rimanenti)'"
+                          >
+                            <i class="bi bi-clock-history text-warning me-1"></i>{{ conv.giorni_rimanenti_chat !== undefined ? conv.giorni_rimanenti_chat : 30 }}gg
+                          </span>
+                          <small class="text-muted" style="font-size: 0.68rem;">
+                            {{ formatDataBreve(conv.ultimo_messaggio_data || conv.data_richiesta) }}
+                          </small>
+                        </div>
                       </div>
 
                       <div class="fw-bold text-dark text-truncate small mb-0" :title="conv.libro_titolo">
-                        {{ conv.libro_titolo }}
+                        <a
+                          v-if="conv.libro_id"
+                          :href="'libro.html?id=' + conv.libro_id"
+                          @click.stop
+                          class="text-dark text-decoration-none hover-underline"
+                        >
+                          {{ conv.libro_titolo }}
+                        </a>
+                        <span v-else>{{ conv.libro_titolo }}</span>
                       </div>
 
                       <div class="small text-muted text-truncate mb-1" style="font-size: 0.75rem;">
-                        <span class="text-dark fw-semibold">{{ getPartnerName(conv) }}</span>
+                        <a
+                          v-if="conv.partner_id"
+                          :href="'profilo.html?id=' + conv.partner_id"
+                          @click.stop
+                          class="text-primary fw-bold text-decoration-none hover-underline"
+                          :title="'Visualizza profilo pubblico di ' + getPartnerName(conv)"
+                        >
+                          {{ getPartnerName(conv) }}
+                        </a>
+                        <span v-else class="text-dark fw-semibold">{{ getPartnerName(conv) }}</span>
                         <span v-if="conv.partner_citta"> • {{ conv.partner_citta }}</span>
                       </div>
 
@@ -460,29 +519,67 @@
                     </button>
 
                     <!-- Miniatura Libro -->
-                    <img
-                      v-if="conversazioneAttiva.immagine_miniatura || conversazioneAttiva.immagine_copertina"
-                      :src="conversazioneAttiva.immagine_miniatura || conversazioneAttiva.immagine_copertina"
-                      :alt="conversazioneAttiva.libro_titolo"
-                      style="width: 40px; height: 54px; object-fit: cover; border-radius: 4px; box-shadow: 0 1px 3px rgba(0,0,0,0.15);"
-                    />
-                    <div
-                      v-else
-                      style="width: 40px; height: 54px; background-color: #1e40af; border-radius: 4px; display: flex; align-items: center; justify-content: center; color: white;"
+                    <a
+                      v-if="conversazioneAttiva.libro_id"
+                      :href="'libro.html?id=' + conversazioneAttiva.libro_id"
+                      class="flex-shrink-0 text-decoration-none"
+                      :title="'Visualizza scheda volume: ' + conversazioneAttiva.libro_titolo"
                     >
-                      <i class="bi bi-book fs-4"></i>
+                      <img
+                        v-if="conversazioneAttiva.immagine_miniatura || conversazioneAttiva.immagine_copertina"
+                        :src="conversazioneAttiva.immagine_miniatura || conversazioneAttiva.immagine_copertina"
+                        :alt="conversazioneAttiva.libro_titolo"
+                        style="width: 40px; height: 54px; object-fit: cover; border-radius: 4px; box-shadow: 0 1px 3px rgba(0,0,0,0.15);"
+                      />
+                      <div
+                        v-else
+                        style="width: 40px; height: 54px; background-color: #1e40af; border-radius: 4px; display: flex; align-items: center; justify-content: center; color: white;"
+                      >
+                        <i class="bi bi-book fs-4"></i>
+                      </div>
+                    </a>
+                    <div v-else class="flex-shrink-0">
+                      <img
+                        v-if="conversazioneAttiva.immagine_miniatura || conversazioneAttiva.immagine_copertina"
+                        :src="conversazioneAttiva.immagine_miniatura || conversazioneAttiva.immagine_copertina"
+                        :alt="conversazioneAttiva.libro_titolo"
+                        style="width: 40px; height: 54px; object-fit: cover; border-radius: 4px; box-shadow: 0 1px 3px rgba(0,0,0,0.15);"
+                      />
+                      <div
+                        v-else
+                        style="width: 40px; height: 54px; background-color: #1e40af; border-radius: 4px; display: flex; align-items: center; justify-content: center; color: white;"
+                      >
+                        <i class="bi bi-book fs-4"></i>
+                      </div>
                     </div>
 
                     <div style="min-width: 0;">
                       <div class="fw-bold text-dark text-truncate small" :title="conversazioneAttiva.libro_titolo">
-                        {{ conversazioneAttiva.libro_titolo }}
+                        <a
+                          v-if="conversazioneAttiva.libro_id"
+                          :href="'libro.html?id=' + conversazioneAttiva.libro_id"
+                          class="text-dark text-decoration-none hover-underline"
+                          :title="'Visualizza scheda libro: ' + conversazioneAttiva.libro_titolo"
+                        >
+                          {{ conversazioneAttiva.libro_titolo }}
+                        </a>
+                        <span v-else>{{ conversazioneAttiva.libro_titolo }}</span>
                       </div>
                       <div class="text-muted small text-truncate" style="font-size: 0.74rem;">
                         {{ conversazioneAttiva.libro_autore }}
                       </div>
-                      <div class="small mt-1 d-flex align-items-center gap-1" style="font-size: 0.72rem;">
+                      <div class="small mt-1 d-flex align-items-center gap-1" style="font-size: 0.74rem;">
                         <i class="bi bi-person-fill text-secondary"></i>
-                        <span class="text-dark fw-semibold">{{ getPartnerName(conversazioneAttiva) }}</span>
+                        <a
+                          v-if="conversazioneAttiva.partner_id"
+                          :href="'profilo.html?id=' + conversazioneAttiva.partner_id"
+                          class="text-primary fw-bold text-decoration-none hover-underline d-inline-flex align-items-center gap-1"
+                          :title="'Visualizza profilo pubblico di ' + getPartnerName(conversazioneAttiva)"
+                        >
+                          <span>{{ getPartnerName(conversazioneAttiva) }}</span>
+                          <i class="bi bi-box-arrow-up-right" style="font-size: 0.65rem;"></i>
+                        </a>
+                        <span v-else class="text-dark fw-bold">{{ getPartnerName(conversazioneAttiva) }}</span>
                         <span class="text-muted" v-if="conversazioneAttiva.partner_citta">({{ conversazioneAttiva.partner_citta }})</span>
                         <span class="badge ms-1" :class="'status-badge-' + conversazioneAttiva.stato">
                           {{ formatStato(conversazioneAttiva.stato) }}
@@ -540,26 +637,36 @@
                         <span class="d-none d-sm-inline">Segna come Completato</span>
                       </button>
                     </template>
-                    <!-- Link Diretto alla Scheda Prestito / Tracking in Attività -->
+                    <!-- Link Diretto alla Pagina Status Prestito & Avanzamento -->
                     <a
-                      :href="'attivita.html?id=' + conversazioneAttiva.id"
-                      class="btn btn-outline-secondary btn-sm d-inline-flex align-items-center gap-1"
-                      title="Visualizza scheda completa e tracking temporale in Attività"
+                      :href="'status-prestito.html?id=' + conversazioneAttiva.id"
+                      class="btn btn-outline-primary btn-sm d-inline-flex align-items-center gap-1"
+                      title="Visualizza lo status e l'avanzamento del prestito"
                     >
-                      <i class="bi bi-arrow-left-right text-primary"></i>
-                      <span class="d-none d-md-inline">Scheda Prestito</span>
+                      <i class="bi bi-diagram-3-fill text-primary"></i>
+                      <span class="d-none d-md-inline">Status Prestito</span>
                     </a>
                   </div>
                 </div>
               </header>
 
-              <!-- Avviso Privacy Shield Hermae Permanente in Testata -->
-              <div class="py-1 px-3 bg-light border-bottom d-flex align-items-center justify-content-between small" style="font-size: 0.74rem;">
-                <div class="d-flex align-items-center gap-2 text-secondary">
-                  <i class="bi bi-shield-check text-success fs-6"></i>
-                  <span><strong>Hermae Privacy Shield attivo:</strong> I contatti diretti (email e numeri) vengono schermati automaticamente per la tua sicurezza.</span>
+              <!-- Avviso Retention Chat & Privacy Shield Unificato (senza sovrapposizioni) -->
+              <div class="py-1 px-3 bg-warning-subtle border-bottom d-flex align-items-center justify-content-between flex-wrap gap-2 small text-dark" style="font-size: 0.74rem;">
+                <div class="d-flex align-items-center flex-wrap gap-2">
+                  <span class="d-inline-flex align-items-center gap-1">
+                    <i class="bi bi-clock-history text-warning-emphasis"></i>
+                    <span>Rimozione automatica dopo <strong>30 giorni</strong> di inattività</span>
+                    <span v-if="conversazioneAttiva.giorni_rimanenti_chat !== undefined" class="badge bg-warning text-dark ms-1">
+                      {{ conversazioneAttiva.giorni_rimanenti_chat }} {{ conversazioneAttiva.giorni_rimanenti_chat === 1 ? 'giorno rimanente' : 'giorni rimanenti' }}
+                    </span>
+                  </span>
+                  <span class="text-muted d-none d-sm-inline">•</span>
+                  <span class="text-secondary d-inline-flex align-items-center gap-1">
+                    <i class="bi bi-shield-check text-success"></i>
+                    <span>Privacy Shield attivo (email schermata)</span>
+                  </span>
                 </div>
-                <span class="text-muted d-none d-md-inline">ID Scambio: #{{ conversazioneAttiva.id.substring(0, 8) }}</span>
+                <span class="text-muted" style="font-size: 0.7rem;">ID: #{{ conversazioneAttiva.id.substring(0, 8) }}</span>
               </div>
 
               <!-- Contenitore dei Messaggi con Auto-Scroll -->
@@ -582,6 +689,18 @@
                     class="message-row"
                     :class="msg.mittente_id === user.id ? 'me' : 'partner'"
                   >
+                    <!-- Nome interlocutore con link al profilo per i messaggi ricevuti -->
+                    <div v-if="msg.mittente_id !== user.id" class="small mb-1 d-flex align-items-center gap-1 text-muted" style="font-size: 0.72rem;">
+                      <i class="bi bi-person-circle text-primary"></i>
+                      <a
+                        :href="'profilo.html?id=' + (conversazioneAttiva.partner_id || msg.mittente_id)"
+                        class="text-primary fw-bold text-decoration-none hover-underline"
+                        :title="'Visualizza profilo di ' + getPartnerName(conversazioneAttiva)"
+                      >
+                        {{ getPartnerName(conversazioneAttiva) }}
+                      </a>
+                    </div>
+
                     <div class="message-bubble">
                       <!-- Renderizza il testo sanitizzato con evidenziazione dei placeholder privacy -->
                       <span v-html="renderSafeMessage(msg.testo)"></span>
@@ -632,11 +751,8 @@
                     </button>
                   </div>
 
-                  <!-- Helper testo Antispam e Schermatura -->
-                  <div class="d-flex justify-content-between align-items-center px-1">
-                    <small class="text-muted" style="font-size: 0.7rem;">
-                      <i class="bi bi-shield-lock text-primary me-1"></i>I messaggi passano attraverso il filtro privacy Hermae. Non inserire IBAN o password.
-                    </small>
+                  <!-- Conteggio Caratteri -->
+                  <div class="d-flex justify-content-end px-1">
                     <small class="text-muted" style="font-size: 0.7rem;">
                       {{ nuovoMessaggio.length }} / 1000
                     </small>
@@ -795,8 +911,8 @@
         const filterTabs = computed(() => {
           const all = conversazioni.value.length;
           const pending = conversazioni.value.filter(c => c.stato === 'IN_ATTESA').length;
-          const active = conversazioni.value.filter(c => c.stato === 'ACCETTATA').length;
-          const done = conversazioni.value.filter(c => ['COMPLETATA', 'RIFIUTATA', 'ANNULLATA'].includes(c.stato)).length;
+          const active = conversazioni.value.filter(c => ['ACCETTATA', 'IN_PRESTITO', 'ATTIVO'].includes(c.stato)).length;
+          const done = conversazioni.value.filter(c => ['COMPLETATA', 'RESTITUITO', 'RIFIUTATA', 'ANNULLATA'].includes(c.stato)).length;
 
           return [
             { id: 'TUTTI', label: 'Tutti', count: all },
@@ -813,9 +929,9 @@
           if (activeTab.value === 'IN_ATTESA') {
             list = list.filter(c => c.stato === 'IN_ATTESA');
           } else if (activeTab.value === 'ATTIVI') {
-            list = list.filter(c => c.stato === 'ACCETTATA');
+            list = list.filter(c => ['ACCETTATA', 'IN_PRESTITO', 'ATTIVO'].includes(c.stato));
           } else if (activeTab.value === 'CONCLUSI') {
-            list = list.filter(c => ['COMPLETATA', 'RIFIUTATA', 'ANNULLATA'].includes(c.stato));
+            list = list.filter(c => ['COMPLETATA', 'RESTITUITO', 'RIFIUTATA', 'ANNULLATA'].includes(c.stato));
           }
 
           if (searchFilter.value.trim()) {
@@ -831,13 +947,56 @@
           return list;
         });
 
-        // Nome visualizzabile del partner (interlocutore)
+        // Funzione per normalizzare le conversazioni ricevute da API garantendo tutti i campi necessari
+        const normalizzaConversazione = (c) => {
+          if (!c) return c;
+          const controparte = c.controparte || {};
+          const libro = c.libro || {};
+          const ultimoMsg = c.ultimo_messaggio || {};
+          const partnerId = c.partner_id || controparte.id;
+          const partnerNome = c.partner_nome || controparte.nome || '';
+          const partnerCognome = c.partner_cognome || controparte.cognome || '';
+          const partnerCognomeIniziale = c.partner_cognome_iniziale || controparte.cognome_iniziale || '';
+          const partnerCitta = c.partner_citta || controparte.citta || '';
+          const libroId = c.esemplare_id || (libro && libro.id) || c.libro_id;
+          const libroTitolo = c.libro_titolo || libro.titolo || 'Libro';
+          const libroAutore = c.libro_autore || libro.autore || '';
+          const copertina = c.immagine_copertina || libro.copertina;
+          const miniatura = c.immagine_miniatura || libro.miniatura;
+          const ruolo = c.ruolo || c.ruolo_utente || (c.proprietario_id === (user.value ? user.value.id : null) ? 'PROPRIETARIO' : 'RICHIEDENTE');
+          const ultimoTesto = c.ultimo_messaggio_testo || ultimoMsg.testo || c.messaggio_iniziale || '';
+          const ultimaData = c.ultimo_messaggio_data || ultimoMsg.data || c.data_richiesta;
+
+          return {
+            ...c,
+            libro_id: libroId,
+            partner_id: partnerId,
+            partner_nome: partnerNome,
+            partner_cognome: partnerCognome,
+            partner_cognome_iniziale: partnerCognomeIniziale,
+            partner_citta: partnerCitta,
+            libro_titolo: libroTitolo,
+            libro_autore: libroAutore,
+            immagine_copertina: copertina,
+            immagine_miniatura: miniatura,
+            ruolo: ruolo,
+            ultimo_messaggio_testo: ultimoTesto,
+            ultimo_messaggio_data: ultimaData
+          };
+        };
+
+        // Nome visualizzabile del partner (utente mock reale)
         const getPartnerName = (conv) => {
-          if (!conv) return 'Lettore Hermae';
+          if (!conv) return 'Utente';
           if (conv.partner_nome) {
-            return `${conv.partner_nome} ${conv.partner_cognome_iniziale || ''}`.trim();
+            const cognome = conv.partner_cognome || conv.partner_cognome_iniziale || '';
+            return `${conv.partner_nome} ${cognome}`.trim();
           }
-          return 'Lettore Hermae';
+          if (conv.controparte && conv.controparte.nome) {
+            const cognome = conv.controparte.cognome || conv.controparte.cognome_iniziale || '';
+            return `${conv.controparte.nome} ${cognome}`.trim();
+          }
+          return 'Utente';
         };
 
         // Carica la lista delle conversazioni/richieste dell'utente
@@ -846,7 +1005,7 @@
           try {
             const res = await window.apiClient.get('/richieste');
             if (res.data && res.data.success && Array.isArray(res.data.data)) {
-              conversazioni.value = res.data.data;
+              conversazioni.value = res.data.data.map(c => normalizzaConversazione(c));
 
               // Se c'è una conversazione attiva, aggiorna il suo riferimento per riflettere cambi di stato
               if (conversazioneAttiva.value) {
@@ -865,7 +1024,7 @@
 
         // Seleziona un thread e ne carica i messaggi
         const selezionaConversazione = async (conv) => {
-          conversazioneAttiva.value = conv;
+          conversazioneAttiva.value = normalizzaConversazione(conv);
           await caricaMessaggi(conv.id);
 
           // Se c'erano messaggi non letti nel thread, azzerali localmente
@@ -913,15 +1072,21 @@
             });
 
             if (res.data && res.data.success && res.data.data) {
-              messaggi.value.push(res.data.data);
+              const msgData = res.data.data.messaggio || res.data.data;
+              messaggi.value.push(msgData);
               nuovoMessaggio.value = '';
               await nextTick();
               scrollMessaggiInFondo();
 
-              // Aggiorna l'anteprima nell'elenco a sinistra
-              conversazioneAttiva.value.ultimo_messaggio_testo = res.data.data.testo;
-              conversazioneAttiva.value.ultimo_messaggio_data = res.data.data.data_invio;
+              // Aggiorna l'anteprima nell'elenco a sinistra e reimposta il countdown a 30 giorni
+              conversazioneAttiva.value.ultimo_messaggio_testo = msgData.testo;
+              conversazioneAttiva.value.ultimo_messaggio_data = msgData.data_invio;
               conversazioneAttiva.value.ultimo_messaggio_mittente_id = user.value.id;
+              conversazioneAttiva.value.giorni_rimanenti_chat = 30;
+
+              if (res.data.data.avviso_privacy) {
+                addToast('Privacy Shield', res.data.data.avviso_privacy, 'warning');
+              }
             } else {
               addToast('Invio Fallito', (res.data && res.data.message) || 'Impossibile inviare il messaggio.', 'danger');
             }
@@ -1054,7 +1219,7 @@
 
         const formatAnteprimaMessaggio = (txt) => {
           if (!txt) return 'Nessun messaggio';
-          return txt.replace(/\[(EMAIL|NUMERO) SCHERMAT[OA] A TUTELA PRIVACY\]/g, '🔒 [Contatto Schermato]');
+          return txt.replace(/\[EMAIL SCHERMATA A TUTELA PRIVACY\]/g, '🔒 [Email Schermata]');
         };
 
         // Rende visivamente evidenti i tag di schermatura privacy all'interno del messaggio
@@ -1064,12 +1229,11 @@
           let safe = escapeHtml(testo);
 
           safe = safe.replace(/\[EMAIL SCHERMATA A TUTELA PRIVACY\]/g, '<span class="privacy-shield-tag"><i class="bi bi-shield-slash"></i>Email Schermata</span>');
-          safe = safe.replace(/\[NUMERO SCHERMATO A TUTELA PRIVACY\]/g, '<span class="privacy-shield-tag"><i class="bi bi-shield-slash"></i>Numero Schermato</span>');
 
           return safe.replace(/\n/g, '<br>');
         };
 
-        // Verifica parametro URL ?id=... per pre-selezionare una conversazione
+        // Verifica parametro URL ?id=... per pre-selezionare una conversazione (o prima conv su desktop)
         const controllaParametriUrl = () => {
           const params = new URLSearchParams(window.location.search);
           const richiestaId = params.get('id');
@@ -1077,7 +1241,12 @@
             const found = conversazioni.value.find(c => c.id === richiestaId);
             if (found) {
               selezionaConversazione(found);
+              return;
             }
+          }
+          // Su visuali desktop (schermo largo >= 992px), se non vi è selezione esplicita apri la prima conversazione
+          if (window.innerWidth >= 992 && conversazioni.value.length > 0 && !conversazioneAttiva.value) {
+            selezionaConversazione(conversazioni.value[0]);
           }
         };
 

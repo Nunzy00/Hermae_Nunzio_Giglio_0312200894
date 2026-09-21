@@ -29,6 +29,7 @@ const BASE_ESEMPLARI_SELECT = `
   e.coordinate_esemplare,
   e.visibile_pubblico,
   e.data_creazione,
+  COALESCE(e.titolarita, 'PROPRIETA') as titolarita,
   c.nome as categoria_nome,
   c.slug as categoria_slug,
   c.icona as categoria_icona,
@@ -97,6 +98,8 @@ const formatEsemplareRow = (row) => {
     immagine_copertina: row.immagine_copertina || null,
     immagine_miniatura: row.immagine_miniatura || null,
     visibile_pubblico: row.visibile_pubblico !== false,
+    titolarita: row.titolarita || 'PROPRIETA',
+    in_prestito_temporaneo: (row.titolarita === 'IN_PRESTITO'),
     coordinate: coord,
     distanza_metri: distMetri,
     distanza_km: distKm,
@@ -135,7 +138,8 @@ const createEsemplare = async (utenteId, data) => {
     stato_conservazione,
     stato_disponibilita,
     immagine_copertina,
-    immagine_miniatura
+    immagine_miniatura,
+    titolarita
   } = data;
 
   // Validazione campi obbligatori minimi
@@ -269,12 +273,15 @@ const createEsemplare = async (utenteId, data) => {
       immagine_copertina,
       immagine_miniatura,
       coordinate_esemplare,
-      visibile_pubblico
+      visibile_pubblico,
+      titolarita
     ) VALUES (
-      $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17
+      $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18
     )
     RETURNING *;
   `;
+
+  const finalTitolarita = (titolarita === 'IN_PRESTITO') ? 'IN_PRESTITO' : 'PROPRIETA';
 
   const values = [
     utenteId,
@@ -293,7 +300,8 @@ const createEsemplare = async (utenteId, data) => {
     immagine_copertina || null,
     immagine_miniatura || null,
     coordinatePoint,
-    finalVisibilePubblico
+    finalVisibilePubblico,
+    finalTitolarita
   ];
 
   const result = await db.query(insertQuery, values);
@@ -308,9 +316,62 @@ const getMyEsemplari = async (utenteId, filters = {}) => {
   let query = `
     SELECT 
       ${BASE_ESEMPLARI_SELECT}
-    FROM esemplari e
+    FROM (
+      SELECT 
+        e.id,
+        e.utente_id,
+        e.categoria_id,
+        e.sottogenere,
+        e.titolo,
+        e.autore,
+        e.editore,
+        e.anno_pubblicazione,
+        e.isbn,
+        e.lingua,
+        e.descrizione,
+        e.note,
+        e.stato_conservazione,
+        e.stato_disponibilita,
+        e.immagine_copertina,
+        e.immagine_miniatura,
+        e.coordinate_esemplare,
+        e.visibile_pubblico,
+        e.data_creazione,
+        COALESCE(e.titolarita, 'PROPRIETA') as titolarita
+      FROM esemplari e
+      WHERE e.utente_id = $1
+
+      UNION ALL
+
+      SELECT 
+        e.id,
+        e.utente_id,
+        e.categoria_id,
+        e.sottogenere,
+        e.titolo,
+        e.autore,
+        e.editore,
+        e.anno_pubblicazione,
+        e.isbn,
+        e.lingua,
+        e.descrizione,
+        e.note,
+        e.stato_conservazione,
+        'IN_PRESTITO'::character varying as stato_disponibilita,
+        e.immagine_copertina,
+        e.immagine_miniatura,
+        e.coordinate_esemplare,
+        FALSE as visibile_pubblico,
+        COALESCE(r.data_inizio, r.data_richiesta) as data_creazione,
+        'IN_PRESTITO'::character varying as titolarita
+      FROM richieste_prestito r
+      JOIN esemplari e ON r.esemplare_id = e.id
+      WHERE r.richiedente_id = $1 
+        AND r.stato IN ('IN_PRESTITO', 'ACCETTATA')
+        AND e.utente_id != $1
+    ) e
     JOIN categorie c ON e.categoria_id = c.id
-    WHERE e.utente_id = $1
+    WHERE 1=1
   `;
   const params = [utenteId];
   let paramIdx = 2;
@@ -322,6 +383,13 @@ const getMyEsemplari = async (utenteId, filters = {}) => {
     } else if (filters.visibilita.toUpperCase() === 'PRIVATO') {
       query += ` AND e.visibile_pubblico = FALSE`;
     }
+  }
+
+  // Filtro titolarità (PROPRIETA vs IN_PRESTITO)
+  if (filters.titolarita) {
+    query += ` AND e.titolarita = $${paramIdx}`;
+    params.push(filters.titolarita);
+    paramIdx++;
   }
 
   if (filters.categoria_id) {
@@ -398,14 +466,29 @@ const getEsemplareById = async (id, requestingUserId = null) => {
   const isPrivateLibrary = row.proprietario_mostra_libreria === false;
   const isOwner = requestingUserId && requestingUserId === row.utente_id;
 
-  if ((isPrivateBook || isPrivateLibrary) && !isOwner) {
+  let isBorrower = false;
+  if (requestingUserId && !isOwner) {
+    const loanCheck = await db.query(
+      `SELECT id FROM richieste_prestito WHERE esemplare_id = $1 AND richiedente_id = $2 AND stato IN ('IN_PRESTITO', 'ACCETTATA') LIMIT 1`,
+      [id, requestingUserId]
+    );
+    isBorrower = loanCheck.rows.length > 0;
+  }
+
+  if ((isPrivateBook || isPrivateLibrary) && !isOwner && !isBorrower) {
     const error = new Error('Esemplare non trovato nel catalogo.');
     error.statusCode = 404;
     error.code = 'ESEMPLARE_NOT_FOUND';
     throw error;
   }
 
-  return formatEsemplareRow(row);
+  const formatted = formatEsemplareRow(row);
+  if (isBorrower) {
+    formatted.titolarita = 'IN_PRESTITO';
+    formatted.in_prestito_temporaneo = true;
+  }
+
+  return formatted;
 };
 
 /**
@@ -569,6 +652,13 @@ const updateEsemplare = async (id, utenteId, updateData) => {
   if (typeof updateData.visibile_pubblico !== 'undefined') {
     setClauses.push(`visibile_pubblico = $${paramIdx}`);
     params.push(Boolean(updateData.visibile_pubblico));
+    paramIdx++;
+  }
+
+  if (typeof updateData.titolarita !== 'undefined') {
+    const titVal = updateData.titolarita === 'IN_PRESTITO' ? 'IN_PRESTITO' : 'PROPRIETA';
+    setClauses.push(`titolarita = $${paramIdx}`);
+    params.push(titVal);
     paramIdx++;
   }
 

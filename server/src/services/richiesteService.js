@@ -172,7 +172,7 @@ const creaRichiestaContatto = async ({ esemplare_id, richiedente_id, messaggio_i
       },
       schermatura_applicata: shieldResult.schermaturaApplicata,
       avviso_privacy: shieldResult.schermaturaApplicata
-        ? 'Per la tua tutela, eventuali recapiti diretti (email/telefono) sono stati schermati automaticamente.'
+        ? 'Per la tua tutela, l\'indirizzo email è stato schermato automaticamente.'
         : null
     };
   } catch (txErr) {
@@ -215,6 +215,16 @@ const getRichiesteUtente = async (utente_id, { ruolo = 'tutti', stato = null } =
     values.push(stato.toUpperCase());
     paramIdx++;
   }
+
+  // Regola di Retention 30 giorni: la chat viene rimossa dopo 30 giorni dall'ultimo messaggio
+  conditions.push(`COALESCE(
+    (SELECT MAX(mc.data_invio) FROM messaggi_chat mc WHERE mc.richiesta_id = r.id),
+    r.data_aggiornamento,
+    r.data_richiesta
+  ) >= NOW() - INTERVAL '30 days'`);
+
+  // Esegue pulizia asincrona delle chat scadute in background
+  pulisciChatScadute(30).catch(() => {});
 
   const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
 
@@ -286,6 +296,7 @@ const getRichiesteUtente = async (utente_id, { ruolo = 'tutti', stato = null } =
       ? {
           id: r.richiedente_id,
           nome: r.richiedente_nome,
+          cognome: r.richiedente_cognome,
           cognome_iniziale: r.richiedente_cognome ? r.richiedente_cognome[0] + '.' : '',
           citta: r.richiedente_citta,
           ruolo: 'Richiedente'
@@ -293,10 +304,16 @@ const getRichiesteUtente = async (utente_id, { ruolo = 'tutti', stato = null } =
       : {
           id: r.proprietario_id,
           nome: r.proprietario_nome,
+          cognome: r.proprietario_cognome,
           cognome_iniziale: r.proprietario_cognome ? r.proprietario_cognome[0] + '.' : '',
           citta: r.proprietario_citta,
           ruolo: 'Proprietario'
         };
+
+    const ultimoMovimento = r.ultimo_messaggio_data || r.data_aggiornamento || r.data_richiesta;
+    const msTrascorsi = Math.max(0, Date.now() - new Date(ultimoMovimento).getTime());
+    const giorniTrascorsi = Math.floor(msTrascorsi / (1000 * 60 * 60 * 24));
+    const giorniRimanenti = Math.max(0, 30 - giorniTrascorsi);
 
     return {
       id: r.id,
@@ -305,6 +322,22 @@ const getRichiesteUtente = async (utente_id, { ruolo = 'tutti', stato = null } =
       data_richiesta: r.data_richiesta,
       data_aggiornamento: r.data_aggiornamento,
       ruolo_utente: isOwner ? 'PROPRIETARIO' : 'RICHIEDENTE',
+      ruolo: isOwner ? 'PROPRIETARIO' : 'RICHIEDENTE',
+      giorni_rimanenti_chat: giorniRimanenti,
+      avviso_retention: 'La chat verrà rimossa dopo 30 giorni dall\'ultimo messaggio.',
+      // Campi diretti di convenienza per interfaccia chat
+      partner_id: counterpart.id,
+      partner_nome: counterpart.nome,
+      partner_cognome: counterpart.cognome,
+      partner_cognome_iniziale: counterpart.cognome_iniziale,
+      partner_citta: counterpart.citta,
+      libro_titolo: r.libro_titolo,
+      libro_autore: r.libro_autore,
+      immagine_copertina: r.libro_copertina,
+      immagine_miniatura: r.libro_miniatura,
+      ultimo_messaggio_testo: r.ultimo_messaggio_testo || r.messaggio_iniziale,
+      ultimo_messaggio_data: r.ultimo_messaggio_data || r.data_richiesta,
+      ultimo_messaggio_mittente_id: r.ultimo_messaggio_mittente_id,
       libro: {
         id: r.esemplare_id,
         titolo: r.libro_titolo,
@@ -422,6 +455,7 @@ const getRichiestaById = async (richiesta_id, utente_id) => {
     ? {
         id: r.richiedente_id,
         nome: r.richiedente_nome,
+        cognome: r.richiedente_cognome,
         cognome_iniziale: r.richiedente_cognome ? r.richiedente_cognome[0] + '.' : '',
         citta: r.richiedente_citta,
         ruolo: 'Richiedente'
@@ -429,10 +463,16 @@ const getRichiestaById = async (richiesta_id, utente_id) => {
     : {
         id: r.proprietario_id,
         nome: r.proprietario_nome,
+        cognome: r.proprietario_cognome,
         cognome_iniziale: r.proprietario_cognome ? r.proprietario_cognome[0] + '.' : '',
         citta: r.proprietario_citta,
         ruolo: 'Proprietario'
       };
+
+  const ultimoMessaggioData = msgRes.rows.length > 0 ? msgRes.rows[msgRes.rows.length - 1].data_invio : (r.data_aggiornamento || r.data_richiesta);
+  const msTrascorsi = Math.max(0, Date.now() - new Date(ultimoMessaggioData).getTime());
+  const giorniTrascorsi = Math.floor(msTrascorsi / (1000 * 60 * 60 * 24));
+  const giorniRimanenti = Math.max(0, 30 - giorniTrascorsi);
 
   return {
     id: r.id,
@@ -441,6 +481,19 @@ const getRichiestaById = async (richiesta_id, utente_id) => {
     data_richiesta: r.data_richiesta,
     data_aggiornamento: r.data_aggiornamento,
     ruolo_utente: isOwner ? 'PROPRIETARIO' : 'RICHIEDENTE',
+    ruolo: isOwner ? 'PROPRIETARIO' : 'RICHIEDENTE',
+    giorni_rimanenti_chat: giorniRimanenti,
+    avviso_retention: 'La chat verrà rimossa dopo 30 giorni dall\'ultimo messaggio.',
+    // Campi diretti di convenienza per interfaccia chat
+    partner_id: counterpart.id,
+    partner_nome: counterpart.nome,
+    partner_cognome: counterpart.cognome,
+    partner_cognome_iniziale: counterpart.cognome_iniziale,
+    partner_citta: counterpart.citta,
+    libro_titolo: r.libro_titolo,
+    libro_autore: r.libro_autore,
+    immagine_copertina: r.libro_copertina,
+    immagine_miniatura: r.libro_miniatura,
     libro: {
       id: r.esemplare_id,
       titolo: r.libro_titolo,
@@ -456,6 +509,7 @@ const getRichiestaById = async (richiesta_id, utente_id) => {
     controparte: counterpart,
     messaggi: msgRes.rows.map(m => ({
       id: m.id,
+      richiesta_id: m.richiesta_id,
       mittente_id: m.mittente_id,
       e_mio: m.mittente_id === utente_id,
       mittente_nome: m.mittente_nome,
@@ -564,7 +618,7 @@ const inviaMessaggio = async ({ richiesta_id, mittente_id, testo }) => {
     },
     schermatura_applicata: shield.schermaturaApplicata,
     avviso_privacy: shield.schermaturaApplicata
-      ? 'Per la tua tutela, eventuali recapiti diretti (email/telefono) sono stati schermati automaticamente.'
+      ? 'Per la tua tutela, l\'indirizzo email è stato schermato automaticamente.'
       : null
   };
 };
@@ -705,10 +759,43 @@ const aggiornaStatoRichiesta = async ({ richiesta_id, utente_id, nuovo_stato }) 
   return richiestaAggiornata;
 };
 
+/**
+ * Pulisce ed elimina automaticamente le chat e i messaggi inattivi da oltre 30 giorni
+ * rispetto all'ultimo messaggio inviato, garantendo la privacy e la pulizia del database.
+ * @param {number} giorniRetention - Giorni di inattività prima della rimozione (default 30)
+ * @returns {Promise<{ rimossi: number }>}
+ */
+const pulisciChatScadute = async (giorniRetention = 30) => {
+  try {
+    const findQuery = `
+      SELECT r.id
+      FROM richieste_prestito r
+      LEFT JOIN (
+        SELECT richiesta_id, MAX(data_invio) as max_data_invio
+        FROM messaggi_chat
+        GROUP BY richiesta_id
+      ) m ON r.id = m.richiesta_id
+      WHERE COALESCE(m.max_data_invio, r.data_aggiornamento, r.data_richiesta) < NOW() - ($1 || ' days')::INTERVAL
+    `;
+    const { rows } = await db.query(findQuery, [giorniRetention]);
+    if (rows.length > 0) {
+      const ids = rows.map(row => row.id);
+      await db.query(`DELETE FROM messaggi_chat WHERE richiesta_id = ANY($1::uuid[])`, [ids]);
+      await db.query(`DELETE FROM richieste_prestito WHERE id = ANY($1::uuid[]) AND stato IN ('COMPLETATA', 'RIFIUTATA', 'ANNULLATA')`, [ids]);
+      return { rimossi: ids.length };
+    }
+    return { rimossi: 0 };
+  } catch (err) {
+    console.error('[RETENTION] Errore pulizia chat scadute:', err.message);
+    return { rimossi: 0 };
+  }
+};
+
 module.exports = {
   creaRichiestaContatto,
   getRichiesteUtente,
   getRichiestaById,
   inviaMessaggio,
-  aggiornaStatoRichiesta
+  aggiornaStatoRichiesta,
+  pulisciChatScadute
 };

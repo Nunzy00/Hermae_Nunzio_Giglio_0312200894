@@ -101,7 +101,7 @@ const NavbarLogged = {
                   <div class="fw-bold text-truncate" style="max-width: 200px;">{{ user ? user.email : '' }}</div>
                 </li>
                 <li>
-                  <a class="dropdown-item" href="account.html">
+                  <a class="dropdown-item" href="profilo.html">
                     <i class="bi bi-person me-2" aria-hidden="true"></i>Profilo Account
                   </a>
                 </li>

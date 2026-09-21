@@ -14,13 +14,16 @@ router.post('/', richiesteController.creaRichiesta);
 // 2. Recupera l'elenco dei thread di conversazione dell'utente
 router.get('/', richiesteController.getRichieste);
 
-// 3. Recupera il dettaglio completo di una richiesta con tutta la cronologia messaggi
+// 3. Recupera l'elenco dei messaggi di una specifica conversazione
+router.get('/:id/messaggi', richiesteController.getMessaggi);
+
+// 4. Recupera il dettaglio completo di una richiesta con tutta la cronologia messaggi
 router.get('/:id', richiesteController.getRichiestaDettaglio);
 
-// 4. Invia un nuovo messaggio all'interno del thread
+// 5. Invia un nuovo messaggio all'interno del thread
 router.post('/:id/messaggi', richiesteController.inviaMessaggio);
 
-// 5. Aggiorna lo stato della richiesta (ACCETTATA, RIFIUTATA, COMPLETATA, ANNULLATA)
+// 6. Aggiorna lo stato della richiesta (ACCETTATA, RIFIUTATA, COMPLETATA, ANNULLATA)
 router.patch('/:id/stato', richiesteController.aggiornaStato);
 
 module.exports = router;

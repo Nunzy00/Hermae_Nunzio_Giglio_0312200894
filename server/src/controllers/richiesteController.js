@@ -147,10 +147,40 @@ const aggiornaStato = async (req, res, next) => {
   }
 };
 
+/**
+ * Recupera l'elenco cronologico dei messaggi di una specifica conversazione
+ * GET /api/richieste/:id/messaggi
+ */
+const getMessaggi = async (req, res, next) => {
+  try {
+    const utente_id = req.user.id;
+    const { id } = req.params;
+
+    const dettaglio = await richiesteService.getRichiestaById(id, utente_id);
+
+    return res.json({
+      success: true,
+      count: (dettaglio.messaggi || []).length,
+      data: dettaglio.messaggi || [],
+      richiesta: {
+        id: dettaglio.id,
+        stato: dettaglio.stato,
+        data_richiesta: dettaglio.data_richiesta,
+        data_aggiornamento: dettaglio.data_aggiornamento,
+        giorni_rimanenti_chat: dettaglio.giorni_rimanenti_chat,
+        avviso_retention: dettaglio.avviso_retention
+      }
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
 module.exports = {
   creaRichiesta,
   getRichieste,
   getRichiestaDettaglio,
+  getMessaggi,
   inviaMessaggio,
   aggiornaStato
 };

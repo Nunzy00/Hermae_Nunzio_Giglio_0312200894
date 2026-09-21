@@ -146,7 +146,7 @@ const removeCover = async (req, res, next) => {
  */
 const searchBooks = async (req, res, next) => {
   try {
-    const { 
+    let { 
       search, 
       categoria_id, 
       sottogenere, 
@@ -157,8 +157,14 @@ const searchBooks = async (req, res, next) => {
       ordina_per, 
       limit,
       offset,
-      escludi_utente_id 
+      escludi_utente_id,
+      escludi_miei
     } = req.query;
+
+    // Se richiesto escludi_miei e l'utente è autenticato, imposta escludi_utente_id con l'id dell'utente
+    if ((escludi_miei === 'true' || escludi_miei === true) && req.user?.id) {
+      escludi_utente_id = req.user.id;
+    }
 
     const books = await esemplariService.searchEsemplari({
       search,
