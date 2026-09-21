@@ -540,6 +540,15 @@
                         <span class="d-none d-sm-inline">Segna come Completato</span>
                       </button>
                     </template>
+                    <!-- Link Diretto alla Scheda Prestito / Tracking in Attività -->
+                    <a
+                      :href="'attivita.html?id=' + conversazioneAttiva.id"
+                      class="btn btn-outline-secondary btn-sm d-inline-flex align-items-center gap-1"
+                      title="Visualizza scheda completa e tracking temporale in Attività"
+                    >
+                      <i class="bi bi-arrow-left-right text-primary"></i>
+                      <span class="d-none d-md-inline">Scheda Prestito</span>
+                    </a>
                   </div>
                 </div>
               </header>

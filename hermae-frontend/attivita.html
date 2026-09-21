@@ -1,0 +1,1069 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>I Miei Prestiti &amp; Attività — Hermae</title>
+  <meta name="description" content="Gestione del ciclo di vita dei prestiti tra utenti privati: monitoraggio scadenze, richieste formali, tracking temporale e restituzione volumi." />
+
+  <!-- CSS Framework Bootstrap 5.3 & Bootstrap Icons -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
+
+  <!-- Tipografia Inter & Outfit da Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@500;600;700&display=swap" rel="stylesheet" />
+
+  <!-- Stile personalizzato e Design System Hermae (WCAG 2.1 AA) -->
+  <link rel="stylesheet" href="assets/css/main.css" />
+
+  <style>
+    /* ==========================================================================
+       HERMAE ATTIVITÀ & PRESTITI — Layout e Componenti Visivi
+       ========================================================================== */
+
+    .page-header-title {
+      font-family: 'Outfit', 'Inter', sans-serif;
+      letter-spacing: -0.02em;
+    }
+
+    /* 4 Card Statistiche Orizzontali */
+    .metric-card-summary {
+      background-color: #ffffff;
+      border: 1px solid var(--hermae-border, #e2e8f0);
+      border-radius: 12px;
+      box-shadow: 0 2px 6px rgba(15, 23, 42, 0.04);
+      padding: 1rem 1.15rem;
+      display: flex;
+      align-items: center;
+      gap: 0.9rem;
+      transition: transform 0.15s ease, box-shadow 0.2s ease;
+      height: 100%;
+    }
+    .metric-card-summary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 16px rgba(15, 23, 42, 0.08);
+    }
+    .metric-icon-bubble {
+      width: 44px;
+      height: 44px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.35rem;
+      flex-shrink: 0;
+    }
+
+    /* Card Singolo Prestito */
+    .loan-card {
+      background-color: #ffffff;
+      border: 1px solid var(--hermae-border, #e2e8f0);
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
+      transition: box-shadow 0.2s ease, border-color 0.2s ease;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+    }
+    .loan-card:hover {
+      box-shadow: 0 6px 18px rgba(15, 23, 42, 0.09);
+      border-color: #cbd5e1;
+    }
+
+    .loan-cover-img {
+      width: 68px;
+      height: 96px;
+      object-fit: cover;
+      border-radius: 6px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.18);
+      flex-shrink: 0;
+    }
+    .loan-cover-placeholder {
+      width: 68px;
+      height: 96px;
+      background-color: #1e40af;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      flex-shrink: 0;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.18);
+    }
+
+    /* Barra di Avanzamento Temporale */
+    .temporal-progress-bar {
+      height: 6px;
+      border-radius: 3px;
+      background-color: #e2e8f0;
+      overflow: hidden;
+      margin-top: 0.35rem;
+    }
+    .temporal-progress-fill {
+      height: 100%;
+      transition: width 0.4s ease;
+    }
+
+    /* Badge Stato Prestito */
+    .badge-status-IN_ATTESA { background-color: #fef3c7; color: #b45309; border: 1px solid #fde68a; }
+    .badge-status-IN_PRESTITO { background-color: #dbeafe; color: #1e40af; border: 1px solid #bfdbfe; }
+    .badge-status-RESTITUITO { background-color: #dcfce7; color: #15803d; border: 1px solid #bbf7d0; }
+    .badge-status-RIFIUTATA { background-color: #fee2e2; color: #b91c1c; border: 1px solid #fecaca; }
+    .badge-status-ANNULLATA { background-color: #f1f5f9; color: #475569; border: 1px solid #e2e8f0; }
+
+    /* Indicatori Temporali Countdown */
+    .time-badge-ok { background-color: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; }
+    .time-badge-warning { background-color: #fffbeb; color: #b45309; border: 1px solid #fef3c7; }
+    .time-badge-danger { background-color: #fef2f2; color: #b91c1c; border: 1px solid #fee2e2; }
+    .time-badge-done { background-color: #f0fdf4; color: #166534; border: 1px solid #dcfce7; }
+  </style>
+</head>
+<body class="bg-light d-flex flex-column min-vh-100">
+  <div id="app" class="d-flex flex-column flex-grow-1">
+
+    <!-- Navigazione Globale Riservata -->
+    <navbar-logged active-page="attivita"></navbar-logged>
+
+    <!-- Contenuto Principale: Gestione Prestiti & Attività -->
+    <main class="flex-grow-1 py-4 px-2 px-md-4" id="main-content">
+      <div class="container-fluid max-w-7xl mx-auto">
+
+        <!-- Testata Sezione: Titolo & Azioni Rapide -->
+        <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
+          <div>
+            <h1 class="h3 fw-bold text-dark mb-1 d-flex align-items-center gap-2 page-header-title">
+              <i class="bi bi-arrow-left-right text-primary" aria-hidden="true"></i>
+              <span>I Miei Prestiti &amp; Attività</span>
+            </h1>
+            <p class="text-muted small mb-0">
+              Monitora il ciclo di vita dei volumi scambiati: libri ricevuti in lettura e copie concesse alla community.
+            </p>
+          </div>
+
+          <div class="d-flex align-items-center gap-2">
+            <a href="ricerca.html" class="btn btn-outline-primary btn-sm d-inline-flex align-items-center gap-1">
+              <i class="bi bi-geo-alt-fill"></i>
+              <span>Cerca Nuovi Libri</span>
+            </a>
+            <button
+              type="button"
+              class="btn btn-outline-secondary btn-sm d-inline-flex align-items-center gap-1"
+              @click="caricaDatiPrestiti"
+              :disabled="loading"
+              title="Aggiorna elenco prestiti"
+            >
+              <i class="bi bi-arrow-clockwise" :class="{ 'spin-anim': loading }"></i>
+              <span class="d-none d-sm-inline">Aggiorna</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- 4 Quadrati Statistiche Riassuntive (Cruscotto Orizzontale) -->
+        <section class="row g-3 mb-4" aria-label="Riepilogo metriche prestiti">
+          <!-- 1. Prestiti Attivi Ricevuti -->
+          <div class="col-6 col-lg-3">
+            <div class="metric-card-summary">
+              <div class="metric-icon-bubble bg-primary-subtle text-primary">
+                <i class="bi bi-book-half"></i>
+              </div>
+              <div>
+                <div class="h4 fw-bold text-dark mb-0 lh-1">{{ metriche.attivi_ricevuti }}</div>
+                <div class="small fw-semibold text-secondary mt-1" style="font-size: 0.78rem;">Ricevuti in Lettura</div>
+                <small class="text-muted" style="font-size: 0.7rem;">In corso di prestito</small>
+              </div>
+            </div>
+          </div>
+
+          <!-- 2. Prestiti Concessi a Terzi -->
+          <div class="col-6 col-lg-3">
+            <div class="metric-card-summary">
+              <div class="metric-icon-bubble bg-info-subtle text-info">
+                <i class="bi bi-box-arrow-up-right"></i>
+              </div>
+              <div>
+                <div class="h4 fw-bold text-dark mb-0 lh-1">{{ metriche.attivi_concessi }}</div>
+                <div class="small fw-semibold text-secondary mt-1" style="font-size: 0.78rem;">Concessi a Terzi</div>
+                <small class="text-muted" style="font-size: 0.7rem;">Libri tuoi in prestito</small>
+              </div>
+            </div>
+          </div>
+
+          <!-- 3. In Scadenza o In Ritardo -->
+          <div class="col-6 col-lg-3">
+            <div class="metric-card-summary">
+              <div
+                class="metric-icon-bubble"
+                :class="metriche.in_ritardo > 0 ? 'bg-danger-subtle text-danger' : 'bg-warning-subtle text-warning'"
+              >
+                <i :class="metriche.in_ritardo > 0 ? 'bi-exclamation-triangle-fill' : 'bi-clock-history'"></i>
+              </div>
+              <div>
+                <div class="h4 fw-bold mb-0 lh-1" :class="metriche.in_ritardo > 0 ? 'text-danger' : 'text-dark'">
+                  {{ metriche.in_ritardo > 0 ? metriche.in_ritardo : metriche.in_scadenza }}
+                </div>
+                <div class="small fw-semibold text-secondary mt-1" style="font-size: 0.78rem;">
+                  {{ metriche.in_ritardo > 0 ? 'Scaduti in Ritardo' : 'In Scadenza (≤5 gg)' }}
+                </div>
+                <small class="text-muted" style="font-size: 0.7rem;">Richiedono restituzione</small>
+              </div>
+            </div>
+          </div>
+
+          <!-- 4. Prestiti Conclusi con Successo -->
+          <div class="col-6 col-lg-3">
+            <div class="metric-card-summary">
+              <div class="metric-icon-bubble bg-success-subtle text-success">
+                <i class="bi bi-check-circle-fill"></i>
+              </div>
+              <div>
+                <div class="h4 fw-bold text-dark mb-0 lh-1">{{ metriche.restituiti_totali }}</div>
+                <div class="small fw-semibold text-secondary mt-1" style="font-size: 0.78rem;">Restituiti con Successo</div>
+                <small class="text-muted" style="font-size: 0.7rem;">Ciclo completato</small>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Schede Principali: Libri Ricevuti vs Libri Concessi -->
+        <div class="card border-0 shadow-sm rounded-3 overflow-hidden mb-4">
+          <!-- Intestazione Navigazione Schede -->
+          <div class="card-header bg-white border-bottom pt-3 pb-0 px-3 px-md-4">
+            <ul class="nav nav-tabs card-header-tabs" role="tablist">
+              <li class="nav-item" role="presentation">
+                <button
+                  type="button"
+                  class="nav-link fw-semibold px-3 py-2 d-flex align-items-center gap-2"
+                  :class="{ active: tabRuolo === 'RICHIEDENTE' }"
+                  @click="tabRuolo = 'RICHIEDENTE'"
+                  role="tab"
+                  :aria-selected="tabRuolo === 'RICHIEDENTE'"
+                >
+                  <i class="bi bi-box-arrow-in-down text-primary"></i>
+                  <span>Libri che ho Ricevuto</span>
+                  <span class="badge rounded-pill bg-primary-subtle text-primary ms-1" style="font-size: 0.72rem;">
+                    {{ countRicevuti }}
+                  </span>
+                </button>
+              </li>
+              <li class="nav-item" role="presentation">
+                <button
+                  type="button"
+                  class="nav-link fw-semibold px-3 py-2 d-flex align-items-center gap-2"
+                  :class="{ active: tabRuolo === 'PROPRIETARIO' }"
+                  @click="tabRuolo = 'PROPRIETARIO'"
+                  role="tab"
+                  :aria-selected="tabRuolo === 'PROPRIETARIO'"
+                >
+                  <i class="bi bi-bookshelf text-info"></i>
+                  <span>Libri che ho Concesso</span>
+                  <span class="badge rounded-pill bg-info-subtle text-dark ms-1" style="font-size: 0.72rem;">
+                    {{ countConcessi }}
+                  </span>
+                  <span
+                    v-if="metriche.richieste_pendenti_ricevute > 0"
+                    class="badge rounded-pill bg-danger ms-1"
+                    style="font-size: 0.65rem;"
+                    title="Nuove richieste in attesa della tua approvazione"
+                  >
+                    {{ metriche.richieste_pendenti_ricevute }} in attesa
+                  </span>
+                </button>
+              </li>
+            </ul>
+          </div>
+
+          <!-- Barra Filtri e Ricerca Interna -->
+          <div class="p-3 bg-light border-bottom d-flex flex-wrap align-items-center justify-content-between gap-2">
+            <!-- Barra di Ricerca Testuale -->
+            <div class="input-group input-group-sm" style="max-width: 320px;">
+              <span class="input-group-text bg-white border-end-0 text-muted">
+                <i class="bi bi-search"></i>
+              </span>
+              <input
+                type="text"
+                v-model="filtroRicerca"
+                class="form-control border-start-0 ps-0"
+                placeholder="Cerca per titolo, autore o lettore..."
+                aria-label="Cerca nei prestiti"
+              />
+              <button
+                v-if="filtroRicerca"
+                class="btn btn-outline-secondary border-start-0 bg-white"
+                type="button"
+                @click="filtroRicerca = ''"
+              >
+                <i class="bi bi-x"></i>
+              </button>
+            </div>
+
+            <!-- Filtri Rapidi di Stato Prestito -->
+            <div class="d-flex gap-1 overflow-x-auto pb-1" style="scrollbar-width: none;">
+              <button
+                v-for="st in filtriStato"
+                :key="st.id"
+                type="button"
+                class="btn btn-xs rounded-pill px-3 py-1 text-nowrap"
+                :class="statoSelezionato === st.id ? 'btn-primary text-white' : 'btn-outline-secondary text-secondary'"
+                style="font-size: 0.75rem;"
+                @click="statoSelezionato = st.id"
+              >
+                {{ st.label }}
+              </button>
+            </div>
+          </div>
+
+          <!-- Corpo Scheda: Griglia dei Prestiti -->
+          <div class="card-body p-3 p-md-4">
+            <!-- Spinner Caricamento -->
+            <div v-if="loading" class="text-center py-5 text-muted">
+              <div class="spinner-border text-primary mb-2" role="status"></div>
+              <div class="small fw-semibold">Caricamento elenco prestiti in corso...</div>
+            </div>
+
+            <!-- Stato Vuoto: Nessun Prestito Trovato -->
+            <div v-else-if="prestitiFiltrati.length === 0" class="text-center py-5 text-muted">
+              <i class="bi bi-journal-x fs-1 text-secondary mb-2 d-block"></i>
+              <div class="h6 fw-semibold text-dark">Nessun prestito trovato</div>
+              <p class="small text-muted mb-3" style="max-width: 420px; margin: 0 auto;">
+                {{ filtroRicerca || statoSelezionato !== 'TUTTI'
+                  ? 'Nessun volume corrisponde ai filtri impostati. Prova a modificare i criteri di ricerca.'
+                  : (tabRuolo === 'RICHIEDENTE'
+                    ? 'Non hai ancora richiesto libri in prestito ad altri lettori della community.'
+                    : 'Nessun utente ha ancora richiesto in prestito i libri del tuo catalogo personale.') }}
+              </p>
+              <div class="d-flex justify-content-center gap-2">
+                <a v-if="tabRuolo === 'RICHIEDENTE'" href="ricerca.html" class="btn btn-primary btn-sm px-3">
+                  <i class="bi bi-geo-alt-fill me-1"></i>Trova Libri nella tua Zona
+                </a>
+                <a v-else href="libreria.html" class="btn btn-outline-primary btn-sm px-3">
+                  <i class="bi bi-plus-circle me-1"></i>Aggiungi Libri alla Libreria
+                </a>
+              </div>
+            </div>
+
+            <!-- Griglia Prestiti (Card Layout Responsive) -->
+            <div v-else class="row g-3">
+              <div
+                v-for="p in prestitiFiltrati"
+                :key="p.id"
+                class="col-12 col-md-6 col-xl-4"
+              >
+                <div :id="'prestito-' + p.id" class="loan-card p-3">
+                  <!-- Header Card: Info Libro + Copertina -->
+                  <div class="d-flex gap-3 align-items-start mb-3">
+                    <img
+                      v-if="p.immagine_miniatura || p.immagine_copertina"
+                      :src="p.immagine_miniatura || p.immagine_copertina"
+                      :alt="p.libro_titolo"
+                      class="loan-cover-img"
+                    />
+                    <div
+                      v-else
+                      class="loan-cover-placeholder"
+                      :style="{ backgroundColor: p.categoria_colore || '#1e40af' }"
+                    >
+                      <i class="bi" :class="p.categoria_icona || 'bi-book'" style="font-size: 1.8rem;"></i>
+                    </div>
+
+                    <div style="min-width: 0; flex-grow: 1;">
+                      <div class="d-flex align-items-center justify-content-between mb-1">
+                        <span
+                          class="badge"
+                          :style="{ backgroundColor: (p.categoria_colore || '#1e40af') + '20', color: p.categoria_colore || '#1e40af', fontSize: '0.65rem' }"
+                        >
+                          {{ p.categoria_nome || 'Libro' }}
+                        </span>
+                        <span class="badge" :class="'badge-status-' + p.stato" style="font-size: 0.65rem;">
+                          {{ formatStato(p.stato) }}
+                        </span>
+                      </div>
+
+                      <div class="fw-bold text-dark text-truncate small" :title="p.libro_titolo">
+                        {{ p.libro_titolo }}
+                      </div>
+                      <div class="text-muted small text-truncate" style="font-size: 0.74rem;">
+                        {{ p.libro_autore }}
+                      </div>
+
+                      <!-- Controparte Lettore -->
+                      <div class="small text-secondary mt-1 d-flex align-items-center gap-1" style="font-size: 0.72rem;">
+                        <i class="bi bi-person-fill text-muted"></i>
+                        <span>{{ tabRuolo === 'RICHIEDENTE' ? 'Proprietario:' : 'Richiedente:' }}</span>
+                        <strong class="text-dark">{{ p.partner_nome }} {{ p.partner_cognome_iniziale }}</strong>
+                        <span v-if="p.partner_citta" class="text-muted">({{ p.partner_citta }})</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Sezione Tracking Temporale (Se IN_PRESTITO o RESTITUITO) -->
+                  <div class="p-2 px-3 rounded-2 bg-light mb-3 border border-light-subtle">
+                    <!-- Caso IN_PRESTITO: Monitoraggio Countdown e Scadenza -->
+                    <template v-if="p.stato === 'IN_PRESTITO'">
+                      <div class="d-flex align-items-center justify-content-between small mb-1">
+                        <span class="fw-semibold text-secondary" style="font-size: 0.72rem;">Tracking Temporale:</span>
+                        <!-- Pillola Countdown Dinamica -->
+                        <span
+                          class="badge"
+                          :class="{
+                            'time-badge-danger': p.in_ritardo,
+                            'time-badge-warning': !p.in_ritardo && p.giorni_rimanenti <= 5,
+                            'time-badge-ok': !p.in_ritardo && p.giorni_rimanenti > 5
+                          }"
+                          style="font-size: 0.7rem;"
+                        >
+                          <i
+                            class="bi me-1"
+                            :class="{
+                              'bi-exclamation-octagon-fill': p.in_ritardo,
+                              'bi-clock-history': !p.in_ritardo && p.giorni_rimanenti <= 5,
+                              'bi-hourglass-split': !p.in_ritardo && p.giorni_rimanenti > 5
+                            }"
+                          ></i>
+                          <span v-if="p.in_ritardo">In ritardo di {{ p.giorni_ritardo }} giorni</span>
+                          <span v-else>Scadenza tra {{ p.giorni_rimanenti }} giorni</span>
+                        </span>
+                      </div>
+
+                      <!-- Barra Grafica di Avanzamento -->
+                      <div class="temporal-progress-bar">
+                        <div
+                          class="temporal-progress-fill"
+                          :style="{
+                            width: p.percentuale_tempo + '%',
+                            backgroundColor: p.in_ritardo ? '#ef4444' : (p.giorni_rimanenti <= 5 ? '#f59e0b' : '#3b82f6')
+                          }"
+                        ></div>
+                      </div>
+
+                      <div class="d-flex justify-content-between text-muted mt-1" style="font-size: 0.68rem;">
+                        <span>Inizio: {{ formatDataBreve(p.data_inizio) }}</span>
+                        <span>Scadenza: {{ formatDataBreve(p.data_scadenza) }}</span>
+                      </div>
+                    </template>
+
+                    <!-- Caso RESTITUITO: Esito Concluso -->
+                    <template v-else-if="p.stato === 'RESTITUITO'">
+                      <div class="d-flex align-items-center justify-content-between small">
+                        <span class="text-success fw-semibold" style="font-size: 0.75rem;">
+                          <i class="bi bi-check2-circle me-1"></i>Restituzione Completata
+                        </span>
+                        <span class="text-muted" style="font-size: 0.7rem;">
+                          Riconsegnato il {{ formatDataBreve(p.data_restituzione) }}
+                        </span>
+                      </div>
+                    </template>
+
+                    <!-- Caso IN_ATTESA: Riepilogo Durata Proposta -->
+                    <template v-else-if="p.stato === 'IN_ATTESA'">
+                      <div class="d-flex align-items-center justify-content-between small">
+                        <span class="text-secondary fw-semibold" style="font-size: 0.72rem;">Durata richiesta:</span>
+                        <strong class="text-dark" style="font-size: 0.75rem;">{{ p.durata_giorni }} giorni</strong>
+                      </div>
+                      <div class="small text-muted mt-1" style="font-size: 0.7rem;" v-if="p.messaggio_iniziale">
+                        "{{ p.messaggio_iniziale }}"
+                      </div>
+                    </template>
+
+                    <!-- Altri Stati Chiusi (Rifiutata o Annullata) -->
+                    <template v-else>
+                      <div class="small text-muted" style="font-size: 0.72rem;">
+                        <span v-if="p.note_restituzione">{{ p.note_restituzione }}</span>
+                        <span v-else>Richiesta archiviata.</span>
+                      </div>
+                    </template>
+                  </div>
+
+                  <!-- Azioni Contestuali del Prestito -->
+                  <div class="mt-auto d-flex flex-wrap gap-1 align-items-center justify-content-between pt-2 border-top">
+                    <!-- Collegamento Diretto al Thread Chat -->
+                    <a
+                      :href="'chat.html?id=' + p.id"
+                      class="btn btn-outline-secondary btn-sm py-1 px-2 d-inline-flex align-items-center gap-1"
+                      style="font-size: 0.74rem;"
+                    >
+                      <i class="bi bi-chat-dots-fill text-primary"></i>
+                      <span>Chat Accordi</span>
+                    </a>
+
+                    <!-- AZIONI SPECIFICHE PROPRIETARIO (Libri concessi) -->
+                    <template v-if="tabRuolo === 'PROPRIETARIO'">
+                      <!-- Stato IN_ATTESA: Accetta o Rifiuta -->
+                      <div v-if="p.stato === 'IN_ATTESA'" class="d-flex gap-1">
+                        <button
+                          type="button"
+                          class="btn btn-outline-danger btn-sm py-1 px-2"
+                          style="font-size: 0.74rem;"
+                          @click="apriModaleRifiuto(p)"
+                        >
+                          Rifiuta
+                        </button>
+                        <button
+                          type="button"
+                          class="btn btn-success btn-sm py-1 px-2 d-inline-flex align-items-center gap-1"
+                          style="font-size: 0.74rem;"
+                          @click="apriModaleAccettazione(p)"
+                        >
+                          <i class="bi bi-check-lg"></i>
+                          <span>Accetta Prestito</span>
+                        </button>
+                      </div>
+
+                      <!-- Stato IN_PRESTITO: Conferma Restituzione o Proroga -->
+                      <div v-if="p.stato === 'IN_PRESTITO'" class="d-flex gap-1">
+                        <button
+                          type="button"
+                          class="btn btn-outline-primary btn-sm py-1 px-2"
+                          style="font-size: 0.74rem;"
+                          @click="apriModaleProroga(p)"
+                          title="Concedi proroga di giorni aggiuntivi"
+                        >
+                          + Proroga
+                        </button>
+                        <button
+                          type="button"
+                          class="btn btn-primary btn-sm py-1 px-2 d-inline-flex align-items-center gap-1"
+                          style="font-size: 0.74rem;"
+                          @click="apriModaleRestituzione(p)"
+                        >
+                          <i class="bi bi-award-fill"></i>
+                          <span>Conferma Restituzione</span>
+                        </button>
+                      </div>
+                    </template>
+
+                    <!-- AZIONI SPECIFICHE RICHIEDENTE (Libri ricevuti) -->
+                    <template v-else>
+                      <!-- Stato IN_ATTESA: Annulla Richiesta -->
+                      <button
+                        v-if="p.stato === 'IN_ATTESA'"
+                        type="button"
+                        class="btn btn-outline-secondary btn-sm py-1 px-2"
+                        style="font-size: 0.74rem;"
+                        @click="eseguiAnnullamento(p)"
+                      >
+                        Annulla Richiesta
+                      </button>
+
+                      <!-- Stato IN_PRESTITO: Segnala Restituzione o Proroga -->
+                      <div v-if="p.stato === 'IN_PRESTITO'" class="d-flex gap-1">
+                        <button
+                          type="button"
+                          class="btn btn-outline-secondary btn-sm py-1 px-2"
+                          style="font-size: 0.74rem;"
+                          @click="apriModaleProroga(p)"
+                        >
+                          Chiedi Proroga
+                        </button>
+                        <button
+                          type="button"
+                          class="btn btn-outline-success btn-sm py-1 px-2 d-inline-flex align-items-center gap-1"
+                          style="font-size: 0.74rem;"
+                          @click="apriModaleRestituzione(p)"
+                        >
+                          <i class="bi bi-box-seam"></i>
+                          <span>Restituisci</span>
+                        </button>
+                      </div>
+                    </template>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+      </div>
+
+      <!-- ============================================================== -->
+      <!-- MODALE 1: ACCETTAZIONE PRESTITO CON SELEZIONE DURATA            -->
+      <!-- ============================================================== -->
+      <div class="modal fade" id="modalAccettaPrestito" tabindex="-1" aria-labelledby="modalAccettaLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+          <div class="modal-content shadow-lg border-0">
+            <div class="modal-header bg-success text-white">
+              <h5 class="modal-title h6 fw-bold mb-0 d-flex align-items-center gap-2" id="modalAccettaLabel">
+                <i class="bi bi-check-circle-fill"></i>Accetta e Avvia Prestito
+              </h5>
+              <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Chiudi"></button>
+            </div>
+            <div class="modal-body p-4" v-if="prestitoSelezionato">
+              <div class="alert alert-info py-2 px-3 small mb-3 border-info-subtle">
+                <i class="bi bi-info-circle me-1"></i>
+                Accettando la richiesta, il volume <strong>"{{ prestitoSelezionato.libro_titolo }}"</strong> passerà automaticamente allo stato <strong>IN PRESTITO</strong> e sarà temporaneamente occultato dalla ricerca pubblica.
+              </div>
+
+              <div class="mb-3">
+                <label for="selectDurata" class="form-label fw-semibold small text-dark">
+                  Durata Concordata del Prestito (Giorni) <span class="text-danger">*</span>
+                </label>
+                <select id="selectDurata" v-model="formAccetta.durata_giorni" class="form-select">
+                  <option :value="15">15 giorni (Prestito Breve)</option>
+                  <option :value="30">30 giorni (Standard - 1 Mese)</option>
+                  <option :value="45">45 giorni (Medio - 1 Mese e mezzo)</option>
+                  <option :value="60">60 giorni (Esteso - 2 Mesi)</option>
+                  <option :value="90">90 giorni (Semestrale)</option>
+                </select>
+                <div class="form-text small" style="font-size: 0.72rem;">
+                  La data di scadenza sarà calcolata a partire da oggi ({{ calcolaDataScadenzaAnteprima(formAccetta.durata_giorni) }}).
+                </div>
+              </div>
+
+              <div class="mb-3">
+                <label for="noteAccetta" class="form-label fw-semibold small text-dark">Note di Consegna (Opzionale)</label>
+                <textarea
+                  id="noteAccetta"
+                  v-model="formAccetta.note"
+                  class="form-control"
+                  rows="2"
+                  placeholder="Es. Volume consegnato sabato 21 a mano..."
+                  maxlength="500"
+                ></textarea>
+              </div>
+
+              <div class="modal-footer px-0 pb-0 border-0">
+                <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal" :disabled="azioneInCorso">Annulla</button>
+                <button type="button" class="btn btn-success btn-sm px-3" @click="eseguiAccettazione" :disabled="azioneInCorso">
+                  <span v-if="azioneInCorso" class="spinner-border spinner-border-sm me-1" role="status"></span>
+                  <i v-else class="bi bi-check-lg me-1"></i>
+                  <span>Conferma Accettazione</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ============================================================== -->
+      <!-- MODALE 2: CONFERMA RESTITUZIONE VOLUME                         -->
+      <!-- ============================================================== -->
+      <div class="modal fade" id="modalRestituzione" tabindex="-1" aria-labelledby="modalRestituzioneLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+          <div class="modal-content shadow-lg border-0">
+            <div class="modal-header bg-primary text-white">
+              <h5 class="modal-title h6 fw-bold mb-0 d-flex align-items-center gap-2" id="modalRestituzioneLabel">
+                <i class="bi bi-award-fill"></i>Conferma Restituzione Volume
+              </h5>
+              <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Chiudi"></button>
+            </div>
+            <div class="modal-body p-4" v-if="prestitoSelezionato">
+              <p class="small text-secondary mb-3">
+                Stai registrando la restituzione di <strong>"{{ prestitoSelezionato.libro_titolo }}"</strong>. L'esemplare tornerà automaticamente disponibile (<strong>DISPONIBILE</strong>) per nuovi scambi.
+              </p>
+
+              <div class="mb-3">
+                <label for="noteRestituzione" class="form-label fw-semibold small text-dark">Stato di Riconsegna &amp; Note</label>
+                <textarea
+                  id="noteRestituzione"
+                  v-model="formRestituzione.note"
+                  class="form-control"
+                  rows="3"
+                  placeholder="Es. Volume riconsegnato in ottime condizioni, ringrazio per lo scambio..."
+                  maxlength="500"
+                ></textarea>
+              </div>
+
+              <div class="modal-footer px-0 pb-0 border-0">
+                <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal" :disabled="azioneInCorso">Annulla</button>
+                <button type="button" class="btn btn-primary btn-sm px-3" @click="eseguiRestituzione" :disabled="azioneInCorso">
+                  <span v-if="azioneInCorso" class="spinner-border spinner-border-sm me-1" role="status"></span>
+                  <i v-else class="bi bi-check-circle-fill me-1"></i>
+                  <span>Registra Restituzione</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ============================================================== -->
+      <!-- MODALE 3: PROROGA TEMPORALE DEL PRESTITO                       -->
+      <!-- ============================================================== -->
+      <div class="modal fade" id="modalProroga" tabindex="-1" aria-labelledby="modalProrogaLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+          <div class="modal-content shadow-lg border-0">
+            <div class="modal-header bg-warning-subtle text-dark">
+              <h5 class="modal-title h6 fw-bold mb-0 d-flex align-items-center gap-2" id="modalProrogaLabel">
+                <i class="bi bi-clock-history text-warning"></i>Proroga Durata Prestito
+              </h5>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Chiudi"></button>
+            </div>
+            <div class="modal-body p-4" v-if="prestitoSelezionato">
+              <p class="small text-secondary mb-3">
+                Estendi il tempo di lettura per <strong>"{{ prestitoSelezionato.libro_titolo }}"</strong> aggiungendo giorni alla data di scadenza prevista.
+              </p>
+
+              <div class="mb-3">
+                <label for="selectProroga" class="form-label fw-semibold small text-dark">Giorni Aggiuntivi di Proroga</label>
+                <select id="selectProroga" v-model="formProroga.giorni_aggiuntivi" class="form-select">
+                  <option :value="15">+15 giorni (Due settimane)</option>
+                  <option :value="30">+30 giorni (Un mese aggiuntivo)</option>
+                  <option :value="45">+45 giorni (Un mese e mezzo)</option>
+                </select>
+              </div>
+
+              <div class="modal-footer px-0 pb-0 border-0">
+                <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal" :disabled="azioneInCorso">Annulla</button>
+                <button type="button" class="btn btn-warning btn-sm px-3" @click="eseguiProroga" :disabled="azioneInCorso">
+                  <span v-if="azioneInCorso" class="spinner-border spinner-border-sm me-1" role="status"></span>
+                  <i v-else class="bi bi-clock me-1"></i>
+                  <span>Applica Proroga</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </main>
+
+    <!-- Notifiche Toast Asincrone -->
+    <toast-notification :toasts="toasts" @remove-toast="removeToast"></toast-notification>
+
+    <!-- Piè di pagina globale dell'applicazione -->
+    <app-footer></app-footer>
+  </div>
+
+  <!-- Dipendenze Esterne: Bootstrap JS, Axios, Vue 3 CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/axios@1.6.8/dist/axios.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/vue@3.4.21/dist/vue.global.prod.js"></script>
+
+  <!-- Script Applicativi Interni -->
+  <script src="assets/js/api.js"></script>
+  <script src="assets/js/auth.js"></script>
+  <script src="assets/js/components/global-components.js"></script>
+
+  <!-- Logica Reattiva Pagina Prestiti & Attività (Vue 3) -->
+  <script>
+    const { createApp, ref, computed, onMounted } = Vue;
+
+    const app = createApp({
+      setup() {
+        const user = ref(null);
+        const toasts = ref([]);
+        const loading = ref(false);
+        const azioneInCorso = ref(false);
+
+        // Dati Principali
+        const prestiti = ref([]);
+        const metriche = ref({
+          attivi_ricevuti: 0,
+          attivi_concessi: 0,
+          in_scadenza: 0,
+          in_ritardo: 0,
+          richieste_pendenti_ricevute: 0,
+          restituiti_totali: 0
+        });
+
+        // Tab e Filtri
+        const tabRuolo = ref('RICHIEDENTE'); // 'RICHIEDENTE' o 'PROPRIETARIO'
+        const filtroRicerca = ref('');
+        const statoSelezionato = ref('TUTTI');
+
+        const filtriStato = [
+          { id: 'TUTTI', label: 'Tutti' },
+          { id: 'IN_PRESTITO', label: 'In Prestito' },
+          { id: 'IN_ATTESA', label: 'In Attesa' },
+          { id: 'RESTITUITO', label: 'Restituiti' },
+          { id: 'CONCLUSI', label: 'Archiviati' }
+        ];
+
+        // Modali e Form
+        const prestitoSelezionato = ref(null);
+        let bsModalAccetta = null;
+        let bsModalRestituzione = null;
+        let bsModalProroga = null;
+
+        const formAccetta = ref({ durata_giorni: 30, note: '' });
+        const formRestituzione = ref({ note: '' });
+        const formProroga = ref({ giorni_aggiuntivi: 15 });
+
+        // Toast feedback
+        const addToast = (title, message, type = 'info') => {
+          const id = Date.now() + Math.random();
+          toasts.value.push({ id, title, message, type });
+          setTimeout(() => removeToast(id), 5000);
+        };
+
+        const removeToast = (id) => {
+          toasts.value = toasts.value.filter(t => t.id !== id);
+        };
+
+        // Conteggi per Tab
+        const countRicevuti = computed(() => prestiti.value.filter(p => p.ruolo === 'RICHIEDENTE').length);
+        const countConcessi = computed(() => prestiti.value.filter(p => p.ruolo === 'PROPRIETARIO').length);
+
+        // Prestiti filtrati per Ruolo, Stato e Ricerca
+        const prestitiFiltrati = computed(() => {
+          let list = prestiti.value.filter(p => p.ruolo === tabRuolo.value);
+
+          if (statoSelezionato.value !== 'TUTTI') {
+            if (statoSelezionato.value === 'CONCLUSI') {
+              list = list.filter(p => ['RESTITUITO', 'RIFIUTATA', 'ANNULLATA'].includes(p.stato));
+            } else {
+              list = list.filter(p => p.stato === statoSelezionato.value);
+            }
+          }
+
+          if (filtroRicerca.value.trim()) {
+            const q = filtroRicerca.value.toLowerCase().trim();
+            list = list.filter(p => {
+              const matchBook = (p.libro_titolo && p.libro_titolo.toLowerCase().includes(q)) ||
+                                (p.libro_autore && p.libro_autore.toLowerCase().includes(q));
+              const partner = `${p.partner_nome || ''} ${p.partner_cognome_iniziale || ''}`.toLowerCase();
+              return matchBook || partner.includes(q);
+            });
+          }
+
+          return list;
+        });
+
+        // Caricamento Prestiti e Metriche da API
+        const caricaDatiPrestiti = async () => {
+          loading.value = true;
+          try {
+            const [resPrestiti, resMetriche] = await Promise.all([
+              window.apiClient.get('/prestiti'),
+              window.apiClient.get('/prestiti/metriche')
+            ]);
+
+            if (resPrestiti.data && resPrestiti.data.success && Array.isArray(resPrestiti.data.data)) {
+              prestiti.value = resPrestiti.data.data;
+            }
+            if (resMetriche.data && resMetriche.data.success && resMetriche.data.data) {
+              metriche.value = resMetriche.data.data;
+            }
+          } catch (err) {
+            addToast('Errore', 'Impossibile recuperare i dati dei prestiti.', 'danger');
+          } finally {
+            loading.value = false;
+          }
+        };
+
+        // Calcola la data futura di scadenza per l'anteprima nel form di accettazione
+        const calcolaDataScadenzaAnteprima = (giorni) => {
+          const d = new Date();
+          d.setDate(d.getDate() + parseInt(giorni, 10));
+          return d.toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit', year: 'numeric' });
+        };
+
+        // Apertura Modale Accettazione
+        const apriModaleAccettazione = (p) => {
+          prestitoSelezionato.value = p;
+          formAccetta.value.durata_giorni = p.durata_giorni || 30;
+          formAccetta.value.note = '';
+
+          if (!bsModalAccetta) {
+            const el = document.getElementById('modalAccettaPrestito');
+            if (el) bsModalAccetta = new bootstrap.Modal(el);
+          }
+          if (bsModalAccetta) bsModalAccetta.show();
+        };
+
+        // Esecuzione Accettazione Prestito
+        const eseguiAccettazione = async () => {
+          if (!prestitoSelezionato.value) return;
+          azioneInCorso.value = true;
+          try {
+            const res = await window.apiClient.patch(`/prestiti/${prestitoSelezionato.value.id}/accetta`, {
+              durata_giorni: formAccetta.value.durata_giorni,
+              note: formAccetta.value.note
+            });
+
+            if (res.data && res.data.success) {
+              addToast('Prestito Accettato', 'Il volume è ora in prestito e la sua disponibilità è aggiornata.', 'success');
+              if (bsModalAccetta) bsModalAccetta.hide();
+              await caricaDatiPrestiti();
+            }
+          } catch (err) {
+            const msg = (err.response && err.response.data && err.response.data.message) || 'Impossibile accettare il prestito.';
+            addToast('Errore', msg, 'danger');
+          } finally {
+            azioneInCorso.value = false;
+          }
+        };
+
+        // Rifiuto Prestito
+        const apriModaleRifiuto = async (p) => {
+          if (!confirm(`Sei sicuro di voler rifiutare la richiesta di prestito per "${p.libro_titolo}"?`)) return;
+          try {
+            await window.apiClient.patch(`/prestiti/${p.id}/rifiuta`, { motivo: 'Rifiutata dal proprietario.' });
+            addToast('Richiesta Declinata', 'La richiesta di prestito è stata respinta.', 'info');
+            await caricaDatiPrestiti();
+          } catch (e) {
+            addToast('Errore', 'Impossibile rifiutare la richiesta.', 'danger');
+          }
+        };
+
+        // Annullamento Richiesta (Richiedente)
+        const eseguiAnnullamento = async (p) => {
+          if (!confirm(`Vuoi revocare la tua richiesta di prestito per "${p.libro_titolo}"?`)) return;
+          try {
+            await window.apiClient.patch(`/prestiti/${p.id}/annulla`);
+            addToast('Richiesta Annullata', 'La tua richiesta è stata ritirata con successo.', 'info');
+            await caricaDatiPrestiti();
+          } catch (e) {
+            addToast('Errore', 'Impossibile annullare la richiesta.', 'danger');
+          }
+        };
+
+        // Apertura Modale Restituzione
+        const apriModaleRestituzione = (p) => {
+          prestitoSelezionato.value = p;
+          formRestituzione.value.note = '';
+
+          if (!bsModalRestituzione) {
+            const el = document.getElementById('modalRestituzione');
+            if (el) bsModalRestituzione = new bootstrap.Modal(el);
+          }
+          if (bsModalRestituzione) bsModalRestituzione.show();
+        };
+
+        // Esecuzione Restituzione
+        const eseguiRestituzione = async () => {
+          if (!prestitoSelezionato.value) return;
+          azioneInCorso.value = true;
+          try {
+            const res = await window.apiClient.patch(`/prestiti/${prestitoSelezionato.value.id}/restituisci`, {
+              note: formRestituzione.value.note
+            });
+
+            if (res.data && res.data.success) {
+              addToast('Restituzione Conclusa', 'Il volume è tornato disponibile per nuovi scambi.', 'success');
+              if (bsModalRestituzione) bsModalRestituzione.hide();
+              await caricaDatiPrestiti();
+            }
+          } catch (err) {
+            const msg = (err.response && err.response.data && err.response.data.message) || 'Impossibile registrare la restituzione.';
+            addToast('Errore', msg, 'danger');
+          } finally {
+            azioneInCorso.value = false;
+          }
+        };
+
+        // Apertura Modale Proroga
+        const apriModaleProroga = (p) => {
+          prestitoSelezionato.value = p;
+          formProroga.value.giorni_aggiuntivi = 15;
+
+          if (!bsModalProroga) {
+            const el = document.getElementById('modalProroga');
+            if (el) bsModalProroga = new bootstrap.Modal(el);
+          }
+          if (bsModalProroga) bsModalProroga.show();
+        };
+
+        // Esecuzione Proroga
+        const eseguiProroga = async () => {
+          if (!prestitoSelezionato.value) return;
+          azioneInCorso.value = true;
+          try {
+            const res = await window.apiClient.patch(`/prestiti/${prestitoSelezionato.value.id}/proroga`, {
+              giorni_aggiuntivi: formProroga.value.giorni_aggiuntivi
+            });
+
+            if (res.data && res.data.success) {
+              addToast('Proroga Applicata', 'La data di scadenza del prestito è stata estesa con successo.', 'success');
+              if (bsModalProroga) bsModalProroga.hide();
+              await caricaDatiPrestiti();
+            }
+          } catch (err) {
+            const msg = (err.response && err.response.data && err.response.data.message) || 'Impossibile applicare la proroga.';
+            addToast('Errore', msg, 'danger');
+          } finally {
+            azioneInCorso.value = false;
+          }
+        };
+
+        // Formattatori
+        const formatStato = (stato) => {
+          const map = {
+            'IN_ATTESA': 'In Attesa',
+            'IN_PRESTITO': 'In Prestito',
+            'RESTITUITO': 'Restituito',
+            'RIFIUTATA': 'Rifiutata',
+            'ANNULLATA': 'Annullata'
+          };
+          return map[stato] || stato;
+        };
+
+        const formatDataBreve = (d) => {
+          if (!d) return '-';
+          return new Date(d).toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit', year: 'numeric' });
+        };
+
+        // Montaggio dell'applicazione
+        onMounted(async () => {
+          if (!window.auth.requireAuth('login.html')) return;
+          user.value = window.auth.getUser();
+
+          // Controlla query param ?ruolo=... o ?id=...
+          const params = new URLSearchParams(window.location.search);
+          if (params.get('ruolo') === 'proprietario') {
+            tabRuolo.value = 'PROPRIETARIO';
+          }
+
+          await caricaDatiPrestiti();
+
+          const targetId = params.get('id');
+          if (targetId) {
+            const targetPrestito = prestiti.value.find(p => p.id === targetId);
+            if (targetPrestito) {
+              tabRuolo.value = targetPrestito.ruolo;
+              statoSelezionato.value = 'TUTTI';
+              setTimeout(() => {
+                const el = document.getElementById('prestito-' + targetId);
+                if (el) {
+                  el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                  el.classList.add('border-primary', 'shadow-lg');
+                  setTimeout(() => el.classList.remove('shadow-lg'), 3000);
+                }
+              }, 250);
+            }
+          }
+        });
+
+        return {
+          user,
+          toasts,
+          loading,
+          azioneInCorso,
+          prestiti,
+          metriche,
+          tabRuolo,
+          filtroRicerca,
+          statoSelezionato,
+          filtriStato,
+          countRicevuti,
+          countConcessi,
+          prestitiFiltrati,
+          prestitoSelezionato,
+          formAccetta,
+          formRestituzione,
+          formProroga,
+          caricaDatiPrestiti,
+          calcolaDataScadenzaAnteprima,
+          apriModaleAccettazione,
+          eseguiAccettazione,
+          apriModaleRifiuto,
+          eseguiAnnullamento,
+          apriModaleRestituzione,
+          eseguiRestituzione,
+          apriModaleProroga,
+          eseguiProroga,
+          formatStato,
+          formatDataBreve,
+          removeToast
+        };
+      }
+    });
+
+    window.HermaeComponents.registerGlobalComponents(app);
+    app.mount('#app');
+  </script>
+</body>
+</html>

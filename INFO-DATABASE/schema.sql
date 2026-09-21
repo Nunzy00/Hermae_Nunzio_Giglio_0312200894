@@ -96,7 +96,7 @@ CREATE TABLE IF NOT EXISTS esemplari (
 );
 
 -- 5. Creazione Tabella RICHIESTE_PRESTITO
--- Gestione transazionale peer-to-peer con macchina a stati finiti
+-- Gestione transazionale peer-to-peer con macchina a stati finiti e tracking temporale (Fase 22 & 23)
 CREATE TABLE IF NOT EXISTS richieste_prestito (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     esemplare_id UUID NOT NULL REFERENCES esemplari(id) ON DELETE CASCADE,
@@ -104,6 +104,11 @@ CREATE TABLE IF NOT EXISTS richieste_prestito (
     proprietario_id UUID NOT NULL REFERENCES utenti(id) ON DELETE CASCADE,
     stato VARCHAR(30) NOT NULL DEFAULT 'IN_ATTESA',
     messaggio_iniziale TEXT,
+    durata_giorni INTEGER NOT NULL DEFAULT 30,
+    data_inizio TIMESTAMP NULL,
+    data_scadenza TIMESTAMP NULL,
+    data_restituzione TIMESTAMP NULL,
+    note_restituzione TEXT NULL,
     data_richiesta TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     data_aggiornamento TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
@@ -161,8 +166,10 @@ CREATE INDEX IF NOT EXISTS idx_esemplari_categoria ON esemplari (categoria_id);
 CREATE INDEX IF NOT EXISTS idx_esemplari_sottogenere ON esemplari (sottogenere);
 CREATE INDEX IF NOT EXISTS idx_esemplari_visibile_pubblico ON esemplari (visibile_pubblico);
 CREATE INDEX IF NOT EXISTS idx_richieste_esemplare ON richieste_prestito (esemplare_id);
+CREATE INDEX IF NOT EXISTS idx_richieste_esemplare_stato ON richieste_prestito (esemplare_id, stato);
 CREATE INDEX IF NOT EXISTS idx_richieste_richiedente ON richieste_prestito (richiedente_id);
 CREATE INDEX IF NOT EXISTS idx_richieste_proprietario ON richieste_prestito (proprietario_id);
+CREATE INDEX IF NOT EXISTS idx_richieste_data_scadenza ON richieste_prestito (data_scadenza);
 CREATE INDEX IF NOT EXISTS idx_chat_richiesta ON messaggi_chat (richiesta_id);
 CREATE INDEX IF NOT EXISTS idx_notifiche_utente ON notifiche (utente_id);
 CREATE INDEX IF NOT EXISTS idx_notifiche_letta ON notifiche (utente_id, letta);

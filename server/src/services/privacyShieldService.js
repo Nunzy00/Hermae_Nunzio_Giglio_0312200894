@@ -80,11 +80,11 @@ const checkRateLimit = (utenteId, maxRichieste = 5, finestraMinuti = 15) => {
     const oldestTimestamp = timestamps[0];
     const msToWait = windowMs - (now - oldestTimestamp);
     const secondiAttesa = Math.ceil(msToWait / 1000);
-    return { consentito: false, secondiAttesa };
+    return { consentito: false, allowed: false, secondiAttesa, waitSeconds: secondiAttesa };
   }
 
   timestamps.push(now);
-  return { consentito: true, secondiAttesa: 0 };
+  return { consentito: true, allowed: true, secondiAttesa: 0, waitSeconds: 0 };
 };
 
 /**

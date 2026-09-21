@@ -17,8 +17,11 @@ const isValidUUID = (str) => {
  * @param {string} params.titolo - Titolo breve
  * @param {string} params.messaggio - Contenuto descrittivo
  */
-const creaNotifica = async ({ utente_id, richiesta_id = null, tipo, titolo, messaggio }) => {
-  if (!isValidUUID(utente_id)) {
+const creaNotifica = async ({ utente_id, utenteId, richiesta_id = null, richiestaId = null, tipo, titolo, messaggio }) => {
+  const targetUtenteId = utente_id || utenteId;
+  const targetRichiestaId = richiesta_id || richiestaId;
+
+  if (!isValidUUID(targetUtenteId)) {
     throw new Error('Identificativo utente non valido per la notifica');
   }
 
@@ -28,7 +31,7 @@ const creaNotifica = async ({ utente_id, richiesta_id = null, tipo, titolo, mess
     RETURNING id, utente_id, richiesta_id, tipo, titolo, messaggio, letta, data_creazione
   `;
 
-  const { rows } = await db.query(query, [utente_id, richiesta_id, tipo, titolo, messaggio]);
+  const { rows } = await db.query(query, [targetUtenteId, targetRichiestaId, tipo, titolo, messaggio]);
   return rows[0];
 };
 
