@@ -17,7 +17,7 @@ const NavbarGuest = {
       <nav class="navbar navbar-expand-lg navbar-hermae" aria-label="Navigazione principale visitatori">
         <div class="container">
           <a class="navbar-brand d-flex align-items-center gap-2" href="login.html" aria-label="Torna alla schermata di accesso Hermae">
-            <img src="assets/img/logo.svg" alt="Logo Hermae Sharing Culturale" height="38" />
+            <img src="assets/img/logo.svg" alt="Logo Hermae — Il sapere, un libro alla volta" height="38" />
           </a>
           <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navGuestContent" aria-controls="navGuestContent" aria-expanded="false" aria-label="Espandi menu di navigazione">
             <span class="navbar-toggler-icon"></span>
@@ -82,7 +82,7 @@ const NavbarLogged = {
       <nav class="navbar navbar-expand-lg navbar-hermae sticky-top" aria-label="Navigazione principale riservata">
         <div class="container-fluid px-lg-4">
           <a class="navbar-brand d-flex align-items-center gap-2" href="dashboard.html" aria-label="Hermae Dashboard">
-            <img src="assets/img/logo.svg" alt="Logo Hermae" height="36" />
+            <img src="assets/img/logo.svg" alt="Logo Hermae — Il sapere, un libro alla volta" height="36" />
           </a>
 
           <!-- Controlli a destra: Account Utente affiancato all'icona burger su mobile -->

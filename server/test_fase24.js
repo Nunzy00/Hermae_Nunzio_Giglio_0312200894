@@ -1,5 +1,5 @@
 /**
- * TEST SUITE FASE 24 — HERMAE SHARING CULTURALE
+ * TEST SUITE FASE 24 — HERMAE — IL SAPERE, UN LIBRO ALLA VOLTA
  * Progetto: Hermae — Candidato: Nunzio Giglio (Matr. 0312200894)
  * 
  * Verifica end-to-end delle funzionalità "Analytics" per l'utente:
