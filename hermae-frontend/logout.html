@@ -17,6 +17,13 @@
 
   <!-- Stile personalizzato e Design System Hermae (WCAG 2.1 AA) -->
   <link rel="stylesheet" href="assets/css/main.css" />
+  <!-- PWA & Mobile Meta Tags -->
+  <link rel="manifest" href="manifest.json" />
+  <meta name="theme-color" content="#1e3a8a" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Hermae" />
+  <link rel="apple-touch-icon" href="assets/img/apple-touch-icon.png" />
 </head>
 <body>
   <div id="app" class="d-flex flex-column min-vh-100">
@@ -102,5 +109,6 @@
     window.HermaeComponents.registerGlobalComponents(app);
     app.mount('#app');
   </script>
+  <script src="assets/js/pwa.js"></script>
 </body>
 </html>

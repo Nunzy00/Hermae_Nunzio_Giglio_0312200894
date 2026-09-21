@@ -1,0 +1,94 @@
+{
+  "name": "Hermae — Il sapere, un libro alla volta",
+  "short_name": "Hermae",
+  "description": "Piattaforma di geolocalizzazione culturale per condividere il patrimonio librario degli utenti privati",
+  "start_url": "/dashboard.html",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#0f172a",
+  "theme_color": "#1e3a8a",
+  "lang": "it-IT",
+  "dir": "ltr",
+  "categories": [
+    "books",
+    "education",
+    "lifestyle"
+  ],
+  "icons": [
+    {
+      "src": "assets/img/icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "assets/img/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "assets/img/icon-maskable-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "assets/img/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "La Mia Libreria",
+      "short_name": "Libreria",
+      "description": "Accedi al tuo catalogo personale di libri",
+      "url": "/libreria.html",
+      "icons": [
+        {
+          "src": "assets/img/icon-192x192.png",
+          "sizes": "192x192"
+        }
+      ]
+    },
+    {
+      "name": "Mappa & Ricerca",
+      "short_name": "Cerca",
+      "description": "Esplora i libri disponibili nei dintorni sulla mappa",
+      "url": "/ricerca.html",
+      "icons": [
+        {
+          "src": "assets/img/icon-192x192.png",
+          "sizes": "192x192"
+        }
+      ]
+    },
+    {
+      "name": "I Miei Prestiti",
+      "short_name": "Prestiti",
+      "description": "Monitora lo stato di avanzamento delle letture e scambi",
+      "url": "/attivita.html",
+      "icons": [
+        {
+          "src": "assets/img/icon-192x192.png",
+          "sizes": "192x192"
+        }
+      ]
+    },
+    {
+      "name": "Messaggi & Chat",
+      "short_name": "Chat",
+      "description": "Apri il centro comunicazioni e scambi",
+      "url": "/chat.html",
+      "icons": [
+        {
+          "src": "assets/img/icon-192x192.png",
+          "sizes": "192x192"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512" role="img" aria-label="Icona Hermae">
+  <defs>
+    <!-- Gradiente di sfondo brand -->
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0f172a" />
+      <stop offset="50%" stop-color="#1e3a8a" />
+      <stop offset="100%" stop-color="#0369a1" />
+    </linearGradient>
+    
+    <!-- Gradiente pagine libro -->
+    <linearGradient id="bookGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff" />
+      <stop offset="100%" stop-color="#e2e8f0" />
+    </linearGradient>
+
+    <!-- Gradiente pin geolocalizzazione -->
+    <linearGradient id="pinGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fbbf24" />
+      <stop offset="100%" stop-color="#d97706" />
+    </linearGradient>
+
+    <!-- Ombra morbida icona -->
+    <filter id="dropShadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="16" stdDeviation="20" flood-color="#000000" flood-opacity="0.4" />
+    </filter>
+  </defs>
+
+  <!-- Sfondo dell'icona PWA -->
+  <rect width="512" height="512" rx="112" fill="url(#bgGrad)" />
+
+  <!-- Gruppo centrale scalato e centrato (safe zone per maskable icon) -->
+  <g transform="translate(256, 256) scale(6.2) translate(-24, -20)" filter="url(#dropShadow)">
+    <!-- Base libro / pagine aperte -->
+    <path d="M 4 36 C 14 30, 24 32, 24 16 C 24 32, 34 30, 44 36 L 44 14 C 34 8, 24 10, 24 2 C 24 10, 14 8, 4 14 Z" fill="url(#bookGrad)" />
+    <!-- Linea dorsale libro -->
+    <path d="M 24 2 L 24 16" stroke="#94a3b8" stroke-width="0.8" stroke-linecap="round" />
+    <!-- Pin di geolocalizzazione centrale -->
+    <path d="M 24 4 C 20.7 4 18 6.7 18 10 C 18 14.5 24 22 24 22 C 24 22 30 14.5 30 10 C 30 6.7 27.3 4 24 4 Z" fill="url(#pinGrad)" />
+    <!-- Punto centrale del pin -->
+    <circle cx="24" cy="10" r="2.4" fill="#ffffff" />
+  </g>
+</svg>

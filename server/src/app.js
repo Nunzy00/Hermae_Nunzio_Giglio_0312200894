@@ -21,6 +21,18 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 // Espone la cartella uploads come directory statica per erogare le copertine WebP salvate
 app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
+// Configura header ottimali per PWA (Service-Worker-Allowed e corretti MIME type)
+app.use((req, res, next) => {
+  if (req.path === '/service-worker.js') {
+    res.setHeader('Service-Worker-Allowed', '/');
+    res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+    res.setHeader('Content-Type', 'application/javascript; charset=utf-8');
+  } else if (req.path === '/manifest.json') {
+    res.setHeader('Content-Type', 'application/manifest+json; charset=utf-8');
+  }
+  next();
+});
+
 // Espone i file statici del front-end per consentire l'accesso diretto via browser all'applicazione
 app.use(express.static(path.join(__dirname, '../../hermae-frontend')));
 

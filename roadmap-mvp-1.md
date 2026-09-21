@@ -7,7 +7,7 @@
 
 ---
 
-## 1. Tabella Riepilogativa delle Fasi Eseguite (Fasi 1 – 25)
+## 1. Tabella Riepilogativa delle Fasi Eseguite (Fasi 1 – 26)
 
 | Fase | Titolo e Obiettivo | Tempo Stimato | Tempo Effettivo | Documento / Deliverable Prodotto | Stato |
 | :---: | :--- | :---: | :---: | :--- | :---: |
@@ -36,7 +36,8 @@
 | **Fase 23** | Implementazione della funzione “Prestito” di un testo tra gli utenti | 2 h 30 min | 2 h | [`SVILUPPO-PROGRAMMA/fase-23.md`](file:///Users/nunziogiglio/Documents/Github/Repositories/Hermae_Nunzio_Giglio_0312200894/SVILUPPO-PROGRAMMA/fase-23.md) & [`hermae-frontend/attivita.html`](file:///Users/nunziogiglio/Documents/Github/Repositories/Hermae_Nunzio_Giglio_0312200894/hermae-frontend/attivita.html) | **Completata** |
 | **Fase 24** | Implementazione delle funzionalità “Analytics” per l’utente | 2 h | 1 h 30 min | [`SVILUPPO-PROGRAMMA/fase-24.md`](file:///Users/nunziogiglio/Documents/Github/Repositories/Hermae_Nunzio_Giglio_0312200894/SVILUPPO-PROGRAMMA/fase-24.md) & [`hermae-frontend/dashboard.html`](file:///Users/nunziogiglio/Documents/Github/Repositories/Hermae_Nunzio_Giglio_0312200894/hermae-frontend/dashboard.html) | **Completata** |
 | **Fase 25** | Implementazione CMP (Consent Management Platform) | 2 h | 1 h | [`SVILUPPO-PROGRAMMA/fase-25.md`](file:///Users/nunziogiglio/Documents/Github/Repositories/Hermae_Nunzio_Giglio_0312200894/SVILUPPO-PROGRAMMA/fase-25.md) & [`hermae-frontend/assets/js/cmp.js`](file:///Users/nunziogiglio/Documents/Github/Repositories/Hermae_Nunzio_Giglio_0312200894/hermae-frontend/assets/js/cmp.js) | **Completata** |
-| **TOTALE** | **Avanzamento Fasi di Progettazione, Database, Backend e Front-end** | **48 h 00 min** | **26 h 10 min** | **28 Deliverable Consolidati** | **Fasi 1–25 Completate** |
+| **Fase 26** | Implementazione PWA | 2 h | 1 h 15 min | [`SVILUPPO-PROGRAMMA/fase-26.md`](file:///Users/nunziogiglio/Documents/Github/Repositories/Hermae_Nunzio_Giglio_0312200894/SVILUPPO-PROGRAMMA/fase-26.md) & [`hermae-frontend/manifest.json`](file:///Users/nunziogiglio/Documents/Github/Repositories/Hermae_Nunzio_Giglio_0312200894/hermae-frontend/manifest.json) | **Completata** |
+| **TOTALE** | **Avanzamento Fasi di Progettazione, Database, Backend e Front-end** | **50 h 00 min** | **27 h 25 min** | **29 Deliverable Consolidati** | **Fasi 1–26 Completate** |
 
 ---
 
@@ -257,3 +258,11 @@
 - **Descrizione:** Implementazione di un sistema di Consent Management Platform ad hoc per i dati raccolti dal programma ed eventuali servizi terzi.  
   Documenti di riferimento: [`SVILUPPO-PROGRAMMA/fase-25.md`](file:///Users/nunziogiglio/Documents/Github/Repositories/Hermae_Nunzio_Giglio_0312200894/SVILUPPO-PROGRAMMA/fase-25.md), [`INFO-DATABASE/schema.sql`](file:///Users/nunziogiglio/Documents/Github/Repositories/Hermae_Nunzio_Giglio_0312200894/INFO-DATABASE/schema.sql), [`hermae-frontend/assets/js/cmp.js`](file:///Users/nunziogiglio/Documents/Github/Repositories/Hermae_Nunzio_Giglio_0312200894/hermae-frontend/assets/js/cmp.js) e [`hermae-frontend/impostazioni.html`](file:///Users/nunziogiglio/Documents/Github/Repositories/Hermae_Nunzio_Giglio_0312200894/hermae-frontend/impostazioni.html).
 - **Difficoltà riscontrate:** Nessuna difficoltà riscontrata.
+
+---
+
+### Fase 26 – Implementazione PWA
+- **Tempo stimato:** 2 ore | **Tempo effettivo:** 1 ora e 15 minuti (1 h 15 min)
+- **Descrizione:** L'applicazione web è stata trasformata in Progressive Web App (PWA) mediante la creazione del manifest.json, la configurazione di un Service Worker dedicato al caching delle risorse statiche e la predisposizione per l'installazione su dispositivi mobili e desktop.  
+  Documenti di riferimento: [`SVILUPPO-PROGRAMMA/fase-26.md`](file:///Users/nunziogiglio/Documents/Github/Repositories/Hermae_Nunzio_Giglio_0312200894/SVILUPPO-PROGRAMMA/fase-26.md), [`hermae-frontend/manifest.json`](file:///Users/nunziogiglio/Documents/Github/Repositories/Hermae_Nunzio_Giglio_0312200894/hermae-frontend/manifest.json), [`hermae-frontend/service-worker.js`](file:///Users/nunziogiglio/Documents/Github/Repositories/Hermae_Nunzio_Giglio_0312200894/hermae-frontend/service-worker.js) e [`hermae-frontend/offline.html`](file:///Users/nunziogiglio/Documents/Github/Repositories/Hermae_Nunzio_Giglio_0312200894/hermae-frontend/offline.html).
+- **Difficoltà riscontrate:** Scelta della strategia di caching più idonea (Network First vs Cache First) per bilanciare la disponibilità offline con l'aggiornamento costante dei dati dinamici.
